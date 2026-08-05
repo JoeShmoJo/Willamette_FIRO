@@ -1,0 +1,1 @@
+This folder houses script inputs. Individual files should not exceed 50 mb. Watch git commit warnings about size.

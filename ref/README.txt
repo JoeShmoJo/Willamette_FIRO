@@ -1,0 +1,1 @@
+This folder houses reference material that doesn't logically live somewhere else.

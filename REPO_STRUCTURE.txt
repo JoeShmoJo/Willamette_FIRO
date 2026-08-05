@@ -1,0 +1,14 @@
+REPO STRUCTURE
+
+config: For configuration files, preferably .csv, .py. Use xlsx as a last resort.
+
+data: For data inputs, less than ~50mb per file preferred. store large data outside repository. 
+
+out: For script output. This can (and should) have sub folders. timestamped output is usually a good idea.
+
+src: For .py script files (source code). All paths used in code should be relative to this folder.
+
+modules: For .py files that house functions that are imported into other scripts.
+
+ref: For reference info and documentation that doesn't have a good home in a script. 
+
