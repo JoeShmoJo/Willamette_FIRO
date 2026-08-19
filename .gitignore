@@ -1,3 +1,9 @@
+#Specific folders with ResSim output (too big for git)
+data/ressim_output/
+
+#Don't output plots/tables (too big for git)
+out/
+
 # ---> Python
 
 # Byte-compiled / optimized / DLL files

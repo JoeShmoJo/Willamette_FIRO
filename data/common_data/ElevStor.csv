@@ -1,0 +1,2569 @@
+Reservoir,Elev,Stor
+Big Cliff,1106.0,1000000.0
+Big Cliff,1108.0,1000002.0
+Big Cliff,1110.0,1000004.0
+Big Cliff,1111.0,1000007.0
+Big Cliff,1112.0,1000011.0
+Big Cliff,1113.0,1000016.0
+Big Cliff,1114.0,1000021.0
+Big Cliff,1115.0,1000027.0
+Big Cliff,1116.0,1000034.0
+Big Cliff,1117.0,1000042.0
+Big Cliff,1118.0,1000051.0
+Big Cliff,1119.0,1000060.0
+Big Cliff,1120.0,1000071.0
+Big Cliff,1121.0,1000082.0
+Big Cliff,1122.0,1000093.0
+Big Cliff,1123.0,1000105.0
+Big Cliff,1124.0,1000118.0
+Big Cliff,1125.0,1000132.0
+Big Cliff,1126.0,1000146.0
+Big Cliff,1127.0,1000162.0
+Big Cliff,1128.0,1000178.0
+Big Cliff,1129.0,1000196.0
+Big Cliff,1130.0,1000214.0
+Big Cliff,1131.0,1000233.0
+Big Cliff,1132.0,1000252.0
+Big Cliff,1133.0,1000272.0
+Big Cliff,1134.0,1000293.0
+Big Cliff,1135.0,1000314.0
+Big Cliff,1136.0,1000337.0
+Big Cliff,1137.0,1000359.0
+Big Cliff,1138.0,1000383.0
+Big Cliff,1139.0,1000408.0
+Big Cliff,1140.0,1000433.0
+Big Cliff,1141.0,1000459.0
+Big Cliff,1142.0,1000486.0
+Big Cliff,1143.0,1000513.0
+Big Cliff,1144.0,1000541.0
+Big Cliff,1145.0,1000570.0
+Big Cliff,1146.0,1000600.0
+Big Cliff,1147.0,1000631.0
+Big Cliff,1148.0,1000663.0
+Big Cliff,1149.0,1000696.0
+Big Cliff,1150.0,1000729.0
+Big Cliff,1151.0,1000763.0
+Big Cliff,1152.0,1000797.0
+Big Cliff,1153.0,1000833.0
+Big Cliff,1154.0,1000870.0
+Big Cliff,1155.0,1000907.0
+Big Cliff,1156.0,1000945.0
+Big Cliff,1157.0,1000984.0
+Big Cliff,1158.0,1001025.0
+Big Cliff,1159.0,1001066.0
+Big Cliff,1160.0,1001108.0
+Big Cliff,1161.0,1001151.0
+Big Cliff,1162.0,1001195.0
+Big Cliff,1163.0,1001240.0
+Big Cliff,1164.0,1001285.0
+Big Cliff,1165.0,1001332.0
+Big Cliff,1166.0,1001380.0
+Big Cliff,1167.0,1001429.0
+Big Cliff,1168.0,1001479.0
+Big Cliff,1169.0,1001530.0
+Big Cliff,1170.0,1001582.0
+Big Cliff,1171.0,1001635.0
+Big Cliff,1172.0,1001689.0
+Big Cliff,1173.0,1001745.0
+Big Cliff,1174.0,1001803.0
+Big Cliff,1175.0,1001861.0
+Big Cliff,1176.0,1001922.0
+Big Cliff,1177.0,1001984.0
+Big Cliff,1178.0,1002047.0
+Big Cliff,1179.0,1002112.0
+Big Cliff,1180.0,1002179.0
+Big Cliff,1181.0,1002247.0
+Big Cliff,1182.0,1002318.0
+Big Cliff,1183.0,1002390.0
+Big Cliff,1184.0,1002465.0
+Big Cliff,1185.0,1002543.0
+Big Cliff,1186.0,1002622.0
+Big Cliff,1187.0,1002704.0
+Big Cliff,1188.0,1002788.0
+Big Cliff,1189.0,1002875.0
+Big Cliff,1190.0,1002964.0
+Big Cliff,1191.0,1003056.0
+Big Cliff,1192.0,1003150.0
+Big Cliff,1193.0,1003246.0
+Big Cliff,1194.0,1003345.0
+Big Cliff,1195.0,1003447.0
+Big Cliff,1196.0,1003552.0
+Big Cliff,1197.0,1003659.0
+Big Cliff,1198.0,1003768.0
+Big Cliff,1199.0,1003881.0
+Big Cliff,1200.0,1003996.0
+Big Cliff,1201.0,1004114.0
+Big Cliff,1202.0,1004234.0
+Big Cliff,1203.0,1004356.0
+Big Cliff,1204.0,1004481.0
+Big Cliff,1205.0,1004608.0
+Big Cliff,1206.0,1004738.0
+Big Cliff,1207.0,1004870.0
+Big Cliff,1208.0,1005004.0
+Big Cliff,1209.0,1005141.0
+Big Cliff,1210.0,1005280.0
+Detroit,1200.0,6.0
+Detroit,1201.0,11.0
+Detroit,1202.0,17.0
+Detroit,1203.0,23.0
+Detroit,1204.0,29.0
+Detroit,1205.0,36.0
+Detroit,1206.0,43.0
+Detroit,1207.0,51.0
+Detroit,1208.0,59.0
+Detroit,1209.0,67.0
+Detroit,1210.0,77.0
+Detroit,1211.0,86.0
+Detroit,1212.0,96.0
+Detroit,1213.0,107.0
+Detroit,1214.0,118.0
+Detroit,1215.0,130.0
+Detroit,1216.0,142.0
+Detroit,1217.0,155.0
+Detroit,1218.0,168.0
+Detroit,1219.0,182.0
+Detroit,1220.0,197.0
+Detroit,1221.0,212.0
+Detroit,1222.0,229.0
+Detroit,1223.0,246.0
+Detroit,1224.0,264.0
+Detroit,1225.0,284.0
+Detroit,1226.0,304.0
+Detroit,1227.0,325.0
+Detroit,1228.0,348.0
+Detroit,1229.0,371.0
+Detroit,1230.0,396.0
+Detroit,1231.0,422.0
+Detroit,1232.0,449.0
+Detroit,1233.0,477.0
+Detroit,1234.0,506.0
+Detroit,1235.0,537.0
+Detroit,1236.0,569.0
+Detroit,1237.0,602.0
+Detroit,1238.0,637.0
+Detroit,1239.0,673.0
+Detroit,1240.0,710.0
+Detroit,1241.0,749.0
+Detroit,1242.0,790.0
+Detroit,1243.0,834.0
+Detroit,1244.0,880.0
+Detroit,1245.0,929.0
+Detroit,1246.0,980.0
+Detroit,1247.0,1034.0
+Detroit,1248.0,1090.0
+Detroit,1249.0,1149.0
+Detroit,1250.0,1211.0
+Detroit,1251.0,1276.0
+Detroit,1252.0,1343.0
+Detroit,1253.0,1414.0
+Detroit,1254.0,1488.0
+Detroit,1255.0,1564.0
+Detroit,1256.0,1644.0
+Detroit,1257.0,1727.0
+Detroit,1258.0,1814.0
+Detroit,1259.0,1904.0
+Detroit,1260.0,1997.0
+Detroit,1261.0,2094.0
+Detroit,1262.0,2196.0
+Detroit,1263.0,2303.0
+Detroit,1264.0,2414.0
+Detroit,1265.0,2530.0
+Detroit,1266.0,2652.0
+Detroit,1267.0,2778.0
+Detroit,1268.0,2910.0
+Detroit,1269.0,3047.0
+Detroit,1270.0,3189.0
+Detroit,1271.0,3337.0
+Detroit,1272.0,3491.0
+Detroit,1273.0,3650.0
+Detroit,1274.0,3815.0
+Detroit,1275.0,3987.0
+Detroit,1276.0,4164.0
+Detroit,1277.0,4347.0
+Detroit,1278.0,4537.0
+Detroit,1279.0,4733.0
+Detroit,1280.0,4936.0
+Detroit,1281.0,5145.0
+Detroit,1282.0,5360.0
+Detroit,1283.0,5581.0
+Detroit,1284.0,5808.0
+Detroit,1285.0,6041.0
+Detroit,1286.0,6281.0
+Detroit,1287.0,6527.0
+Detroit,1288.0,6779.0
+Detroit,1289.0,7038.0
+Detroit,1290.0,7303.0
+Detroit,1291.0,7576.0
+Detroit,1292.0,7855.0
+Detroit,1293.0,8141.0
+Detroit,1294.0,8433.0
+Detroit,1295.0,8733.0
+Detroit,1296.0,9040.0
+Detroit,1297.0,9354.0
+Detroit,1298.0,9676.0
+Detroit,1299.0,10000.0
+Detroit,1300.0,10350.0
+Detroit,1301.0,10700.0
+Detroit,1302.0,11000.0
+Detroit,1303.0,11400.0
+Detroit,1304.0,11800.0
+Detroit,1305.0,12100.0
+Detroit,1306.0,12500.0
+Detroit,1307.0,12900.0
+Detroit,1308.0,13300.0
+Detroit,1309.0,13700.0
+Detroit,1310.0,14100.0
+Detroit,1311.0,14500.0
+Detroit,1312.0,14900.0
+Detroit,1313.0,15300.0
+Detroit,1314.0,15700.0
+Detroit,1315.0,16200.0
+Detroit,1316.0,16600.0
+Detroit,1317.0,17100.0
+Detroit,1318.0,17500.0
+Detroit,1319.0,18000.0
+Detroit,1320.0,18500.0
+Detroit,1321.0,19000.0
+Detroit,1322.0,19400.0
+Detroit,1323.0,19900.0
+Detroit,1324.0,20400.0
+Detroit,1325.0,20900.0
+Detroit,1326.0,21400.0
+Detroit,1327.0,22000.0
+Detroit,1328.0,22500.0
+Detroit,1329.0,23000.0
+Detroit,1330.0,23500.0
+Detroit,1331.0,24100.0
+Detroit,1332.0,24600.0
+Detroit,1333.0,25200.0
+Detroit,1334.0,25700.0
+Detroit,1335.0,26300.0
+Detroit,1336.0,26900.0
+Detroit,1337.0,27500.0
+Detroit,1338.0,28000.0
+Detroit,1339.0,28600.0
+Detroit,1340.0,29200.0
+Detroit,1341.0,29800.0
+Detroit,1342.0,30500.0
+Detroit,1343.0,31100.0
+Detroit,1344.0,31700.0
+Detroit,1345.0,32400.0
+Detroit,1346.0,33000.0
+Detroit,1347.0,33700.0
+Detroit,1348.0,34400.0
+Detroit,1349.0,35100.0
+Detroit,1350.0,35800.0
+Detroit,1351.0,36500.0
+Detroit,1352.0,37200.0
+Detroit,1353.0,38000.0
+Detroit,1354.0,38700.0
+Detroit,1355.0,39500.0
+Detroit,1356.0,40300.0
+Detroit,1357.0,41000.0
+Detroit,1358.0,41800.0
+Detroit,1359.0,42600.0
+Detroit,1360.0,43500.0
+Detroit,1361.0,44300.0
+Detroit,1362.0,45100.0
+Detroit,1363.0,46000.0
+Detroit,1364.0,46800.0
+Detroit,1365.0,47700.0
+Detroit,1366.0,48600.0
+Detroit,1367.0,49400.0
+Detroit,1368.0,50300.0
+Detroit,1369.0,51200.0
+Detroit,1370.0,52100.0
+Detroit,1371.0,53000.0
+Detroit,1372.0,53900.0
+Detroit,1373.0,54900.0
+Detroit,1374.0,55800.0
+Detroit,1375.0,56700.0
+Detroit,1376.0,57700.0
+Detroit,1377.0,58600.0
+Detroit,1378.0,59600.0
+Detroit,1379.0,60600.0
+Detroit,1380.0,61500.0
+Detroit,1381.0,62500.0
+Detroit,1382.0,63500.0
+Detroit,1383.0,64500.0
+Detroit,1384.0,65500.0
+Detroit,1385.0,66600.0
+Detroit,1386.0,67600.0
+Detroit,1387.0,68600.0
+Detroit,1388.0,69700.0
+Detroit,1389.0,70700.0
+Detroit,1390.0,71800.0
+Detroit,1391.0,72900.0
+Detroit,1392.0,74000.0
+Detroit,1393.0,75000.0
+Detroit,1394.0,76100.0
+Detroit,1395.0,77300.0
+Detroit,1396.0,78400.0
+Detroit,1397.0,79500.0
+Detroit,1398.0,80600.0
+Detroit,1399.0,81800.0
+Detroit,1400.0,82900.0
+Detroit,1401.0,84100.0
+Detroit,1402.0,85300.0
+Detroit,1403.0,86400.0
+Detroit,1404.0,87600.0
+Detroit,1405.0,88800.0
+Detroit,1406.0,90100.0
+Detroit,1407.0,91300.0
+Detroit,1408.0,92500.0
+Detroit,1409.0,93700.0
+Detroit,1410.0,95000.0
+Detroit,1411.0,96200.0
+Detroit,1412.0,97500.0
+Detroit,1413.0,98800.0
+Detroit,1414.0,100100.0
+Detroit,1415.0,101400.0
+Detroit,1416.0,102700.0
+Detroit,1417.0,104000.0
+Detroit,1418.0,105300.0
+Detroit,1419.0,106700.0
+Detroit,1420.0,108000.0
+Detroit,1421.0,109400.0
+Detroit,1422.0,110800.0
+Detroit,1423.0,112100.0
+Detroit,1424.0,113500.0
+Detroit,1425.0,115000.0
+Detroit,1426.0,116400.0
+Detroit,1427.0,117800.0
+Detroit,1428.0,119300.0
+Detroit,1429.0,120700.0
+Detroit,1430.0,122200.0
+Detroit,1431.0,123700.0
+Detroit,1432.0,125200.0
+Detroit,1433.0,126700.0
+Detroit,1434.0,128200.0
+Detroit,1435.0,129800.0
+Detroit,1436.0,131300.0
+Detroit,1437.0,132900.0
+Detroit,1438.0,134500.0
+Detroit,1439.0,136100.0
+Detroit,1440.0,137700.0
+Detroit,1441.0,139300.0
+Detroit,1442.0,140900.0
+Detroit,1443.0,142600.0
+Detroit,1444.0,144200.0
+Detroit,1445.0,145900.0
+Detroit,1446.0,147600.0
+Detroit,1447.0,149300.0
+Detroit,1448.0,151000.0
+Detroit,1449.0,152700.0
+Detroit,1450.0,154400.0
+Detroit,1451.0,156100.0
+Detroit,1452.0,157900.0
+Detroit,1453.0,159600.0
+Detroit,1454.0,161400.0
+Detroit,1455.0,163200.0
+Detroit,1456.0,164900.0
+Detroit,1457.0,166800.0
+Detroit,1458.0,168600.0
+Detroit,1459.0,170400.0
+Detroit,1460.0,172200.0
+Detroit,1461.0,174100.0
+Detroit,1462.0,175900.0
+Detroit,1463.0,177800.0
+Detroit,1464.0,179700.0
+Detroit,1465.0,181600.0
+Detroit,1466.0,183400.0
+Detroit,1467.0,185300.0
+Detroit,1468.0,187300.0
+Detroit,1469.0,189200.0
+Detroit,1470.0,191100.0
+Detroit,1471.0,193000.0
+Detroit,1472.0,195000.0
+Detroit,1473.0,197000.0
+Detroit,1474.0,198900.0
+Detroit,1475.0,200900.0
+Detroit,1476.0,202900.0
+Detroit,1477.0,204900.0
+Detroit,1478.0,206900.0
+Detroit,1479.0,208900.0
+Detroit,1480.0,210900.0
+Detroit,1481.0,213000.0
+Detroit,1482.0,215000.0
+Detroit,1483.0,217100.0
+Detroit,1484.0,219200.0
+Detroit,1485.0,221300.0
+Detroit,1486.0,223400.0
+Detroit,1487.0,225500.0
+Detroit,1488.0,227700.0
+Detroit,1489.0,229800.0
+Detroit,1490.0,232000.0
+Detroit,1491.0,234200.0
+Detroit,1492.0,236400.0
+Detroit,1493.0,238600.0
+Detroit,1494.0,240800.0
+Detroit,1495.0,243100.0
+Detroit,1496.0,245400.0
+Detroit,1497.0,247700.0
+Detroit,1498.0,249900.0
+Detroit,1499.0,252300.0
+Detroit,1500.0,254600.0
+Detroit,1501.0,256900.0
+Detroit,1502.0,259300.0
+Detroit,1503.0,261700.0
+Detroit,1504.0,264100.0
+Detroit,1505.0,266500.0
+Detroit,1506.0,268900.0
+Detroit,1507.0,271300.0
+Detroit,1508.0,273800.0
+Detroit,1509.0,276200.0
+Detroit,1510.0,278700.0
+Detroit,1511.0,281200.0
+Detroit,1512.0,283700.0
+Detroit,1513.0,286300.0
+Detroit,1514.0,288800.0
+Detroit,1515.0,291300.0
+Detroit,1516.0,293900.0
+Detroit,1517.0,296500.0
+Detroit,1518.0,299100.0
+Detroit,1519.0,301700.0
+Detroit,1520.0,304400.0
+Detroit,1521.0,307000.0
+Detroit,1522.0,309700.0
+Detroit,1523.0,312400.0
+Detroit,1524.0,315100.0
+Detroit,1525.0,317800.0
+Detroit,1526.0,320500.0
+Detroit,1527.0,323200.0
+Detroit,1528.0,326000.0
+Detroit,1529.0,328800.0
+Detroit,1530.0,331500.0
+Detroit,1531.0,334300.0
+Detroit,1532.0,337200.0
+Detroit,1533.0,340000.0
+Detroit,1534.0,342800.0
+Detroit,1535.0,345700.0
+Detroit,1536.0,348600.0
+Detroit,1537.0,351500.0
+Detroit,1538.0,354400.0
+Detroit,1539.0,357300.0
+Detroit,1540.0,360200.0
+Detroit,1541.0,363200.0
+Detroit,1542.0,366200.0
+Detroit,1543.0,369200.0
+Detroit,1544.0,372200.0
+Detroit,1545.0,375300.0
+Detroit,1546.0,378400.0
+Detroit,1547.0,381500.0
+Detroit,1548.0,384600.0
+Detroit,1549.0,387700.0
+Detroit,1550.0,390900.0
+Detroit,1551.0,394100.0
+Detroit,1552.0,397300.0
+Detroit,1553.0,400600.0
+Detroit,1554.0,403800.0
+Detroit,1555.0,407100.0
+Detroit,1556.0,410400.0
+Detroit,1557.0,413800.0
+Detroit,1558.0,417200.0
+Detroit,1559.0,420500.0
+Detroit,1560.0,424000.0
+Detroit,1561.0,427400.0
+Detroit,1562.0,430800.0
+Detroit,1563.0,434300.0
+Detroit,1564.0,437700.0
+Detroit,1565.0,441200.0
+Detroit,1566.0,444700.0
+Detroit,1567.0,448100.0
+Detroit,1568.0,451600.0
+Detroit,1569.0,455100.0
+Detroit,1570.0,458600.0
+Detroit,1571.0,462100.0
+Detroit,1572.0,465600.0
+Detroit,1573.0,469100.0
+Detroit,1574.0,472600.0
+Detroit,1575.0,476200.0
+Detroit,1580.0,492000.0
+Foster,526.5,0.0
+Foster,530.0,16.0
+Foster,531.0,27.0
+Foster,532.0,41.0
+Foster,533.0,59.0
+Foster,534.0,80.0
+Foster,535.0,104.0
+Foster,536.0,133.0
+Foster,537.0,166.0
+Foster,538.0,204.0
+Foster,539.0,247.0
+Foster,540.0,295.0
+Foster,541.0,348.0
+Foster,542.0,406.0
+Foster,543.0,470.0
+Foster,544.0,538.0
+Foster,545.0,611.0
+Foster,546.0,691.0
+Foster,547.0,776.0
+Foster,548.0,867.0
+Foster,549.0,964.0
+Foster,550.0,1068.0
+Foster,551.0,1178.0
+Foster,552.0,1293.0
+Foster,553.0,1415.0
+Foster,554.0,1542.0
+Foster,555.0,1676.0
+Foster,556.0,1816.0
+Foster,557.0,1962.0
+Foster,558.0,2115.0
+Foster,559.0,2274.0
+Foster,560.0,2441.0
+Foster,561.0,2616.0
+Foster,562.0,2800.0
+Foster,563.0,2995.0
+Foster,564.0,3200.0
+Foster,565.0,3416.0
+Foster,566.0,3642.0
+Foster,567.0,3880.0
+Foster,568.0,4129.0
+Foster,569.0,4390.0
+Foster,570.0,4663.0
+Foster,571.0,4949.0
+Foster,572.0,5248.0
+Foster,573.0,5561.0
+Foster,574.0,5889.0
+Foster,575.0,6231.0
+Foster,576.0,6588.0
+Foster,577.0,6961.0
+Foster,578.0,7348.0
+Foster,579.0,7752.0
+Foster,580.0,8172.0
+Foster,581.0,8609.0
+Foster,582.0,9064.0
+Foster,583.0,9537.0
+Foster,584.0,10000.0
+Foster,585.0,10500.0
+Foster,586.0,11100.0
+Foster,587.0,11600.0
+Foster,588.0,12200.0
+Foster,589.0,12800.0
+Foster,590.0,13400.0
+Foster,591.0,14000.0
+Foster,592.0,14700.0
+Foster,593.0,15300.0
+Foster,594.0,16000.0
+Foster,595.0,16700.0
+Foster,596.0,17400.0
+Foster,597.0,18100.0
+Foster,598.0,18800.0
+Foster,599.0,19600.0
+Foster,600.0,20300.0
+Foster,601.0,21100.0
+Foster,602.0,21800.0
+Foster,603.0,22600.0
+Foster,604.0,23400.0
+Foster,605.0,24200.0
+Foster,606.0,25100.0
+Foster,607.0,25900.0
+Foster,608.0,26700.0
+Foster,609.0,27600.0
+Foster,610.0,28400.0
+Foster,611.0,29300.0
+Foster,612.0,30200.0
+Foster,613.0,31100.0
+Foster,614.0,32000.0
+Foster,615.0,32900.0
+Foster,616.0,33800.0
+Foster,617.0,34700.0
+Foster,618.0,35700.0
+Foster,619.0,36600.0
+Foster,620.0,37600.0
+Foster,621.0,38500.0
+Foster,622.0,39500.0
+Foster,623.0,40500.0
+Foster,624.0,41500.0
+Foster,625.0,42600.0
+Foster,626.0,43600.0
+Foster,627.0,44600.0
+Foster,628.0,45700.0
+Foster,629.0,46800.0
+Foster,630.0,47900.0
+Foster,631.0,49000.0
+Foster,632.0,50100.0
+Foster,633.0,51200.0
+Foster,634.0,52400.0
+Foster,635.0,53500.0
+Foster,636.0,54700.0
+Foster,637.0,55900.0
+Foster,638.0,57100.0
+Foster,639.0,58300.0
+Foster,640.0,59500.0
+Foster,641.0,60800.0
+Foster,642.0,62100.0
+Foster,643.0,63400.0
+Foster,644.0,64700.0
+Foster,645.0,66000.0
+Foster,646.0,67400.0
+Foster,647.0,68800.0
+Foster,648.0,70200.0
+Foster,649.0,71600.0
+Foster,650.0,73100.0
+Green Peter,700.0,0.0
+Green Peter,701.0,25.0
+Green Peter,702.0,50.0
+Green Peter,703.0,75.0
+Green Peter,704.0,100.0
+Green Peter,705.0,125.0
+Green Peter,706.0,150.0
+Green Peter,707.0,175.0
+Green Peter,708.0,200.0
+Green Peter,709.0,225.0
+Green Peter,710.0,250.0
+Green Peter,711.0,275.0
+Green Peter,712.0,300.0
+Green Peter,713.0,325.0
+Green Peter,714.0,350.0
+Green Peter,715.0,375.0
+Green Peter,716.0,400.0
+Green Peter,717.0,425.0
+Green Peter,718.0,450.0
+Green Peter,719.0,475.0
+Green Peter,720.0,500.0
+Green Peter,721.0,525.0
+Green Peter,722.0,550.0
+Green Peter,723.0,575.0
+Green Peter,724.0,600.0
+Green Peter,725.0,625.0
+Green Peter,726.0,650.0
+Green Peter,727.0,675.0
+Green Peter,728.0,700.0
+Green Peter,729.0,725.0
+Green Peter,730.0,750.0
+Green Peter,731.0,775.0
+Green Peter,732.0,800.0
+Green Peter,733.0,825.0
+Green Peter,734.0,850.0
+Green Peter,735.0,875.0
+Green Peter,736.0,900.0
+Green Peter,737.0,925.0
+Green Peter,738.0,950.0
+Green Peter,739.0,975.0
+Green Peter,740.0,1000.0
+Green Peter,741.0,1025.0
+Green Peter,742.0,1050.0
+Green Peter,743.0,1075.0
+Green Peter,744.0,1100.0
+Green Peter,745.0,1125.0
+Green Peter,746.0,1150.0
+Green Peter,747.0,1175.0
+Green Peter,748.0,1200.0
+Green Peter,749.0,1225.0
+Green Peter,750.0,1250.0
+Green Peter,751.0,1275.0
+Green Peter,752.0,1300.0
+Green Peter,753.0,1325.0
+Green Peter,754.0,1350.0
+Green Peter,755.0,1375.0
+Green Peter,756.0,1400.0
+Green Peter,757.0,1425.0
+Green Peter,758.0,1450.0
+Green Peter,759.0,1475.0
+Green Peter,760.0,1500.0
+Green Peter,761.0,1600.0
+Green Peter,762.0,1700.0
+Green Peter,763.0,1800.0
+Green Peter,764.0,1900.0
+Green Peter,765.0,2000.0
+Green Peter,766.0,2100.0
+Green Peter,767.0,2200.0
+Green Peter,768.0,2300.0
+Green Peter,769.0,2400.0
+Green Peter,770.0,2500.0
+Green Peter,771.0,2700.0
+Green Peter,772.0,2900.0
+Green Peter,773.0,3100.0
+Green Peter,774.0,3300.0
+Green Peter,775.0,3500.0
+Green Peter,776.0,3700.0
+Green Peter,777.0,3900.0
+Green Peter,778.0,4100.0
+Green Peter,779.0,4300.0
+Green Peter,780.0,4500.0
+Green Peter,781.0,4800.0
+Green Peter,782.0,5100.0
+Green Peter,783.0,5400.0
+Green Peter,784.0,5700.0
+Green Peter,785.0,6000.0
+Green Peter,786.0,6300.0
+Green Peter,787.0,6600.0
+Green Peter,788.0,6900.0
+Green Peter,789.0,7200.0
+Green Peter,790.0,7500.0
+Green Peter,791.0,7900.0
+Green Peter,792.0,8300.0
+Green Peter,793.0,8700.0
+Green Peter,794.0,9100.0
+Green Peter,795.0,9500.0
+Green Peter,796.0,9900.0
+Green Peter,797.0,10300.0
+Green Peter,798.0,10700.0
+Green Peter,799.0,11100.0
+Green Peter,800.0,11500.0
+Green Peter,801.0,12000.0
+Green Peter,802.0,12500.0
+Green Peter,803.0,13000.0
+Green Peter,804.0,13500.0
+Green Peter,805.0,14000.0
+Green Peter,806.0,14500.0
+Green Peter,807.0,15000.0
+Green Peter,808.0,15500.0
+Green Peter,809.0,16000.0
+Green Peter,810.0,16500.0
+Green Peter,811.0,17150.0
+Green Peter,812.0,17800.0
+Green Peter,813.0,18450.0
+Green Peter,814.0,19100.0
+Green Peter,815.0,19750.0
+Green Peter,816.0,20400.0
+Green Peter,817.0,21050.0
+Green Peter,818.0,21700.0
+Green Peter,819.0,22350.0
+Green Peter,820.0,23000.0
+Green Peter,821.0,23800.0
+Green Peter,822.0,24600.0
+Green Peter,823.0,25400.0
+Green Peter,824.0,26200.0
+Green Peter,825.0,27000.0
+Green Peter,826.0,27800.0
+Green Peter,827.0,28600.0
+Green Peter,828.0,29400.0
+Green Peter,829.0,30200.0
+Green Peter,830.0,31000.0
+Green Peter,831.0,31600.0
+Green Peter,832.0,32500.0
+Green Peter,833.0,33300.0
+Green Peter,834.0,34200.0
+Green Peter,835.0,35100.0
+Green Peter,836.0,35900.0
+Green Peter,837.0,36800.0
+Green Peter,838.0,37800.0
+Green Peter,839.0,38700.0
+Green Peter,840.0,39600.0
+Green Peter,841.0,40600.0
+Green Peter,842.0,41600.0
+Green Peter,843.0,42500.0
+Green Peter,844.0,43500.0
+Green Peter,845.0,44500.0
+Green Peter,846.0,45500.0
+Green Peter,847.0,46600.0
+Green Peter,848.0,47600.0
+Green Peter,849.0,48600.0
+Green Peter,850.0,49700.0
+Green Peter,851.0,50700.0
+Green Peter,852.0,51800.0
+Green Peter,853.0,52900.0
+Green Peter,854.0,54000.0
+Green Peter,855.0,55100.0
+Green Peter,856.0,56300.0
+Green Peter,857.0,57400.0
+Green Peter,858.0,58500.0
+Green Peter,859.0,59700.0
+Green Peter,860.0,60900.0
+Green Peter,861.0,62100.0
+Green Peter,862.0,63300.0
+Green Peter,863.0,64500.0
+Green Peter,864.0,65700.0
+Green Peter,865.0,66900.0
+Green Peter,866.0,68200.0
+Green Peter,867.0,69400.0
+Green Peter,868.0,70700.0
+Green Peter,869.0,72000.0
+Green Peter,870.0,73300.0
+Green Peter,871.0,74600.0
+Green Peter,872.0,75900.0
+Green Peter,873.0,77200.0
+Green Peter,874.0,78600.0
+Green Peter,875.0,79900.0
+Green Peter,876.0,81300.0
+Green Peter,877.0,82700.0
+Green Peter,878.0,84100.0
+Green Peter,879.0,85500.0
+Green Peter,880.0,86900.0
+Green Peter,881.0,88400.0
+Green Peter,882.0,89800.0
+Green Peter,883.0,91300.0
+Green Peter,884.0,92700.0
+Green Peter,885.0,94200.0
+Green Peter,886.0,95700.0
+Green Peter,887.0,97300.0
+Green Peter,888.0,98800.0
+Green Peter,889.0,100300.0
+Green Peter,890.0,101900.0
+Green Peter,891.0,103500.0
+Green Peter,892.0,105000.0
+Green Peter,893.0,106600.0
+Green Peter,894.0,108300.0
+Green Peter,895.0,109900.0
+Green Peter,896.0,111500.0
+Green Peter,897.0,113200.0
+Green Peter,898.0,114900.0
+Green Peter,899.0,116600.0
+Green Peter,900.0,118300.0
+Green Peter,901.0,120000.0
+Green Peter,902.0,121700.0
+Green Peter,903.0,123500.0
+Green Peter,904.0,125300.0
+Green Peter,905.0,127000.0
+Green Peter,906.0,128800.0
+Green Peter,907.0,130700.0
+Green Peter,908.0,132500.0
+Green Peter,909.0,134300.0
+Green Peter,910.0,136200.0
+Green Peter,911.0,138100.0
+Green Peter,912.0,140000.0
+Green Peter,913.0,141900.0
+Green Peter,914.0,143800.0
+Green Peter,915.0,145800.0
+Green Peter,916.0,147700.0
+Green Peter,917.0,149700.0
+Green Peter,918.0,151700.0
+Green Peter,919.0,153700.0
+Green Peter,920.0,155700.0
+Green Peter,921.0,157800.0
+Green Peter,922.0,159900.0
+Green Peter,923.0,161900.0
+Green Peter,924.0,164000.0
+Green Peter,925.0,166100.0
+Green Peter,926.0,168300.0
+Green Peter,927.0,170400.0
+Green Peter,928.0,172600.0
+Green Peter,929.0,174800.0
+Green Peter,930.0,177000.0
+Green Peter,931.0,179200.0
+Green Peter,932.0,181400.0
+Green Peter,933.0,183700.0
+Green Peter,934.0,185900.0
+Green Peter,935.0,188200.0
+Green Peter,936.0,190500.0
+Green Peter,937.0,192800.0
+Green Peter,938.0,195200.0
+Green Peter,939.0,197500.0
+Green Peter,940.0,199900.0
+Green Peter,941.0,202300.0
+Green Peter,942.0,204700.0
+Green Peter,943.0,207100.0
+Green Peter,944.0,209500.0
+Green Peter,945.0,212000.0
+Green Peter,946.0,214500.0
+Green Peter,947.0,217000.0
+Green Peter,948.0,219500.0
+Green Peter,949.0,222000.0
+Green Peter,950.0,224600.0
+Green Peter,951.0,227100.0
+Green Peter,952.0,229700.0
+Green Peter,953.0,232300.0
+Green Peter,954.0,235000.0
+Green Peter,955.0,237600.0
+Green Peter,956.0,240300.0
+Green Peter,957.0,243000.0
+Green Peter,958.0,245700.0
+Green Peter,959.0,248400.0
+Green Peter,960.0,251100.0
+Green Peter,961.0,253900.0
+Green Peter,962.0,256700.0
+Green Peter,963.0,259500.0
+Green Peter,964.0,262300.0
+Green Peter,965.0,265100.0
+Green Peter,966.0,268000.0
+Green Peter,967.0,270800.0
+Green Peter,968.0,273700.0
+Green Peter,969.0,276600.0
+Green Peter,970.0,279600.0
+Green Peter,971.0,282500.0
+Green Peter,972.0,285500.0
+Green Peter,973.0,288500.0
+Green Peter,974.0,291500.0
+Green Peter,975.0,294500.0
+Green Peter,976.0,297500.0
+Green Peter,977.0,300500.0
+Green Peter,978.0,303600.0
+Green Peter,979.0,306700.0
+Green Peter,980.0,309700.0
+Green Peter,981.0,312800.0
+Green Peter,982.0,316000.0
+Green Peter,983.0,319100.0
+Green Peter,984.0,322200.0
+Green Peter,985.0,325400.0
+Green Peter,986.0,328600.0
+Green Peter,987.0,331800.0
+Green Peter,988.0,335000.0
+Green Peter,989.0,338200.0
+Green Peter,990.0,341500.0
+Green Peter,991.0,344700.0
+Green Peter,992.0,348000.0
+Green Peter,993.0,351300.0
+Green Peter,994.0,354600.0
+Green Peter,995.0,357900.0
+Green Peter,996.0,361300.0
+Green Peter,997.0,364600.0
+Green Peter,998.0,368000.0
+Green Peter,999.0,371400.0
+Green Peter,1000.0,374800.0
+Green Peter,1001.0,378200.0
+Green Peter,1002.0,381600.0
+Green Peter,1003.0,385100.0
+Green Peter,1004.0,388600.0
+Green Peter,1005.0,392100.0
+Green Peter,1006.0,395600.0
+Green Peter,1007.0,399100.0
+Green Peter,1008.0,402700.0
+Green Peter,1009.0,406200.0
+Green Peter,1010.0,409800.0
+Green Peter,1011.0,413400.0
+Green Peter,1012.0,417100.0
+Green Peter,1013.0,420700.0
+Green Peter,1014.0,424400.0
+Green Peter,1015.0,428100.0
+Green Peter,1016.0,431800.0
+Green Peter,1017.0,435600.0
+Green Peter,1018.0,439300.0
+Green Peter,1019.0,443100.0
+Green Peter,1020.0,446900.0
+Fern Ridge,347.0,0.0
+Fern Ridge,348.0,13.0
+Fern Ridge,349.0,182.0
+Fern Ridge,350.0,605.0
+Fern Ridge,351.0,1179.0
+Fern Ridge,352.0,1901.0
+Fern Ridge,353.0,2802.0
+Fern Ridge,354.0,3897.0
+Fern Ridge,355.0,5247.0
+Fern Ridge,356.0,6896.0
+Fern Ridge,357.0,8844.0
+Fern Ridge,358.0,11100.0
+Fern Ridge,359.0,13700.0
+Fern Ridge,360.0,16600.0
+Fern Ridge,361.0,19900.0
+Fern Ridge,362.0,23500.0
+Fern Ridge,363.0,27500.0
+Fern Ridge,364.0,31900.0
+Fern Ridge,365.0,36900.0
+Fern Ridge,366.0,42300.0
+Fern Ridge,367.0,48300.0
+Fern Ridge,368.0,54700.0
+Fern Ridge,369.0,61700.0
+Fern Ridge,370.0,69100.0
+Fern Ridge,371.0,76800.0
+Fern Ridge,372.0,84800.0
+Fern Ridge,373.0,93000.0
+Fern Ridge,374.0,101600.0
+Fern Ridge,375.0,110500.0
+Fern Ridge,375.1,111434.0
+Fern Ridge,382.0,171750.0
+Blue River,1104.0,0.0
+Blue River,1105.0,1.0
+Blue River,1106.0,2.0
+Blue River,1107.0,3.0
+Blue River,1108.0,6.0
+Blue River,1109.0,9.0
+Blue River,1110.0,14.0
+Blue River,1111.0,19.0
+Blue River,1112.0,27.0
+Blue River,1113.0,36.0
+Blue River,1114.0,46.0
+Blue River,1115.0,59.0
+Blue River,1116.0,73.0
+Blue River,1117.0,90.0
+Blue River,1118.0,110.0
+Blue River,1119.0,131.0
+Blue River,1120.0,156.0
+Blue River,1121.0,182.0
+Blue River,1122.0,209.0
+Blue River,1123.0,236.0
+Blue River,1124.0,263.0
+Blue River,1125.0,291.0
+Blue River,1126.0,319.0
+Blue River,1127.0,348.0
+Blue River,1128.0,377.0
+Blue River,1129.0,407.0
+Blue River,1130.0,437.0
+Blue River,1131.0,468.0
+Blue River,1132.0,499.0
+Blue River,1133.0,530.0
+Blue River,1134.0,562.0
+Blue River,1135.0,594.0
+Blue River,1136.0,627.0
+Blue River,1137.0,660.0
+Blue River,1138.0,694.0
+Blue River,1139.0,728.0
+Blue River,1140.0,763.0
+Blue River,1141.0,799.0
+Blue River,1142.0,837.0
+Blue River,1143.0,876.0
+Blue River,1144.0,918.0
+Blue River,1145.0,961.0
+Blue River,1146.0,1006.0
+Blue River,1147.0,1054.0
+Blue River,1148.0,1103.0
+Blue River,1149.0,1155.0
+Blue River,1150.0,1208.0
+Blue River,1151.0,1264.0
+Blue River,1152.0,1323.0
+Blue River,1153.0,1383.0
+Blue River,1154.0,1446.0
+Blue River,1155.0,1511.0
+Blue River,1156.0,1579.0
+Blue River,1157.0,1649.0
+Blue River,1158.0,1721.0
+Blue River,1159.0,1796.0
+Blue River,1160.0,1874.0
+Blue River,1161.0,1954.0
+Blue River,1162.0,2037.0
+Blue River,1163.0,2122.0
+Blue River,1164.0,2209.0
+Blue River,1165.0,2299.0
+Blue River,1166.0,2392.0
+Blue River,1167.0,2487.0
+Blue River,1168.0,2584.0
+Blue River,1169.0,2685.0
+Blue River,1170.0,2787.0
+Blue River,1171.0,2893.0
+Blue River,1172.0,3001.0
+Blue River,1173.0,3113.0
+Blue River,1174.0,3227.0
+Blue River,1175.0,3343.0
+Blue River,1176.0,3463.0
+Blue River,1177.0,3585.0
+Blue River,1178.0,3711.0
+Blue River,1179.0,3839.0
+Blue River,1180.0,3971.0
+Blue River,1181.0,4105.0
+Blue River,1182.0,4241.0
+Blue River,1183.0,4379.0
+Blue River,1184.0,4518.0
+Blue River,1185.0,4660.0
+Blue River,1186.0,4804.0
+Blue River,1187.0,4949.0
+Blue River,1188.0,5097.0
+Blue River,1189.0,5247.0
+Blue River,1190.0,5399.0
+Blue River,1191.0,5552.0
+Blue River,1192.0,5708.0
+Blue River,1193.0,5866.0
+Blue River,1194.0,6026.0
+Blue River,1195.0,6188.0
+Blue River,1196.0,6353.0
+Blue River,1197.0,6519.0
+Blue River,1198.0,6687.0
+Blue River,1199.0,6858.0
+Blue River,1200.0,7031.0
+Blue River,1201.0,7206.0
+Blue River,1202.0,7384.0
+Blue River,1203.0,7564.0
+Blue River,1204.0,7747.0
+Blue River,1205.0,7933.0
+Blue River,1206.0,8121.0
+Blue River,1207.0,8312.0
+Blue River,1208.0,8505.0
+Blue River,1209.0,8701.0
+Blue River,1210.0,8900.0
+Blue River,1211.0,9101.0
+Blue River,1212.0,9306.0
+Blue River,1213.0,9513.0
+Blue River,1214.0,9722.0
+Blue River,1215.0,9935.0
+Blue River,1216.0,10200.0
+Blue River,1217.0,10400.0
+Blue River,1218.0,10600.0
+Blue River,1219.0,10800.0
+Blue River,1220.0,11100.0
+Blue River,1221.0,11300.0
+Blue River,1222.0,11500.0
+Blue River,1223.0,11700.0
+Blue River,1224.0,12000.0
+Blue River,1225.0,12200.0
+Blue River,1226.0,12500.0
+Blue River,1227.0,12700.0
+Blue River,1228.0,13000.0
+Blue River,1229.0,13200.0
+Blue River,1230.0,13500.0
+Blue River,1231.0,13700.0
+Blue River,1232.0,14000.0
+Blue River,1233.0,14200.0
+Blue River,1234.0,14500.0
+Blue River,1235.0,14800.0
+Blue River,1236.0,15100.0
+Blue River,1237.0,15300.0
+Blue River,1238.0,15600.0
+Blue River,1239.0,15900.0
+Blue River,1240.0,16200.0
+Blue River,1241.0,16500.0
+Blue River,1242.0,16800.0
+Blue River,1243.0,17100.0
+Blue River,1244.0,17400.0
+Blue River,1245.0,17700.0
+Blue River,1246.0,18000.0
+Blue River,1247.0,18300.0
+Blue River,1248.0,18600.0
+Blue River,1249.0,18900.0
+Blue River,1250.0,19300.0
+Blue River,1251.0,19600.0
+Blue River,1252.0,19900.0
+Blue River,1253.0,20300.0
+Blue River,1254.0,20600.0
+Blue River,1255.0,21000.0
+Blue River,1256.0,21300.0
+Blue River,1257.0,21700.0
+Blue River,1258.0,22000.0
+Blue River,1259.0,22400.0
+Blue River,1260.0,22800.0
+Blue River,1261.0,23100.0
+Blue River,1262.0,23500.0
+Blue River,1263.0,23900.0
+Blue River,1264.0,24300.0
+Blue River,1265.0,24700.0
+Blue River,1266.0,25100.0
+Blue River,1267.0,25500.0
+Blue River,1268.0,26000.0
+Blue River,1269.0,26400.0
+Blue River,1270.0,26800.0
+Blue River,1271.0,27300.0
+Blue River,1272.0,27700.0
+Blue River,1273.0,28200.0
+Blue River,1274.0,28600.0
+Blue River,1275.0,29100.0
+Blue River,1276.0,29600.0
+Blue River,1277.0,30100.0
+Blue River,1278.0,30500.0
+Blue River,1279.0,31000.0
+Blue River,1280.0,31500.0
+Blue River,1281.0,32100.0
+Blue River,1282.0,32600.0
+Blue River,1283.0,33100.0
+Blue River,1284.0,33600.0
+Blue River,1285.0,34200.0
+Blue River,1286.0,34700.0
+Blue River,1287.0,35300.0
+Blue River,1288.0,35800.0
+Blue River,1289.0,36400.0
+Blue River,1290.0,37000.0
+Blue River,1291.0,37500.0
+Blue River,1292.0,38100.0
+Blue River,1293.0,38700.0
+Blue River,1294.0,39300.0
+Blue River,1295.0,39900.0
+Blue River,1296.0,40600.0
+Blue River,1297.0,41200.0
+Blue River,1298.0,41800.0
+Blue River,1299.0,42400.0
+Blue River,1300.0,43100.0
+Blue River,1301.0,43700.0
+Blue River,1302.0,44400.0
+Blue River,1303.0,45100.0
+Blue River,1304.0,45700.0
+Blue River,1305.0,46400.0
+Blue River,1306.0,47100.0
+Blue River,1307.0,47800.0
+Blue River,1308.0,48500.0
+Blue River,1309.0,49200.0
+Blue River,1310.0,49900.0
+Blue River,1311.0,50600.0
+Blue River,1312.0,51300.0
+Blue River,1313.0,52000.0
+Blue River,1314.0,52800.0
+Blue River,1315.0,53500.0
+Blue River,1316.0,54200.0
+Blue River,1317.0,55000.0
+Blue River,1318.0,55700.0
+Blue River,1319.0,56500.0
+Blue River,1320.0,57200.0
+Blue River,1321.0,58000.0
+Blue River,1322.0,58800.0
+Blue River,1323.0,59600.0
+Blue River,1324.0,60300.0
+Blue River,1325.0,61100.0
+Blue River,1326.0,61900.0
+Blue River,1327.0,62700.0
+Blue River,1328.0,63500.0
+Blue River,1329.0,64400.0
+Blue River,1330.0,65200.0
+Blue River,1331.0,66000.0
+Blue River,1332.0,66800.0
+Blue River,1333.0,67700.0
+Blue River,1334.0,68500.0
+Blue River,1335.0,69400.0
+Blue River,1336.0,70200.0
+Blue River,1337.0,71100.0
+Blue River,1338.0,72000.0
+Blue River,1339.0,72800.0
+Blue River,1340.0,73700.0
+Blue River,1341.0,74600.0
+Blue River,1342.0,75500.0
+Blue River,1343.0,76400.0
+Blue River,1344.0,77300.0
+Blue River,1345.0,78200.0
+Blue River,1346.0,79100.0
+Blue River,1347.0,80000.0
+Blue River,1348.0,81000.0
+Blue River,1349.0,81900.0
+Blue River,1350.0,82800.0
+Blue River,1351.0,83800.0
+Blue River,1352.0,84700.0
+Blue River,1353.0,85700.0
+Blue River,1354.0,86600.0
+Blue River,1355.0,87600.0
+Blue River,1356.0,88600.0
+Blue River,1357.0,89500.0
+Blue River,1358.0,90500.0
+Blue River,1359.0,91500.0
+Blue River,1360.0,92500.0
+Blue River,1361.0,93500.0
+Blue River,1362.0,94400.0
+Blue River,1363.0,95500.0
+Blue River,1364.0,96500.0
+Blue River,1365.0,97500.0
+Blue River,1366.0,98500.0
+Blue River,1367.0,99500.0
+Blue River,1368.0,100500.0
+Blue River,1369.0,101600.0
+Blue River,1370.0,102600.0
+Blue River,1371.0,103700.0
+Blue River,1372.0,104700.0
+Blue River,1373.0,105800.0
+Blue River,1374.0,106800.0
+Blue River,1375.0,107900.0
+Blue River,1376.0,109000.0
+Blue River,1377.0,110000.0
+Blue River,1378.0,111100.0
+Blue River,1379.0,112200.0
+Blue River,1380.0,113300.0
+Blue River,1381.0,114400.0
+Blue River,1382.0,115500.0
+Blue River,1383.0,116600.0
+Blue River,1384.0,117700.0
+Blue River,1385.0,118900.0
+Blue River,1386.0,120000.0
+Blue River,1387.0,121100.0
+Blue River,1388.0,122300.0
+Blue River,1389.0,123400.0
+Blue River,1390.0,124500.0
+Blue River,1391.0,125700.0
+Blue River,1392.0,126900.0
+Blue River,1393.0,128000.0
+Blue River,1394.0,129200.0
+Blue River,1395.0,130400.0
+Blue River,1396.0,131500.0
+Blue River,1397.0,132700.0
+Blue River,1398.0,133900.0
+Blue River,1399.0,135100.0
+Blue River,1400.0,136300.0
+Cougar,1299.0,0.0
+Cougar,1301.0,1.0
+Cougar,1302.0,3.0
+Cougar,1303.0,5.0
+Cougar,1304.0,7.0
+Cougar,1305.0,9.0
+Cougar,1306.0,10.0
+Cougar,1307.0,12.0
+Cougar,1308.0,14.0
+Cougar,1309.0,15.0
+Cougar,1310.0,17.0
+Cougar,1311.0,23.0
+Cougar,1312.0,30.0
+Cougar,1313.0,36.0
+Cougar,1314.0,43.0
+Cougar,1315.0,49.0
+Cougar,1316.0,55.0
+Cougar,1317.0,62.0
+Cougar,1318.0,68.0
+Cougar,1319.0,75.0
+Cougar,1320.0,81.0
+Cougar,1321.0,91.0
+Cougar,1322.0,103.0
+Cougar,1323.0,115.0
+Cougar,1324.0,129.0
+Cougar,1325.0,143.0
+Cougar,1326.0,159.0
+Cougar,1327.0,176.0
+Cougar,1328.0,194.0
+Cougar,1329.0,214.0
+Cougar,1330.0,234.0
+Cougar,1331.0,256.0
+Cougar,1332.0,278.0
+Cougar,1333.0,302.0
+Cougar,1334.0,327.0
+Cougar,1335.0,353.0
+Cougar,1336.0,380.0
+Cougar,1337.0,408.0
+Cougar,1338.0,438.0
+Cougar,1339.0,468.0
+Cougar,1340.0,500.0
+Cougar,1341.0,533.0
+Cougar,1342.0,567.0
+Cougar,1343.0,603.0
+Cougar,1344.0,641.0
+Cougar,1345.0,680.0
+Cougar,1346.0,722.0
+Cougar,1347.0,765.0
+Cougar,1348.0,809.0
+Cougar,1349.0,856.0
+Cougar,1350.0,904.0
+Cougar,1351.0,954.0
+Cougar,1352.0,1005.0
+Cougar,1353.0,1059.0
+Cougar,1354.0,1114.0
+Cougar,1355.0,1170.0
+Cougar,1356.0,1229.0
+Cougar,1357.0,1289.0
+Cougar,1358.0,1351.0
+Cougar,1359.0,1415.0
+Cougar,1360.0,1480.0
+Cougar,1361.0,1552.0
+Cougar,1362.0,1627.0
+Cougar,1363.0,1705.0
+Cougar,1364.0,1785.0
+Cougar,1365.0,1867.0
+Cougar,1366.0,1953.0
+Cougar,1367.0,2041.0
+Cougar,1368.0,2131.0
+Cougar,1369.0,2224.0
+Cougar,1370.0,2320.0
+Cougar,1371.0,2418.0
+Cougar,1372.0,2519.0
+Cougar,1373.0,2623.0
+Cougar,1374.0,2729.0
+Cougar,1375.0,2837.0
+Cougar,1376.0,2949.0
+Cougar,1377.0,3063.0
+Cougar,1378.0,3179.0
+Cougar,1379.0,3298.0
+Cougar,1380.0,3420.0
+Cougar,1381.0,3552.0
+Cougar,1382.0,3684.0
+Cougar,1383.0,3816.0
+Cougar,1384.0,3948.0
+Cougar,1385.0,4080.0
+Cougar,1386.0,4212.0
+Cougar,1387.0,4344.0
+Cougar,1388.0,4476.0
+Cougar,1389.0,4608.0
+Cougar,1390.0,4740.0
+Cougar,1391.0,4872.0
+Cougar,1392.0,5004.0
+Cougar,1393.0,5136.0
+Cougar,1394.0,5268.0
+Cougar,1395.0,5400.0
+Cougar,1396.0,5532.0
+Cougar,1397.0,5664.0
+Cougar,1398.0,5796.0
+Cougar,1399.0,5928.0
+Cougar,1400.0,6088.0
+Cougar,1401.0,6201.0
+Cougar,1402.0,6346.0
+Cougar,1403.0,6494.0
+Cougar,1404.0,6645.0
+Cougar,1405.0,6799.0
+Cougar,1406.0,6957.0
+Cougar,1407.0,7119.0
+Cougar,1408.0,7283.0
+Cougar,1409.0,7451.0
+Cougar,1410.0,7622.0
+Cougar,1411.0,7797.0
+Cougar,1412.0,7975.0
+Cougar,1413.0,8157.0
+Cougar,1414.0,8341.0
+Cougar,1415.0,8529.0
+Cougar,1416.0,8721.0
+Cougar,1417.0,8916.0
+Cougar,1418.0,9114.0
+Cougar,1419.0,9315.0
+Cougar,1420.0,9520.0
+Cougar,1421.0,9728.0
+Cougar,1422.0,9940.0
+Cougar,1423.0,10200.0
+Cougar,1424.0,10400.0
+Cougar,1425.0,10600.0
+Cougar,1426.0,10800.0
+Cougar,1427.0,11000.0
+Cougar,1428.0,11300.0
+Cougar,1429.0,11500.0
+Cougar,1430.0,11800.0
+Cougar,1431.0,12000.0
+Cougar,1432.0,12200.0
+Cougar,1433.0,12500.0
+Cougar,1434.0,12700.0
+Cougar,1435.0,13000.0
+Cougar,1436.0,13300.0
+Cougar,1437.0,13500.0
+Cougar,1438.0,13800.0
+Cougar,1439.0,14000.0
+Cougar,1440.0,14300.0
+Cougar,1441.0,14600.0
+Cougar,1442.0,14800.0
+Cougar,1443.0,15100.0
+Cougar,1444.0,15400.0
+Cougar,1445.0,15600.0
+Cougar,1446.0,15900.0
+Cougar,1447.0,16200.0
+Cougar,1448.0,16500.0
+Cougar,1449.0,16700.0
+Cougar,1450.0,17000.0
+Cougar,1451.0,17300.0
+Cougar,1452.0,17600.0
+Cougar,1453.0,17900.0
+Cougar,1454.0,18200.0
+Cougar,1455.0,18500.0
+Cougar,1456.0,18800.0
+Cougar,1457.0,19100.0
+Cougar,1458.0,19400.0
+Cougar,1459.0,19800.0
+Cougar,1460.0,20100.0
+Cougar,1461.0,20400.0
+Cougar,1462.0,20700.0
+Cougar,1463.0,21100.0
+Cougar,1464.0,21400.0
+Cougar,1465.0,21700.0
+Cougar,1466.0,22100.0
+Cougar,1467.0,22400.0
+Cougar,1468.0,22800.0
+Cougar,1469.0,23100.0
+Cougar,1470.0,23500.0
+Cougar,1471.0,23800.0
+Cougar,1472.0,24200.0
+Cougar,1473.0,24600.0
+Cougar,1474.0,24900.0
+Cougar,1475.0,25300.0
+Cougar,1476.0,25700.0
+Cougar,1477.0,26100.0
+Cougar,1478.0,26400.0
+Cougar,1479.0,26800.0
+Cougar,1480.0,27200.0
+Cougar,1481.0,27600.0
+Cougar,1482.0,28000.0
+Cougar,1483.0,28400.0
+Cougar,1484.0,28800.0
+Cougar,1485.0,29200.0
+Cougar,1486.0,29600.0
+Cougar,1487.0,30000.0
+Cougar,1488.0,30500.0
+Cougar,1489.0,30900.0
+Cougar,1490.0,31300.0
+Cougar,1491.0,31700.0
+Cougar,1492.0,32200.0
+Cougar,1493.0,32600.0
+Cougar,1494.0,33000.0
+Cougar,1495.0,33500.0
+Cougar,1496.0,33900.0
+Cougar,1497.0,34400.0
+Cougar,1498.0,34800.0
+Cougar,1499.0,35300.0
+Cougar,1500.0,35700.0
+Cougar,1501.0,36200.0
+Cougar,1502.0,36700.0
+Cougar,1503.0,37100.0
+Cougar,1504.0,37600.0
+Cougar,1505.0,38100.0
+Cougar,1506.0,38600.0
+Cougar,1507.0,39000.0
+Cougar,1508.0,39500.0
+Cougar,1509.0,40000.0
+Cougar,1510.0,40500.0
+Cougar,1511.0,41000.0
+Cougar,1512.0,41500.0
+Cougar,1513.0,42000.0
+Cougar,1514.0,42500.0
+Cougar,1515.0,43000.0
+Cougar,1516.0,43500.0
+Cougar,1517.0,44100.0
+Cougar,1518.0,44600.0
+Cougar,1519.0,45100.0
+Cougar,1520.0,45600.0
+Cougar,1521.0,46200.0
+Cougar,1522.0,46700.0
+Cougar,1523.0,47200.0
+Cougar,1524.0,47800.0
+Cougar,1525.0,48300.0
+Cougar,1526.0,48900.0
+Cougar,1527.0,49400.0
+Cougar,1528.0,50000.0
+Cougar,1529.0,50500.0
+Cougar,1530.0,51100.0
+Cougar,1531.0,51700.0
+Cougar,1532.0,52200.0
+Cougar,1533.0,52700.0
+Cougar,1534.0,53300.0
+Cougar,1535.0,53800.0
+Cougar,1536.0,54300.0
+Cougar,1537.0,54900.0
+Cougar,1538.0,55400.0
+Cougar,1539.0,56000.0
+Cougar,1540.0,56500.0
+Cougar,1541.0,57100.0
+Cougar,1542.0,57700.0
+Cougar,1543.0,58200.0
+Cougar,1544.0,58800.0
+Cougar,1545.0,59400.0
+Cougar,1546.0,60000.0
+Cougar,1547.0,60600.0
+Cougar,1548.0,61200.0
+Cougar,1549.0,61700.0
+Cougar,1550.0,62300.0
+Cougar,1551.0,63000.0
+Cougar,1552.0,63600.0
+Cougar,1553.0,64200.0
+Cougar,1554.0,64800.0
+Cougar,1555.0,65400.0
+Cougar,1556.0,66000.0
+Cougar,1557.0,66700.0
+Cougar,1558.0,67300.0
+Cougar,1559.0,67900.0
+Cougar,1560.0,68600.0
+Cougar,1561.0,69200.0
+Cougar,1562.0,69900.0
+Cougar,1563.0,70500.0
+Cougar,1564.0,71200.0
+Cougar,1565.0,71900.0
+Cougar,1566.0,72500.0
+Cougar,1567.0,73200.0
+Cougar,1568.0,73900.0
+Cougar,1569.0,74600.0
+Cougar,1570.0,75200.0
+Cougar,1571.0,75900.0
+Cougar,1572.0,76600.0
+Cougar,1573.0,77300.0
+Cougar,1574.0,78000.0
+Cougar,1575.0,78700.0
+Cougar,1576.0,79400.0
+Cougar,1577.0,80200.0
+Cougar,1578.0,80900.0
+Cougar,1579.0,81600.0
+Cougar,1580.0,82300.0
+Cougar,1581.0,83100.0
+Cougar,1582.0,83800.0
+Cougar,1583.0,84600.0
+Cougar,1584.0,85300.0
+Cougar,1585.0,86100.0
+Cougar,1586.0,86800.0
+Cougar,1587.0,87600.0
+Cougar,1588.0,88300.0
+Cougar,1589.0,89100.0
+Cougar,1590.0,89900.0
+Cougar,1591.0,90600.0
+Cougar,1592.0,91400.0
+Cougar,1593.0,92200.0
+Cougar,1594.0,93000.0
+Cougar,1595.0,93800.0
+Cougar,1596.0,94600.0
+Cougar,1597.0,95400.0
+Cougar,1598.0,96200.0
+Cougar,1599.0,97000.0
+Cougar,1600.0,97800.0
+Cougar,1601.0,98700.0
+Cougar,1602.0,99500.0
+Cougar,1603.0,100300.0
+Cougar,1604.0,101100.0
+Cougar,1605.0,102000.0
+Cougar,1606.0,102800.0
+Cougar,1607.0,103700.0
+Cougar,1608.0,104500.0
+Cougar,1609.0,105400.0
+Cougar,1610.0,106200.0
+Cougar,1611.0,107100.0
+Cougar,1612.0,108000.0
+Cougar,1613.0,108800.0
+Cougar,1614.0,109700.0
+Cougar,1615.0,110600.0
+Cougar,1616.0,111500.0
+Cougar,1617.0,112400.0
+Cougar,1618.0,113300.0
+Cougar,1619.0,114200.0
+Cougar,1620.0,115100.0
+Cougar,1621.0,116000.0
+Cougar,1622.0,116900.0
+Cougar,1623.0,117800.0
+Cougar,1624.0,118700.0
+Cougar,1625.0,119600.0
+Cougar,1626.0,120600.0
+Cougar,1627.0,121500.0
+Cougar,1628.0,122400.0
+Cougar,1629.0,123400.0
+Cougar,1630.0,124300.0
+Cougar,1631.0,125300.0
+Cougar,1632.0,126200.0
+Cougar,1633.0,127200.0
+Cougar,1634.0,128200.0
+Cougar,1635.0,129100.0
+Cougar,1636.0,130100.0
+Cougar,1637.0,131100.0
+Cougar,1638.0,132000.0
+Cougar,1639.0,133000.0
+Cougar,1640.0,134000.0
+Cougar,1641.0,135000.0
+Cougar,1642.0,136000.0
+Cougar,1643.0,137000.0
+Cougar,1644.0,138000.0
+Cougar,1645.0,139000.0
+Cougar,1646.0,140000.0
+Cougar,1647.0,141100.0
+Cougar,1648.0,142100.0
+Cougar,1649.0,143100.0
+Cougar,1650.0,144100.0
+Cougar,1651.0,145200.0
+Cougar,1652.0,146200.0
+Cougar,1653.0,147300.0
+Cougar,1654.0,148300.0
+Cougar,1655.0,149400.0
+Cougar,1656.0,150400.0
+Cougar,1657.0,151500.0
+Cougar,1658.0,152600.0
+Cougar,1659.0,153600.0
+Cougar,1660.0,154700.0
+Cougar,1661.0,155800.0
+Cougar,1662.0,156900.0
+Cougar,1663.0,158000.0
+Cougar,1664.0,159100.0
+Cougar,1665.0,160200.0
+Cougar,1666.0,161300.0
+Cougar,1667.0,162400.0
+Cougar,1668.0,163500.0
+Cougar,1669.0,164600.0
+Cougar,1670.0,165700.0
+Cougar,1671.0,166800.0
+Cougar,1672.0,168000.0
+Cougar,1673.0,169100.0
+Cougar,1674.0,170200.0
+Cougar,1675.0,171400.0
+Cougar,1676.0,172500.0
+Cougar,1677.0,173700.0
+Cougar,1678.0,174800.0
+Cougar,1679.0,176000.0
+Cougar,1680.0,177100.0
+Cougar,1681.0,178300.0
+Cougar,1682.0,179500.0
+Cougar,1683.0,180600.0
+Cougar,1684.0,181800.0
+Cougar,1685.0,183000.0
+Cougar,1686.0,184200.0
+Cougar,1687.0,185400.0
+Cougar,1688.0,186600.0
+Cougar,1689.0,187800.0
+Cougar,1690.0,189000.0
+Cougar,1691.0,190200.0
+Cougar,1692.0,191400.0
+Cougar,1693.0,192600.0
+Cougar,1694.0,193900.0
+Cougar,1695.0,195100.0
+Cougar,1696.0,196300.0
+Cougar,1697.0,197600.0
+Cougar,1698.0,198800.0
+Cougar,1699.0,200000.0
+Dorena,735.0,0.0
+Dorena,736.0,3.0
+Dorena,737.0,5.0
+Dorena,738.0,15.0
+Dorena,739.0,25.0
+Dorena,740.0,35.0
+Dorena,741.0,59.0
+Dorena,742.0,91.0
+Dorena,743.0,130.0
+Dorena,744.0,179.0
+Dorena,745.0,237.0
+Dorena,746.0,307.0
+Dorena,747.0,388.0
+Dorena,748.0,482.0
+Dorena,749.0,590.0
+Dorena,750.0,712.0
+Dorena,751.0,849.0
+Dorena,752.0,1000.0
+Dorena,753.0,1166.0
+Dorena,754.0,1348.0
+Dorena,755.0,1547.0
+Dorena,756.0,1762.0
+Dorena,757.0,1995.0
+Dorena,758.0,2247.0
+Dorena,759.0,2518.0
+Dorena,760.0,2809.0
+Dorena,761.0,3119.0
+Dorena,762.0,3448.0
+Dorena,763.0,3797.0
+Dorena,764.0,4166.0
+Dorena,765.0,4555.0
+Dorena,766.0,4966.0
+Dorena,767.0,5399.0
+Dorena,768.0,5855.0
+Dorena,769.0,6333.0
+Dorena,770.0,6835.0
+Dorena,771.0,7355.0
+Dorena,772.0,7886.0
+Dorena,773.0,8428.0
+Dorena,774.0,8980.0
+Dorena,775.0,9543.0
+Dorena,776.0,10100.0
+Dorena,777.0,10700.0
+Dorena,778.0,11300.0
+Dorena,779.0,11900.0
+Dorena,780.0,12500.0
+Dorena,781.0,13200.0
+Dorena,782.0,13800.0
+Dorena,783.0,14500.0
+Dorena,784.0,15200.0
+Dorena,785.0,15800.0
+Dorena,786.0,16600.0
+Dorena,787.0,17300.0
+Dorena,788.0,18000.0
+Dorena,789.0,18800.0
+Dorena,790.0,19600.0
+Dorena,791.0,20400.0
+Dorena,792.0,21200.0
+Dorena,793.0,22000.0
+Dorena,794.0,22900.0
+Dorena,795.0,23800.0
+Dorena,796.0,24700.0
+Dorena,797.0,25600.0
+Dorena,798.0,26500.0
+Dorena,799.0,27500.0
+Dorena,800.0,28500.0
+Dorena,801.0,29500.0
+Dorena,802.0,30500.0
+Dorena,803.0,31600.0
+Dorena,804.0,32600.0
+Dorena,805.0,33700.0
+Dorena,806.0,34800.0
+Dorena,807.0,35900.0
+Dorena,808.0,37000.0
+Dorena,809.0,38200.0
+Dorena,810.0,39400.0
+Dorena,811.0,40600.0
+Dorena,812.0,41800.0
+Dorena,813.0,43000.0
+Dorena,814.0,44300.0
+Dorena,815.0,45600.0
+Dorena,816.0,46900.0
+Dorena,817.0,48300.0
+Dorena,818.0,49700.0
+Dorena,819.0,51100.0
+Dorena,820.0,52500.0
+Dorena,821.0,53900.0
+Dorena,822.0,55400.0
+Dorena,823.0,56900.0
+Dorena,824.0,58500.0
+Dorena,825.0,60100.0
+Dorena,826.0,61700.0
+Dorena,827.0,63300.0
+Dorena,828.0,65000.0
+Dorena,829.0,66700.0
+Dorena,830.0,68500.0
+Dorena,831.0,70300.0
+Dorena,832.0,72100.0
+Dorena,833.0,73900.0
+Dorena,834.0,75700.0
+Dorena,835.0,77600.0
+Dorena,836.0,79500.0
+Dorena,837.0,81400.0
+Dorena,838.0,83400.0
+Dorena,839.0,85300.0
+Dorena,840.0,87300.0
+Dorena,841.0,89300.0
+Dorena,842.0,91400.0
+Dorena,843.0,93400.0
+Dorena,844.0,95500.0
+Dorena,845.0,97600.0
+Dorena,846.0,99700.0
+Dorena,847.0,101800.0
+Dorena,848.0,104000.0
+Dorena,849.0,106100.0
+Dorena,850.0,108300.0
+Dorena,851.0,110600.0
+Dorena,852.0,112800.0
+Dorena,853.0,115000.0
+Dorena,854.0,117300.0
+Dorena,855.0,119500.0
+Dorena,856.0,121800.0
+Dorena,857.0,124100.0
+Dorena,858.0,126400.0
+Dorena,859.0,128700.0
+Dorena,860.0,131100.0
+Dorena,861.0,133417.0
+Dorena,862.0,135733.0
+Dorena,863.0,138050.0
+Dorena,864.0,140367.0
+Dorena,865.0,142683.0
+Dorena,866.0,145000.0
+Cottage Grove,718.0,0.0
+Cottage Grove,719.0,1.0
+Cottage Grove,720.0,3.0
+Cottage Grove,721.0,9.0
+Cottage Grove,722.0,15.0
+Cottage Grove,723.0,23.0
+Cottage Grove,724.0,33.0
+Cottage Grove,725.0,44.0
+Cottage Grove,726.0,58.0
+Cottage Grove,727.0,75.0
+Cottage Grove,728.0,95.0
+Cottage Grove,729.0,120.0
+Cottage Grove,730.0,150.0
+Cottage Grove,731.0,185.0
+Cottage Grove,732.0,227.0
+Cottage Grove,733.0,276.0
+Cottage Grove,734.0,333.0
+Cottage Grove,735.0,399.0
+Cottage Grove,736.0,475.0
+Cottage Grove,737.0,565.0
+Cottage Grove,738.0,669.0
+Cottage Grove,739.0,789.0
+Cottage Grove,740.0,925.0
+Cottage Grove,741.0,1077.0
+Cottage Grove,742.0,1245.0
+Cottage Grove,743.0,1427.0
+Cottage Grove,744.0,1627.0
+Cottage Grove,745.0,1843.0
+Cottage Grove,746.0,2075.0
+Cottage Grove,747.0,2320.0
+Cottage Grove,748.0,2578.0
+Cottage Grove,749.0,2851.0
+Cottage Grove,750.0,3139.0
+Cottage Grove,751.0,3444.0
+Cottage Grove,752.0,3768.0
+Cottage Grove,753.0,4112.0
+Cottage Grove,754.0,4478.0
+Cottage Grove,755.0,4865.0
+Cottage Grove,756.0,5274.0
+Cottage Grove,757.0,5707.0
+Cottage Grove,758.0,6164.0
+Cottage Grove,759.0,6646.0
+Cottage Grove,760.0,7153.0
+Cottage Grove,761.0,7682.0
+Cottage Grove,762.0,8228.0
+Cottage Grove,763.0,8791.0
+Cottage Grove,764.0,9373.0
+Cottage Grove,765.0,9973.0
+Cottage Grove,766.0,10600.0
+Cottage Grove,767.0,11200.0
+Cottage Grove,768.0,11900.0
+Cottage Grove,769.0,12600.0
+Cottage Grove,770.0,13300.0
+Cottage Grove,771.0,14000.0
+Cottage Grove,772.0,14700.0
+Cottage Grove,773.0,15500.0
+Cottage Grove,774.0,16300.0
+Cottage Grove,775.0,17100.0
+Cottage Grove,776.0,17900.0
+Cottage Grove,777.0,18800.0
+Cottage Grove,778.0,19600.0
+Cottage Grove,779.0,20500.0
+Cottage Grove,780.0,21500.0
+Cottage Grove,781.0,22400.0
+Cottage Grove,782.0,23400.0
+Cottage Grove,783.0,24300.0
+Cottage Grove,784.0,25400.0
+Cottage Grove,785.0,26400.0
+Cottage Grove,786.0,27400.0
+Cottage Grove,787.0,28500.0
+Cottage Grove,788.0,29600.0
+Cottage Grove,789.0,30700.0
+Cottage Grove,790.0,31800.0
+Cottage Grove,791.0,32900.0
+Cottage Grove,792.0,34100.0
+Cottage Grove,793.0,35300.0
+Cottage Grove,794.0,36500.0
+Cottage Grove,795.0,37700.0
+Cottage Grove,796.0,38900.0
+Cottage Grove,797.0,40200.0
+Cottage Grove,798.0,41400.0
+Cottage Grove,799.0,42700.0
+Cottage Grove,800.0,44000.0
+Cottage Grove,801.0,45400.0
+Cottage Grove,802.0,46700.0
+Cottage Grove,803.0,48000.0
+Cottage Grove,804.0,49400.0
+Cottage Grove,805.0,50800.0
+Cottage Grove,806.0,52220.0
+Cottage Grove,807.0,53660.0
+Cottage Grove,808.0,55140.0
+Fall Creek,673.0,0.0
+Fall Creek,674.0,13.0
+Fall Creek,675.0,27.0
+Fall Creek,676.0,40.0
+Fall Creek,677.0,53.0
+Fall Creek,678.0,66.0
+Fall Creek,679.0,80.0
+Fall Creek,680.0,93.0
+Fall Creek,681.0,136.0
+Fall Creek,682.0,184.0
+Fall Creek,683.0,238.0
+Fall Creek,684.0,299.0
+Fall Creek,685.0,366.0
+Fall Creek,686.0,440.0
+Fall Creek,687.0,522.0
+Fall Creek,688.0,611.0
+Fall Creek,689.0,708.0
+Fall Creek,690.0,814.0
+Fall Creek,691.0,925.0
+Fall Creek,692.0,1039.0
+Fall Creek,693.0,1155.0
+Fall Creek,694.0,1275.0
+Fall Creek,695.0,1396.0
+Fall Creek,696.0,1521.0
+Fall Creek,697.0,1648.0
+Fall Creek,698.0,1778.0
+Fall Creek,699.0,1910.0
+Fall Creek,700.0,2046.0
+Fall Creek,701.0,2188.0
+Fall Creek,702.0,2339.0
+Fall Creek,703.0,2499.0
+Fall Creek,704.0,2670.0
+Fall Creek,705.0,2851.0
+Fall Creek,706.0,3043.0
+Fall Creek,707.0,3245.0
+Fall Creek,708.0,3459.0
+Fall Creek,709.0,3684.0
+Fall Creek,710.0,3921.0
+Fall Creek,711.0,4167.0
+Fall Creek,712.0,4417.0
+Fall Creek,713.0,4673.0
+Fall Creek,714.0,4935.0
+Fall Creek,715.0,5201.0
+Fall Creek,716.0,5474.0
+Fall Creek,717.0,5751.0
+Fall Creek,718.0,6034.0
+Fall Creek,719.0,6323.0
+Fall Creek,720.0,6617.0
+Fall Creek,721.0,6923.0
+Fall Creek,722.0,7248.0
+Fall Creek,723.0,7592.0
+Fall Creek,724.0,7956.0
+Fall Creek,725.0,8340.0
+Fall Creek,726.0,8745.0
+Fall Creek,727.0,9172.0
+Fall Creek,728.0,9621.0
+Fall Creek,729.0,10100.0
+Fall Creek,730.0,10600.0
+Fall Creek,731.0,11100.0
+Fall Creek,732.0,11600.0
+Fall Creek,733.0,12200.0
+Fall Creek,734.0,12700.0
+Fall Creek,735.0,13300.0
+Fall Creek,736.0,13800.0
+Fall Creek,737.0,14400.0
+Fall Creek,738.0,15000.0
+Fall Creek,739.0,15700.0
+Fall Creek,740.0,16300.0
+Fall Creek,741.0,16900.0
+Fall Creek,742.0,17600.0
+Fall Creek,743.0,18200.0
+Fall Creek,744.0,18800.0
+Fall Creek,745.0,19500.0
+Fall Creek,746.0,20100.0
+Fall Creek,747.0,20800.0
+Fall Creek,748.0,21400.0
+Fall Creek,749.0,22100.0
+Fall Creek,750.0,22700.0
+Fall Creek,751.0,23400.0
+Fall Creek,752.0,24100.0
+Fall Creek,753.0,24700.0
+Fall Creek,754.0,25400.0
+Fall Creek,755.0,26100.0
+Fall Creek,756.0,26800.0
+Fall Creek,757.0,27600.0
+Fall Creek,758.0,28300.0
+Fall Creek,759.0,29100.0
+Fall Creek,760.0,29800.0
+Fall Creek,761.0,30600.0
+Fall Creek,762.0,31400.0
+Fall Creek,763.0,32200.0
+Fall Creek,764.0,33000.0
+Fall Creek,765.0,33800.0
+Fall Creek,766.0,34600.0
+Fall Creek,767.0,35400.0
+Fall Creek,768.0,36300.0
+Fall Creek,769.0,37100.0
+Fall Creek,770.0,38000.0
+Fall Creek,771.0,38900.0
+Fall Creek,772.0,39800.0
+Fall Creek,773.0,40700.0
+Fall Creek,774.0,41600.0
+Fall Creek,775.0,42600.0
+Fall Creek,776.0,43600.0
+Fall Creek,777.0,44600.0
+Fall Creek,778.0,45600.0
+Fall Creek,779.0,46600.0
+Fall Creek,780.0,47700.0
+Fall Creek,781.0,48800.0
+Fall Creek,782.0,49800.0
+Fall Creek,783.0,50900.0
+Fall Creek,784.0,52000.0
+Fall Creek,785.0,53100.0
+Fall Creek,786.0,54200.0
+Fall Creek,787.0,55300.0
+Fall Creek,788.0,56400.0
+Fall Creek,789.0,57600.0
+Fall Creek,790.0,58700.0
+Fall Creek,791.0,59800.0
+Fall Creek,792.0,61000.0
+Fall Creek,793.0,62200.0
+Fall Creek,794.0,63400.0
+Fall Creek,795.0,64600.0
+Fall Creek,796.0,65800.0
+Fall Creek,797.0,67100.0
+Fall Creek,798.0,68400.0
+Fall Creek,799.0,69700.0
+Fall Creek,800.0,71000.0
+Fall Creek,801.0,72400.0
+Fall Creek,802.0,73700.0
+Fall Creek,803.0,75100.0
+Fall Creek,804.0,76500.0
+Fall Creek,805.0,77900.0
+Fall Creek,806.0,79300.0
+Fall Creek,807.0,80700.0
+Fall Creek,808.0,82200.0
+Fall Creek,809.0,83600.0
+Fall Creek,810.0,85100.0
+Fall Creek,811.0,86600.0
+Fall Creek,812.0,88100.0
+Fall Creek,813.0,89700.0
+Fall Creek,814.0,91200.0
+Fall Creek,815.0,92800.0
+Fall Creek,816.0,94300.0
+Fall Creek,817.0,95900.0
+Fall Creek,818.0,97500.0
+Fall Creek,819.0,99100.0
+Fall Creek,820.0,100800.0
+Fall Creek,821.0,102400.0
+Fall Creek,822.0,104100.0
+Fall Creek,823.0,105800.0
+Fall Creek,824.0,107500.0
+Fall Creek,825.0,109200.0
+Fall Creek,826.0,110900.0
+Fall Creek,827.0,112600.0
+Fall Creek,828.0,114300.0
+Fall Creek,829.0,116100.0
+Fall Creek,830.0,117800.0
+Fall Creek,831.0,119600.0
+Fall Creek,832.0,121400.0
+Fall Creek,833.0,123200.0
+Fall Creek,834.0,125100.0
+Fall Creek,835.0,127000.0
+Fall Creek,836.0,128900.0
+Fall Creek,837.0,130800.0
+Fall Creek,838.0,132800.0
+Fall Creek,839.0,134800.0
+Fall Creek,840.0,136800.0
+Lookout Point,688.0,0.0
+Lookout Point,689.0,16.5
+Lookout Point,690.0,33.0
+Lookout Point,691.0,49.5
+Lookout Point,692.0,66.0
+Lookout Point,693.0,82.5
+Lookout Point,694.0,99.0
+Lookout Point,695.0,115.5
+Lookout Point,696.0,132.0
+Lookout Point,697.0,148.5
+Lookout Point,698.0,165.0
+Lookout Point,699.0,181.5
+Lookout Point,700.0,198.0
+Lookout Point,701.0,320.0
+Lookout Point,702.0,447.0
+Lookout Point,703.0,581.0
+Lookout Point,704.0,720.0
+Lookout Point,705.0,865.0
+Lookout Point,706.0,1017.0
+Lookout Point,707.0,1174.0
+Lookout Point,708.0,1339.0
+Lookout Point,709.0,1510.0
+Lookout Point,710.0,1687.0
+Lookout Point,711.0,1872.0
+Lookout Point,712.0,2063.0
+Lookout Point,713.0,2261.0
+Lookout Point,714.0,2467.0
+Lookout Point,715.0,2680.0
+Lookout Point,716.0,2901.0
+Lookout Point,717.0,3129.0
+Lookout Point,718.0,3365.0
+Lookout Point,719.0,3609.0
+Lookout Point,720.0,3861.0
+Lookout Point,721.0,4122.0
+Lookout Point,722.0,4392.0
+Lookout Point,723.0,4671.0
+Lookout Point,724.0,4960.0
+Lookout Point,725.0,5259.0
+Lookout Point,726.0,5568.0
+Lookout Point,727.0,5887.0
+Lookout Point,728.0,6216.0
+Lookout Point,729.0,6556.0
+Lookout Point,730.0,6906.0
+Lookout Point,731.0,7268.0
+Lookout Point,732.0,7640.0
+Lookout Point,733.0,8023.0
+Lookout Point,734.0,8418.0
+Lookout Point,735.0,8824.0
+Lookout Point,736.0,9242.0
+Lookout Point,737.0,9671.0
+Lookout Point,738.0,10100.0
+Lookout Point,739.0,10600.0
+Lookout Point,740.0,11000.0
+Lookout Point,741.0,11500.0
+Lookout Point,742.0,12000.0
+Lookout Point,743.0,12500.0
+Lookout Point,744.0,13000.0
+Lookout Point,745.0,13600.0
+Lookout Point,746.0,14100.0
+Lookout Point,747.0,14700.0
+Lookout Point,748.0,15300.0
+Lookout Point,749.0,15900.0
+Lookout Point,750.0,16500.0
+Lookout Point,751.0,17200.0
+Lookout Point,752.0,17800.0
+Lookout Point,753.0,18500.0
+Lookout Point,754.0,19200.0
+Lookout Point,755.0,19900.0
+Lookout Point,756.0,20700.0
+Lookout Point,757.0,21400.0
+Lookout Point,758.0,22200.0
+Lookout Point,759.0,23000.0
+Lookout Point,760.0,23800.0
+Lookout Point,761.0,24600.0
+Lookout Point,762.0,25400.0
+Lookout Point,763.0,26300.0
+Lookout Point,764.0,27200.0
+Lookout Point,765.0,28100.0
+Lookout Point,766.0,29000.0
+Lookout Point,767.0,30000.0
+Lookout Point,768.0,30900.0
+Lookout Point,769.0,31900.0
+Lookout Point,770.0,32900.0
+Lookout Point,771.0,33900.0
+Lookout Point,772.0,35000.0
+Lookout Point,773.0,36000.0
+Lookout Point,774.0,37100.0
+Lookout Point,775.0,38200.0
+Lookout Point,776.0,39400.0
+Lookout Point,777.0,40500.0
+Lookout Point,778.0,41700.0
+Lookout Point,779.0,42900.0
+Lookout Point,780.0,44100.0
+Lookout Point,781.0,45300.0
+Lookout Point,782.0,46600.0
+Lookout Point,783.0,47900.0
+Lookout Point,784.0,49200.0
+Lookout Point,785.0,50500.0
+Lookout Point,786.0,51800.0
+Lookout Point,787.0,53200.0
+Lookout Point,788.0,54500.0
+Lookout Point,789.0,55900.0
+Lookout Point,790.0,57300.0
+Lookout Point,791.0,58800.0
+Lookout Point,792.0,60200.0
+Lookout Point,793.0,61700.0
+Lookout Point,794.0,63200.0
+Lookout Point,795.0,64700.0
+Lookout Point,796.0,66200.0
+Lookout Point,797.0,67800.0
+Lookout Point,798.0,69300.0
+Lookout Point,799.0,70900.0
+Lookout Point,800.0,72600.0
+Lookout Point,801.0,74200.0
+Lookout Point,802.0,75800.0
+Lookout Point,803.0,77500.0
+Lookout Point,804.0,79200.0
+Lookout Point,805.0,80900.0
+Lookout Point,806.0,82600.0
+Lookout Point,807.0,84300.0
+Lookout Point,808.0,86100.0
+Lookout Point,809.0,87900.0
+Lookout Point,810.0,89600.0
+Lookout Point,811.0,91500.0
+Lookout Point,812.0,93300.0
+Lookout Point,813.0,95100.0
+Lookout Point,814.0,97000.0
+Lookout Point,815.0,98900.0
+Lookout Point,816.0,100800.0
+Lookout Point,817.0,102700.0
+Lookout Point,818.0,104600.0
+Lookout Point,819.0,106600.0
+Lookout Point,820.0,108600.0
+Lookout Point,821.0,110600.0
+Lookout Point,822.0,112600.0
+Lookout Point,823.0,114600.0
+Lookout Point,824.0,116700.0
+Lookout Point,825.0,118800.0
+Lookout Point,826.0,120900.0
+Lookout Point,827.0,123000.0
+Lookout Point,828.0,125100.0
+Lookout Point,829.0,127300.0
+Lookout Point,830.0,129500.0
+Lookout Point,831.0,131700.0
+Lookout Point,832.0,133900.0
+Lookout Point,833.0,136100.0
+Lookout Point,834.0,138400.0
+Lookout Point,835.0,140700.0
+Lookout Point,836.0,143000.0
+Lookout Point,837.0,145300.0
+Lookout Point,838.0,147700.0
+Lookout Point,839.0,150100.0
+Lookout Point,840.0,152500.0
+Lookout Point,841.0,154900.0
+Lookout Point,842.0,157300.0
+Lookout Point,843.0,159800.0
+Lookout Point,844.0,162300.0
+Lookout Point,845.0,164800.0
+Lookout Point,846.0,167300.0
+Lookout Point,847.0,169900.0
+Lookout Point,848.0,172500.0
+Lookout Point,849.0,175100.0
+Lookout Point,850.0,177700.0
+Lookout Point,851.0,180400.0
+Lookout Point,852.0,183100.0
+Lookout Point,853.0,185800.0
+Lookout Point,854.0,188500.0
+Lookout Point,855.0,191300.0
+Lookout Point,856.0,194100.0
+Lookout Point,857.0,196900.0
+Lookout Point,858.0,199700.0
+Lookout Point,859.0,202600.0
+Lookout Point,860.0,205500.0
+Lookout Point,861.0,208400.0
+Lookout Point,862.0,211300.0
+Lookout Point,863.0,214300.0
+Lookout Point,864.0,217200.0
+Lookout Point,865.0,220200.0
+Lookout Point,866.0,223300.0
+Lookout Point,867.0,226300.0
+Lookout Point,868.0,229400.0
+Lookout Point,869.0,232400.0
+Lookout Point,870.0,235500.0
+Lookout Point,871.0,238700.0
+Lookout Point,872.0,241800.0
+Lookout Point,873.0,245000.0
+Lookout Point,874.0,248200.0
+Lookout Point,875.0,251400.0
+Lookout Point,876.0,254700.0
+Lookout Point,877.0,257900.0
+Lookout Point,878.0,261200.0
+Lookout Point,879.0,264500.0
+Lookout Point,880.0,267800.0
+Lookout Point,881.0,271200.0
+Lookout Point,882.0,274600.0
+Lookout Point,883.0,278000.0
+Lookout Point,884.0,281400.0
+Lookout Point,885.0,284800.0
+Lookout Point,886.0,288300.0
+Lookout Point,887.0,291800.0
+Lookout Point,888.0,295300.0
+Lookout Point,889.0,298800.0
+Lookout Point,890.0,302300.0
+Lookout Point,891.0,305900.0
+Lookout Point,892.0,309500.0
+Lookout Point,893.0,313100.0
+Lookout Point,894.0,316700.0
+Lookout Point,895.0,320300.0
+Lookout Point,896.0,324000.0
+Lookout Point,897.0,327700.0
+Lookout Point,898.0,331400.0
+Lookout Point,899.0,335100.0
+Lookout Point,900.0,338900.0
+Lookout Point,901.0,342700.0
+Lookout Point,902.0,346500.0
+Lookout Point,903.0,350300.0
+Lookout Point,904.0,354100.0
+Lookout Point,905.0,357900.0
+Lookout Point,906.0,361800.0
+Lookout Point,907.0,365700.0
+Lookout Point,908.0,369600.0
+Lookout Point,909.0,373500.0
+Lookout Point,910.0,377400.0
+Lookout Point,911.0,381400.0
+Lookout Point,912.0,385400.0
+Lookout Point,913.0,389400.0
+Lookout Point,914.0,393400.0
+Lookout Point,915.0,397400.0
+Lookout Point,916.0,401400.0
+Lookout Point,917.0,405500.0
+Lookout Point,918.0,409600.0
+Lookout Point,919.0,413700.0
+Lookout Point,920.0,417800.0
+Lookout Point,921.0,422000.0
+Lookout Point,922.0,426100.0
+Lookout Point,923.0,430300.0
+Lookout Point,924.0,434500.0
+Lookout Point,925.0,438700.0
+Lookout Point,926.0,443000.0
+Lookout Point,927.0,447300.0
+Lookout Point,928.0,451500.0
+Lookout Point,929.0,455800.0
+Lookout Point,930.0,460200.0
+Lookout Point,931.0,464500.0
+Lookout Point,932.0,468900.0
+Lookout Point,933.0,473300.0
+Lookout Point,934.0,477700.0
+Lookout Point,935.0,482100.0
+Lookout Point,936.0,486500.0
+Lookout Point,937.0,491000.0
+Lookout Point,938.0,495500.0
+Lookout Point,939.0,500000.0
+Lookout Point,940.0,504500.0
+Dexter,634.0,0.0
+Dexter,635.0,6.0
+Dexter,636.0,12.0
+Dexter,637.0,18.0
+Dexter,638.0,24.0
+Dexter,639.0,30.0
+Dexter,640.0,36.0
+Dexter,641.0,75.0
+Dexter,642.0,120.0
+Dexter,643.0,171.0
+Dexter,644.0,229.0
+Dexter,645.0,294.0
+Dexter,646.0,372.0
+Dexter,647.0,470.0
+Dexter,648.0,589.0
+Dexter,649.0,733.0
+Dexter,650.0,903.0
+Dexter,651.0,1091.0
+Dexter,652.0,1288.0
+Dexter,653.0,1493.0
+Dexter,654.0,1708.0
+Dexter,655.0,1931.0
+Dexter,656.0,2168.0
+Dexter,657.0,2424.0
+Dexter,658.0,2699.0
+Dexter,659.0,2993.0
+Dexter,660.0,3309.0
+Dexter,661.0,3647.0
+Dexter,662.0,4008.0
+Dexter,663.0,4394.0
+Dexter,664.0,4805.0
+Dexter,665.0,5243.0
+Dexter,666.0,5705.0
+Dexter,667.0,6188.0
+Dexter,668.0,6694.0
+Dexter,669.0,7223.0
+Dexter,670.0,7775.0
+Dexter,671.0,8343.0
+Dexter,672.0,8917.0
+Dexter,673.0,9499.0
+Dexter,674.0,10100.0
+Dexter,675.0,10700.0
+Dexter,676.0,11300.0
+Dexter,677.0,11900.0
+Dexter,678.0,12600.0
+Dexter,679.0,13300.0
+Dexter,680.0,14000.0
+Dexter,681.0,14800.0
+Dexter,682.0,15500.0
+Dexter,683.0,16300.0
+Dexter,684.0,17200.0
+Dexter,685.0,18000.0
+Dexter,686.0,18900.0
+Dexter,687.0,19800.0
+Dexter,688.0,20700.0
+Dexter,689.0,21600.0
+Dexter,690.0,22500.0
+Dexter,691.0,23400.0
+Dexter,692.0,24400.0
+Dexter,693.0,25400.0
+Dexter,694.0,26300.0
+Dexter,695.0,27300.0
+Dexter,696.0,28300.0
+Dexter,697.0,29300.0
+Dexter,698.0,30300.0
+Dexter,699.0,31400.0
+Dexter,700.0,32400.0
+Hills Creek,1244.0,0.0
+Hills Creek,1308.0,10000.0
+Hills Creek,1326.0,20000.0
+Hills Creek,1340.0,30000.0
+Hills Creek,1352.0,40000.0
+Hills Creek,1360.0,47500.0
+Hills Creek,1361.0,48350.0
+Hills Creek,1362.0,49200.0
+Hills Creek,1363.0,50050.0
+Hills Creek,1364.0,50900.0
+Hills Creek,1365.0,51750.0
+Hills Creek,1366.0,52600.0
+Hills Creek,1367.0,53500.0
+Hills Creek,1368.0,54500.0
+Hills Creek,1369.0,55500.0
+Hills Creek,1370.0,56400.0
+Hills Creek,1371.0,57400.0
+Hills Creek,1372.0,58400.0
+Hills Creek,1373.0,59400.0
+Hills Creek,1374.0,60400.0
+Hills Creek,1375.0,61400.0
+Hills Creek,1376.0,62400.0
+Hills Creek,1377.0,63400.0
+Hills Creek,1378.0,64500.0
+Hills Creek,1379.0,65500.0
+Hills Creek,1380.0,66600.0
+Hills Creek,1381.0,67600.0
+Hills Creek,1382.0,68700.0
+Hills Creek,1383.0,69800.0
+Hills Creek,1384.0,70800.0
+Hills Creek,1385.0,71900.0
+Hills Creek,1386.0,73000.0
+Hills Creek,1387.0,74100.0
+Hills Creek,1388.0,75200.0
+Hills Creek,1389.0,76300.0
+Hills Creek,1390.0,77500.0
+Hills Creek,1391.0,78600.0
+Hills Creek,1392.0,79700.0
+Hills Creek,1393.0,80900.0
+Hills Creek,1394.0,82000.0
+Hills Creek,1395.0,83200.0
+Hills Creek,1396.0,84400.0
+Hills Creek,1397.0,85600.0
+Hills Creek,1398.0,86700.0
+Hills Creek,1399.0,87900.0
+Hills Creek,1400.0,89100.0
+Hills Creek,1401.0,90400.0
+Hills Creek,1402.0,91600.0
+Hills Creek,1403.0,92800.0
+Hills Creek,1404.0,94000.0
+Hills Creek,1405.0,95300.0
+Hills Creek,1406.0,96500.0
+Hills Creek,1407.0,97700.0
+Hills Creek,1408.0,99000.0
+Hills Creek,1409.0,100300.0
+Hills Creek,1410.0,101500.0
+Hills Creek,1411.0,102800.0
+Hills Creek,1412.0,104100.0
+Hills Creek,1413.0,105400.0
+Hills Creek,1414.0,106700.0
+Hills Creek,1415.0,108000.0
+Hills Creek,1416.0,109300.0
+Hills Creek,1417.0,110600.0
+Hills Creek,1418.0,111900.0
+Hills Creek,1419.0,113300.0
+Hills Creek,1420.0,114600.0
+Hills Creek,1421.0,115900.0
+Hills Creek,1422.0,117300.0
+Hills Creek,1423.0,118600.0
+Hills Creek,1424.0,120000.0
+Hills Creek,1425.0,121400.0
+Hills Creek,1426.0,122800.0
+Hills Creek,1427.0,124200.0
+Hills Creek,1428.0,125600.0
+Hills Creek,1429.0,127000.0
+Hills Creek,1430.0,128400.0
+Hills Creek,1431.0,129800.0
+Hills Creek,1432.0,131300.0
+Hills Creek,1433.0,132700.0
+Hills Creek,1434.0,134200.0
+Hills Creek,1435.0,135600.0
+Hills Creek,1436.0,137100.0
+Hills Creek,1437.0,138600.0
+Hills Creek,1438.0,140000.0
+Hills Creek,1439.0,141500.0
+Hills Creek,1440.0,143000.0
+Hills Creek,1441.0,144600.0
+Hills Creek,1442.0,146100.0
+Hills Creek,1443.0,147600.0
+Hills Creek,1444.0,149100.0
+Hills Creek,1445.0,150700.0
+Hills Creek,1446.0,152200.0
+Hills Creek,1447.0,153800.0
+Hills Creek,1448.0,155400.0
+Hills Creek,1449.0,157000.0
+Hills Creek,1450.0,158500.0
+Hills Creek,1451.0,160100.0
+Hills Creek,1452.0,161700.0
+Hills Creek,1453.0,163400.0
+Hills Creek,1454.0,165000.0
+Hills Creek,1455.0,166600.0
+Hills Creek,1456.0,168300.0
+Hills Creek,1457.0,169900.0
+Hills Creek,1458.0,171600.0
+Hills Creek,1459.0,173200.0
+Hills Creek,1460.0,174900.0
+Hills Creek,1461.0,176600.0
+Hills Creek,1462.0,178300.0
+Hills Creek,1463.0,180000.0
+Hills Creek,1464.0,181700.0
+Hills Creek,1465.0,183500.0
+Hills Creek,1466.0,185200.0
+Hills Creek,1467.0,187000.0
+Hills Creek,1468.0,188800.0
+Hills Creek,1469.0,190500.0
+Hills Creek,1470.0,192300.0
+Hills Creek,1471.0,194100.0
+Hills Creek,1472.0,196000.0
+Hills Creek,1473.0,197800.0
+Hills Creek,1474.0,199600.0
+Hills Creek,1475.0,201500.0
+Hills Creek,1476.0,203400.0
+Hills Creek,1477.0,205200.0
+Hills Creek,1478.0,207100.0
+Hills Creek,1479.0,209100.0
+Hills Creek,1480.0,211000.0
+Hills Creek,1481.0,212900.0
+Hills Creek,1482.0,214800.0
+Hills Creek,1483.0,216800.0
+Hills Creek,1484.0,218800.0
+Hills Creek,1485.0,220700.0
+Hills Creek,1486.0,222700.0
+Hills Creek,1487.0,224700.0
+Hills Creek,1488.0,226800.0
+Hills Creek,1489.0,228800.0
+Hills Creek,1490.0,230800.0
+Hills Creek,1491.0,232900.0
+Hills Creek,1492.0,234900.0
+Hills Creek,1493.0,237000.0
+Hills Creek,1494.0,239100.0
+Hills Creek,1495.0,241200.0
+Hills Creek,1496.0,243300.0
+Hills Creek,1497.0,245400.0
+Hills Creek,1498.0,247600.0
+Hills Creek,1499.0,249700.0
+Hills Creek,1500.0,251900.0
+Hills Creek,1501.0,254000.0
+Hills Creek,1502.0,256200.0
+Hills Creek,1503.0,258400.0
+Hills Creek,1504.0,260600.0
+Hills Creek,1505.0,262800.0
+Hills Creek,1506.0,265000.0
+Hills Creek,1507.0,267300.0
+Hills Creek,1508.0,269500.0
+Hills Creek,1509.0,271800.0
+Hills Creek,1510.0,274000.0
+Hills Creek,1511.0,276300.0
+Hills Creek,1512.0,278600.0
+Hills Creek,1513.0,280900.0
+Hills Creek,1514.0,283200.0
+Hills Creek,1515.0,285500.0
+Hills Creek,1516.0,287800.0
+Hills Creek,1517.0,290200.0
+Hills Creek,1518.0,292500.0
+Hills Creek,1519.0,294900.0
+Hills Creek,1520.0,297200.0
+Hills Creek,1521.0,299600.0
+Hills Creek,1522.0,302000.0
+Hills Creek,1523.0,304400.0
+Hills Creek,1524.0,306800.0
+Hills Creek,1525.0,309200.0
+Hills Creek,1526.0,311700.0
+Hills Creek,1527.0,314100.0
+Hills Creek,1528.0,316600.0
+Hills Creek,1529.0,319100.0
+Hills Creek,1530.0,321600.0
+Hills Creek,1531.0,324100.0
+Hills Creek,1532.0,326600.0
+Hills Creek,1533.0,329200.0
+Hills Creek,1534.0,331700.0
+Hills Creek,1535.0,334300.0
+Hills Creek,1536.0,336900.0
+Hills Creek,1537.0,339500.0
+Hills Creek,1538.0,342100.0
+Hills Creek,1539.0,344700.0
+Hills Creek,1540.0,347300.0
+Hills Creek,1541.0,350000.0
+Hills Creek,1542.0,352800.0
+Hills Creek,1543.0,355600.0
+Hills Creek,1544.0,358400.0
+Hills Creek,1545.0,361400.0
+Hills Creek,1546.0,364400.0
+Hills Creek,1547.0,367500.0
+Hills Creek,1548.0,370600.0
+Hills Creek,1549.0,373800.0
+Hills Creek,1550.0,377100.0
+Hills Creek,1551.0,380500.0
+Hills Creek,1552.0,383900.0
+Hills Creek,1553.0,387400.0
+Hills Creek,1554.0,391000.0
+Hills Creek,1555.0,394600.0
+Hills Creek,1556.0,398400.0
+Hills Creek,1557.0,402200.0
+Hills Creek,1558.0,406100.0
+Hills Creek,1559.0,410000.0
+Hills Creek,1560.0,414100.0
