@@ -166,7 +166,31 @@ ax.set_ylabel("Percent of Rule Curve Storage")
 plt.tight_layout()
 
 
+#One generalized rule curve, for printing out a giant sheet of paper
+fig, ax = plt.subplots(figsize=[16, 9])
+
+resvName = "Green Peter"
+ax.plot(dfRCPct[resvName], label=resvName, color = 'black')
+#Add text label
+#ax.text(dfRCPct.index[-1], dfRCPct[resvName].max(), f" {resvName}", ha="left", va="center")
+ax.set_xlim([dfRCPct.index[0],dfRCPct.index[-1]])
+ax = xAxisSeasonal(ax)
+ax.grid(True, axis='x', alpha=0.5)
+plt.rcParams.update({
+'axes.titlesize': 16,    # Title font size
+'axes.labelsize': 24,    # Axis label font size
+'xtick.labelsize': 24,   # X-axis tick font size
+'ytick.labelsize': 24,   # Y-axis tick font size
+'legend.fontsize': 12,   # Legend font size
+})
+ax.set_ylabel("Storage")
+ax.yaxis.set_major_formatter(PercentFormatter(xmax=1))
+#ax.yaxis.set_major_formatter(NullFormatter())
+plt.tight_layout()
+plt.rcdefaults()
+
 #Plot up the rule curve as more of a simplified cartoon with zones colored differently
+#For each reservoir separately
 
 # Initialize presentation
 prs = Presentation()
