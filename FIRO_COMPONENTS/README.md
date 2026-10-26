@@ -3,6 +3,9 @@
 Build baseline FIRO-space allocations and daily component/envelope curves,
 calculate a separate redistribution case, and review the resulting geometry.
 
+For a plain-language description of parameter searches and allocation optimization,
+see [How optimization works](HOW_OPTIMIZATION_WORKS.md).
+
 ## Start here
 
 Open `outputs/review/index.html`. It links to:
