@@ -1,0 +1,1 @@
+Completely temporary data that might be produced as an interim product by scripts to save time. All files here can be deleted with no problems

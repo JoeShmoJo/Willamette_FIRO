@@ -46,7 +46,8 @@ RULECURVE_CSV_FILE = "../data/common_data/Willamette_Rule_Curves.csv"
 DRAWDOWNCURVE_CSV_FILE = "../data/common_data/Drawdown_Target_Curves.csv"
 ELEV_STOR_CSV = "../data/common_data/ElevStor.csv" 
 RESERVOIR_ELEV_XLSX = "../data/common_data/Reservoirs.xlsx" 
-RESSIM_OUT_CSV = "../data/ressim_output/2026_09_15/HCR1511WCM.csv.gz"
+RESSIM_OUT_CSV = "../data/ressim_output/2026_10_26/ALL_D.csv.gz"
+RESSIM_OUT_CSV_FIRO = "../data/ressim_output/2026_10_26/FALLFIRO.csv.gz"
 
 # A list of 11 distinct colors using Tableau 10 and a complementary XKCD color
 color_list = [
@@ -281,6 +282,13 @@ dfResSim = dfResSim.loc[~((dfResSim["Timestamp"].dt.month==2) & (dfResSim["Times
 dfResSim["Date2001"] = dfResSim["Timestamp"].apply(getDate2001, startMonth=8)
 dfResSim["WillYr"] = dfResSim["Timestamp"].apply(getWillYr)
 
+#Repeat for simulation with Fall FIRO
+#Sloppy, but quick
+dfResSimFIRO = pd.read_csv(RESSIM_OUT_CSV_FIRO, parse_dates=["Timestamp"])
+dfResSimFIRO = dfResSimFIRO.loc[~((dfResSimFIRO["Timestamp"].dt.month==2) & (dfResSimFIRO["Timestamp"].dt.day==29))].copy()
+dfResSimFIRO["Date2001"] = dfResSimFIRO["Timestamp"].apply(getDate2001, startMonth=8)
+dfResSimFIRO["WillYr"] = dfResSimFIRO["Timestamp"].apply(getWillYr)
+
 
 startDT = datetime.datetime(2000,8,1)
 endDT = datetime.datetime(2001,7,31)
@@ -387,3 +395,55 @@ for resvName in resvsToPlot:
 prs.save("../out/DelayedFallDrawdown.pptx")
     
 
+def histogramUneven(data_points):
+    
+    # 2. Define your bin boundaries and nice labels
+    # We use a value slightly below zero (-1e-9) to ensure that exact 0s are correctly
+    # grouped into the 'Zero' category when 'right=True' is used.
+    bins = [-1e-9, 0, 10, 25, np.inf]
+    labels = ['0', '0-10', '10-25', '25+']
+    
+    # 3. Categorize the data into custom bins
+    df = pd.DataFrame({'values': data_points})
+    df['bin'] = pd.cut(df['values'], bins=bins, labels=labels, right=True)
+    
+    # 4. Count the frequencies for each bin category
+    bin_counts = df['bin'].value_counts().reindex(labels)
+    
+    # 5. Plot the result as a bar chart (which behaves as our custom histogram)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(bin_counts.index, bin_counts.values/len(df), color='skyblue', edgecolor='black', width=0.6)
+    
+    
+    # Formatting the plot
+    ax.yaxis.set_major_formatter(PercentFormatter(xmax=1, decimals=0))
+    plt.title('Fall Creek Fall FIRO', fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel('Increased number of days below 700 cfs', fontsize=12, labelpad=10)
+    ax.set_ylabel('Percent of years', fontsize=12, labelpad=10)
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+
+#Count up number of days greater than 700 cfs at Fall Creek in the fall
+dfMerge = pd.merge(dfResSim, dfResSimFIRO, how="inner", on="Timestamp", suffixes=["","_FIRO"])
+for resvName in ["Fall Creek"]:
+    endMonth = 10
+    if resvName in endMonthDict:
+        endMonth = endMonthDict[resvName]
+    df = dfMerge.loc[(dfMerge["Timestamp"].dt.month>=9) & (dfMerge["Timestamp"].dt.month<=endMonth)].copy()
+    seriesNumBadDays = df.loc[df[f"Fall Creek__Flow-OUT"] > 701].groupby("WillYr")[f"Fall Creek__Flow-OUT"].count()
+    seriesNumBadDaysFIRO = df.loc[df[f"Fall Creek__Flow-OUT_FIRO"] > 701].groupby("WillYr")[f"Fall Creek__Flow-OUT_FIRO"].count()
+    dfBadDays = pd.DataFrame(index=np.arange(1935, 2020))
+    dfBadDays["Base"] = seriesNumBadDays
+    dfBadDays["FIRO"] = seriesNumBadDaysFIRO
+    dfBadDays = dfBadDays.fillna(0)
+    #dfBadDays = pd.merge(seriesNumBadDays, seriesNumBadDaysFIRO, how='outer', left_index=True, right_index=True)
+    dfBadDays["NumDaysBetter"] = dfBadDays["Base"] - dfBadDays["FIRO"] 
+histogramUneven(dfBadDays["NumDaysBetter"])
+
+#Basic spaghetti of FAL
+fig, ax = plt.subplots()
+series = dfResSim[f"Fall Creek__Flow-OUT"]
+for yr in range(1936, 2019+1):
+    dfOne = dfResSim.loc[dfResSim["WillYr"]==yr]
+    ax.plot(dfOne["Date2001"], dfOne[f"Fall Creek__Flow-OUT"], color='gray', alpha=0.2)
+    
