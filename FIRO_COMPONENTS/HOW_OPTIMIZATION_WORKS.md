@@ -113,10 +113,13 @@ operational benefits. All eight modeled alternatives report successful
 optimization passes in the saved summary. Alternative 5 has no component
 selection rows and is absent from the daily/model results.
 
-The current curve builder reads baseline physical allocations from output 25.
-Redistributed physical allocations are saved separately in output 43 and are
-not automatically used to rebuild the daily curves. Consequently the retained
-daily plots show baseline-parameterized component combinations.
+The standalone curve builder reads baseline physical allocations from output 25.
+The review runner now uses script 15 to invoke the same geometry/capping code
+separately with output 25 (before) and output 43 (after). The retained charts let
+you toggle between these rebuilt cases; allocation limits, dates and controllers
+follow the selected case. This reconnects the existing allocation optimization
+to the plotted curves without changing the optimization objective or introducing
+a joint component-combination optimizer.
 
 ## Scope of the word optimized
 

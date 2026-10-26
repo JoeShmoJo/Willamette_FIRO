@@ -14,11 +14,7 @@ MODEL = [
     "05_optimize_static_redistribution.py",
 ]
 REVIEW = [
-    "11_build_capacity_constraint_review.py",
-    "14_build_utilization_ribbon_overview.py",
-    "13_build_constraint_controller_overview.py",
-    "04_build_plotly_component_review.py",
-    "07_add_plotly_review_navigation.py",
+    "15_build_reallocation_comparison.py",
     "06_build_review_package.py",
 ]
 

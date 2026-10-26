@@ -22,8 +22,8 @@ Open these files first
 
 4. 03_project_changes.csv
    Only physical reservoirs whose allocated FIRO space increased after
-   redistribution. This is the key input for reviewing changed component
-   curves later.
+   redistribution. The daily review pages let you toggle between the corresponding
+   before/after component curves.
 
 5. 04_control_point_comparison.csv
    Baseline and redistributed control-point utilization side by side.
