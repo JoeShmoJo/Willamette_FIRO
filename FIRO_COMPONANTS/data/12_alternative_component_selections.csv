@@ -1,0 +1,154 @@
+﻿alternative_id,alternative_name,project_id,component_code,selection_status,active_for_current_phase,notes,source
+1,Optimize Cat 1 Spill,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,C,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,E,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,H,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,I,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,DETROIT,J,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,C,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,E,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,H,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,I,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,GREEN_PETER,J,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,HILLS_CREEK,C,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,HILLS_CREEK,E,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,HILLS_CREEK,I,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,C,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,E,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,H,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,I,ACTIVE,True,,System Alternative Concept table
+1,Optimize Cat 1 Spill,LOOKOUT_POINT,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DETROIT,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DETROIT,E,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DETROIT,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DETROIT,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,GREEN_PETER,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,GREEN_PETER,E,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,GREEN_PETER,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,GREEN_PETER,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,BLUE_RIVER,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,BLUE_RIVER,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,BLUE_RIVER,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,HILLS_CREEK,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,HILLS_CREEK,E,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,HILLS_CREEK,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,LOOKOUT_POINT,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,LOOKOUT_POINT,E,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,LOOKOUT_POINT,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,LOOKOUT_POINT,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FALL_CREEK,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FALL_CREEK,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FALL_CREEK,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FALL_CREEK,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DORENA,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DORENA,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DORENA,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,DORENA,J,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,COTTAGE_GROVE,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,COTTAGE_GROVE,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,COTTAGE_GROVE,I,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FERN_RIDGE,A,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FERN_RIDGE,C,ACTIVE,True,,System Alternative Concept table
+2,Support Temperature Management,FERN_RIDGE,I,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,DETROIT,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,GREEN_PETER,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FOSTER,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FOSTER,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,COUGAR,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,COUGAR,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,BLUE_RIVER,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,BLUE_RIVER,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,HILLS_CREEK,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,LOOKOUT_POINT,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FALL_CREEK,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FALL_CREEK,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,DORENA,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,DORENA,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,COTTAGE_GROVE,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,COTTAGE_GROVE,K,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FERN_RIDGE,A,ACTIVE,True,,System Alternative Concept table
+3,Max Con Storage,FERN_RIDGE,K,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,DETROIT,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,GREEN_PETER,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,FOSTER,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,COUGAR,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,COUGAR,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,BLUE_RIVER,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,BLUE_RIVER,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,HILLS_CREEK,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,LOOKOUT_POINT,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,FALL_CREEK,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,DORENA,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,COTTAGE_GROVE,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,COTTAGE_GROVE,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,FERN_RIDGE,A,ACTIVE,True,,System Alternative Concept table
+4,Min Winter Waste,FERN_RIDGE,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+4,Min Winter Waste,FERN_RIDGE,G,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,DETROIT,C,ACTIVE,True,,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,GREEN_PETER,C,ACTIVE,True,,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,COUGAR,C,ACTIVE,True,,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,BLUE_RIVER,C,ACTIVE,True,,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,LOOKOUT_POINT,C,ACTIVE,True,,System Alternative Concept table
+6,Flow Delivery + Storage Reliability,FALL_CREEK,C,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,DETROIT,J,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,DETROIT,K,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,GREEN_PETER,J,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,FOSTER,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,COUGAR,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,COUGAR,K,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,BLUE_RIVER,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,HILLS_CREEK,K,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,LOOKOUT_POINT,J,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,FALL_CREEK,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,FALL_CREEK,K,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,DORENA,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,COTTAGE_GROVE,A,ACTIVE,True,,System Alternative Concept table
+7,Winter Pool Plus,FERN_RIDGE,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,DETROIT,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,DETROIT,J,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,GREEN_PETER,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,GREEN_PETER,J,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,FOSTER,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,COUGAR,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,BLUE_RIVER,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,HILLS_CREEK,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,LOOKOUT_POINT,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,LOOKOUT_POINT,J,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,FALL_CREEK,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,DORENA,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,COTTAGE_GROVE,A,ACTIVE,True,,System Alternative Concept table
+8,Winter Pool + Fall Flex,FERN_RIDGE,A,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,DETROIT,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,GREEN_PETER,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+9,Forget Winter Pools,GREEN_PETER,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,COUGAR,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,BLUE_RIVER,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+9,Forget Winter Pools,BLUE_RIVER,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,HILLS_CREEK,F,DEFERRED,False,Excluded from current phase pending component definition.,System Alternative Concept table
+9,Forget Winter Pools,HILLS_CREEK,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,LOOKOUT_POINT,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,FALL_CREEK,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,DORENA,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,COTTAGE_GROVE,K,ACTIVE,True,,System Alternative Concept table
+9,Forget Winter Pools,FERN_RIDGE,C,ACTIVE,True,,System Alternative Concept table

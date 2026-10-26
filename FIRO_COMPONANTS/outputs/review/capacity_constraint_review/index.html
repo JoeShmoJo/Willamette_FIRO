@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FIRO Capacity Constraint Review</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 32px;
+    color: #202a33;
+}
+h1 {
+    color: #173a5e;
+}
+.note {
+    max-width: 1100px;
+    background: #fff7d6;
+    border-left: 5px solid #cc9200;
+    padding: 14px;
+    line-height: 1.4;
+}
+table {
+    border-collapse: collapse;
+    margin-top: 18px;
+    min-width: 900px;
+}
+th, td {
+    border: 1px solid #c8d1dc;
+    padding: 8px 12px;
+    text-align: left;
+}
+th {
+    background: #dce9f6;
+}
+tr:nth-child(even) {
+    background: #f7f9fb;
+}
+a {
+    color: #0645ad;
+    font-weight: 600;
+}
+</style>
+</head>
+<body>
+<h1>FIRO Capacity Constraint Review</h1>
+
+<div class="note">
+<b>Interpretation:</b> Reservoir pages distinguish physical FIRO capacity
+from assigned FIRO allocation. Control-point pages compare daily unrouted
+FIRO-space loading with each static control-point FIRO-space limit.
+These are no-routing screening products, not routed-flow validation.
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Name</th>
+<th>Reservoirs</th>
+<th>Control Points</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Optimize Cat 1 Spill</td><td><a href="alternative_01_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_01_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>2</td><td>Support Temperature Management</td><td><a href="alternative_02_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_02_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>3</td><td>Max Con Storage</td><td><a href="alternative_03_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_03_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>4</td><td>Min Winter Waste</td><td><a href="alternative_04_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_04_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>6</td><td>Flow Delivery + Storage Reliability</td><td><a href="alternative_06_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_06_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>7</td><td>Winter Pool Plus</td><td><a href="alternative_07_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_07_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>8</td><td>Winter Pool + Fall Flex</td><td><a href="alternative_08_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_08_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr><tr><td>9</td><td>Forget Winter Pools</td><td><a href="alternative_09_reservoir_capacity_review.html">Reservoir Capacity Page</a></td><td><a href="alternative_09_control_point_capacity_review.html">Control-Point Capacity Page</a></td></tr>
+</tbody>
+</table>
+
+<h2>Supporting CSV Files</h2>
+<ul>
+<li><a href="01_reservoir_daily_capacity_status.csv">
+01_reservoir_daily_capacity_status.csv</a></li>
+<li><a href="02_control_point_daily_capacity_status.csv">
+02_control_point_daily_capacity_status.csv</a></li>
+<li><a href="03_control_point_daily_contributions.csv">
+03_control_point_daily_contributions.csv</a></li>
+</ul>
+
+<p><a href="../index.html">Return to Primary FIRO Review Package</a></p>
+</body>
+</html>

@@ -1,0 +1,6 @@
+﻿project_id,project_name,decision_unit_id,intervening_reservoir_id,intervening_reservoir_name,path_order,network_element,exception_type,model_treatment
+HILLS_CREEK,Hills Creek,LOP_HCR,LOOKOUT_POINT,Lookout Point,14,reservoir:Lookout Point,DOWNSTREAM_INTERVENING_RESERVOIR,Retain in topology; do not allocate FIRO space unless separately designated.
+HILLS_CREEK,Hills Creek,LOP_HCR,DEXTER,Dexter,18,reservoir:Dexter,DOWNSTREAM_INTERVENING_RESERVOIR,Retain in topology; do not allocate FIRO space unless separately designated.
+LOOKOUT_POINT,Lookout Point,LOP_HCR,DEXTER,Dexter,4,reservoir:Dexter,DOWNSTREAM_INTERVENING_RESERVOIR,Retain in topology; do not allocate FIRO space unless separately designated.
+GREEN_PETER,Green Peter,GREEN_PETER,FOSTER,Foster,4,reservoir:Foster,DOWNSTREAM_INTERVENING_RESERVOIR,Retain in topology; do not allocate FIRO space unless separately designated.
+DETROIT,Detroit,DETROIT,BIG_CLIFF,Big Cliff,4,reservoir:Big Cliff,DOWNSTREAM_INTERVENING_RESERVOIR,Retain in topology; do not allocate FIRO space unless separately designated.

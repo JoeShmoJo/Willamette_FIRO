@@ -1,0 +1,30 @@
+﻿decision_unit_id,project_id,project_name,control_point_id,control_point_name,candidate_is_upstream,routing_factor,legacy_allocated_space_kaf,source,verification_status
+BLUE_RIVER,BLUE_RIVER,Blue River,ALBANY,Albany,True,1.0,13.336889670960547,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COTTAGE_GROVE,COTTAGE_GROVE,Cottage Grove,ALBANY,Albany,True,1.0,4.848162495236864,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COUGAR,COUGAR,Cougar,ALBANY,Albany,True,1.0,23.15338206836806,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+DORENA,DORENA,Dorena,ALBANY,Albany,True,1.0,11.001241479853244,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FALL_CREEK,FALL_CREEK,Fall Creek,ALBANY,Albany,True,1.0,18.017613270874044,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FERN_RIDGE,FERN_RIDGE,Fern Ridge,ALBANY,Albany,True,1.0,15.997159110657984,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,HILLS_CREEK,Hills Creek,ALBANY,Albany,True,1.0,32.936024491991404,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,LOOKOUT_POINT,Lookout Point,ALBANY,Albany,True,1.0,54.931737456941065,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+BLUE_RIVER,BLUE_RIVER,Blue River,HARRISBURG,Harrisburg,True,1.0,15.967021480635854,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COTTAGE_GROVE,COTTAGE_GROVE,Cottage Grove,HARRISBURG,Harrisburg,True,1.0,5.804255460822514,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COUGAR,COUGAR,Cougar,HARRISBURG,Harrisburg,True,1.0,27.719397697347528,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+DORENA,DORENA,Dorena,HARRISBURG,Harrisburg,True,1.0,13.170766449763079,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FALL_CREEK,FALL_CREEK,Fall Creek,HARRISBURG,Harrisburg,True,1.0,21.570817876092974,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,HILLS_CREEK,Hills Creek,HARRISBURG,Harrisburg,True,1.0,39.431248478829154,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,LOOKOUT_POINT,Lookout Point,HARRISBURG,Harrisburg,True,1.0,65.76467629130931,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+DETROIT,DETROIT,Detroit,JEFFERSON,Jefferson,True,1.0,130.1824316334359,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FOSTER,FOSTER,Foster,JEFFERSON,Jefferson,True,1.0,11.51042402859744,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+GREEN_PETER,GREEN_PETER,Green Peter,JEFFERSON,Jefferson,True,1.0,120.10477691839813,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+BLUE_RIVER,BLUE_RIVER,Blue River,SALEM,Salem,True,1.0,10.839705220025639,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COTTAGE_GROVE,COTTAGE_GROVE,Cottage Grove,SALEM,Salem,True,1.0,3.940397919132417,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+COUGAR,COUGAR,Cougar,SALEM,Salem,True,1.0,18.818168453039437,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+DETROIT,DETROIT,Detroit,SALEM,Salem,True,1.0,38.58371063514381,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+DORENA,DORENA,Dorena,SALEM,Salem,True,1.0,8.941381209412011,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FALL_CREEK,FALL_CREEK,Fall Creek,SALEM,Salem,True,1.0,14.644015317150805,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FERN_RIDGE,FERN_RIDGE,Fern Ridge,SALEM,Salem,True,1.0,13.00186875617238,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+FOSTER,FOSTER,Foster,SALEM,Salem,True,1.0,3.411480830667968,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+GREEN_PETER,GREEN_PETER,Green Peter,SALEM,Salem,True,1.0,35.59687663206745,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,HILLS_CREEK,Hills Creek,SALEM,Salem,True,1.0,26.769119743870426,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW
+LOP_HCR,LOOKOUT_POINT,Lookout Point,SALEM,Salem,True,1.0,44.64637977425789,legacy_project_space_summary_nonblank_value,NEEDS_REVIEW

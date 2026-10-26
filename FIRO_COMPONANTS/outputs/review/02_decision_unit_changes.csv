@@ -1,0 +1,3 @@
+alternative_id,alternative_name,decision_unit_id,decision_unit_name,active_components,baseline_firo_space_kaf,redistributed_firo_space_kaf,redistribution_increase_kaf,effective_physical_cap_kaf,unused_physical_capacity_kaf_after_redistribution,limiting_control_points,redistributed_limiting_control_points,optimization_status
+1,Optimize Cat 1 Spill,GREEN_PETER,Green Peter,A|C|E|H|I|J,53.590656668318736,63.05946586646392,9.46880919814518,88.76502981436359,25.70556394789967,SALEM,Salem,SUCCESS
+1,Optimize Cat 1 Spill,DETROIT,Detroit,A|C|E|H|I|J,58.087298248381664,65.76748623497485,7.680187986593189,85.20392818393056,19.436441948955704,SALEM,Salem,SUCCESS

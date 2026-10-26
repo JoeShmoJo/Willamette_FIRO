@@ -1,0 +1,2 @@
+﻿severity,dataset,issue,details
+INFO,component cap validation,Raw component curve values were capped,alternative=1; project=GREEN_PETER; capped_days=1; max_reduction=0.626192 KAF

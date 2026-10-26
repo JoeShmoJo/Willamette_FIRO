@@ -1,0 +1,15 @@
+﻿severity,dataset,issue,details
+INFO,alternative component selection,Deferred F/G component selections preserved,14 selection row(s)
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=FALL_CREEK; control_point=JASPER
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=LOP_HCR; control_point=JASPER
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=DETROIT; control_point=MEHAMA
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=FERN_RIDGE; control_point=MONROE
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=BLUE_RIVER; control_point=VIDA
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=COUGAR; control_point=VIDA
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=FOSTER; control_point=WATERLOO
+INFO,network versus legacy comparison,Topology-derived control point not present in legacy named allocation table,decision_unit=GREEN_PETER; control_point=WATERLOO
+INFO,network topology,Intervening downstream reservoir detected,HILLS_CREEK -> LOOKOUT_POINT
+INFO,network topology,Intervening downstream reservoir detected,HILLS_CREEK -> DEXTER
+INFO,network topology,Intervening downstream reservoir detected,LOOKOUT_POINT -> DEXTER
+INFO,network topology,Intervening downstream reservoir detected,GREEN_PETER -> FOSTER
+INFO,network topology,Intervening downstream reservoir detected,DETROIT -> BIG_CLIFF

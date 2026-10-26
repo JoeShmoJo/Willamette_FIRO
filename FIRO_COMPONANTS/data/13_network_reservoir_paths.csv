@@ -1,0 +1,544 @@
+﻿project_id,project_name,decision_unit_id,path_order,network_element,network_element_type,network_element_name,is_named_control_point,control_point_id,matched_network_alias,intervening_reservoirs_upstream
+HILLS_CREEK,Hills Creek,LOP_HCR,1,junction:Hills Creek_OUT,junction,Hills Creek_OUT,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,2,reach:Hills Creek_OUT to MF Willamette_abv Salt Cr nr Oakridge,reach,Hills Creek_OUT to MF Willamette_abv Salt Cr nr Oakridge,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,3,junction:MF Willamette_abv Salt Cr nr Oakridge,junction,MF Willamette_abv Salt Cr nr Oakridge,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,4,reach:MF Willamette_abv Salt Cr nr Oakridge to MF Willamette+Salt Cr,reach,MF Willamette_abv Salt Cr nr Oakridge to MF Willamette+Salt Cr,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,5,junction:MF Willamette+Salt Cr,junction,MF Willamette+Salt Cr,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,6,reach:MF Willamette+Salt Cr to MF Willamette+Salmon Cr,reach,MF Willamette+Salt Cr to MF Willamette+Salmon Cr,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,7,junction:MF Willamette+Salmon Cr,junction,MF Willamette+Salmon Cr,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,8,reach:MF Willamette+Salmon Cr to MF Willamette+NF Willamette,reach,MF Willamette+Salmon Cr to MF Willamette+NF Willamette,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,9,junction:MF Willamette+NF Willamette,junction,MF Willamette+NF Willamette,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,10,reach:MF Willamette+NF Willamette to MF Willamette NR Oakridge,reach,MF Willamette+NF Willamette to MF Willamette NR Oakridge,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,11,junction:MF Willamette NR Oakridge,junction,MF Willamette NR Oakridge,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,12,reach:MF Willamette NR Oakridge to Lookout Point_IN,reach,MF Willamette NR Oakridge to Lookout Point_IN,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,13,junction:Lookout Point_IN,junction,Lookout Point_IN,False,,,
+HILLS_CREEK,Hills Creek,LOP_HCR,14,reservoir:Lookout Point,reservoir,Lookout Point,False,,,LOOKOUT_POINT
+HILLS_CREEK,Hills Creek,LOP_HCR,15,junction:Lookout Point_OUT,junction,Lookout Point_OUT,False,,,LOOKOUT_POINT
+HILLS_CREEK,Hills Creek,LOP_HCR,16,reach:Lookout Point_OUT to Dexter_IN,reach,Lookout Point_OUT to Dexter_IN,False,,,LOOKOUT_POINT
+HILLS_CREEK,Hills Creek,LOP_HCR,17,junction:Dexter_IN,junction,Dexter_IN,False,,,LOOKOUT_POINT
+HILLS_CREEK,Hills Creek,LOP_HCR,18,reservoir:Dexter,reservoir,Dexter,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,19,junction:Dexter_OUT,junction,Dexter_OUT,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,20,reach:Dexter_OUT to MF Willamette_nr Dexter,reach,Dexter_OUT to MF Willamette_nr Dexter,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,21,junction:MF Willamette_nr Dexter,junction,MF Willamette_nr Dexter,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,22,reach:MF Willamette_nr Dexter to MF Willamette+Fall,reach,MF Willamette_nr Dexter to MF Willamette+Fall,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,23,junction:MF Willamette+Fall,junction,MF Willamette+Fall,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,24,reach:MF Willamette+Fall to MF Willamette_at Jasper,reach,MF Willamette+Fall to MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,25,junction:MF Willamette_at Jasper,junction,MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,26,reach:MF Willamette_at Jasper to MF Willamette+CF Willamette,reach,MF Willamette_at Jasper to MF Willamette+CF Willamette,True,JASPER,MF Willamette_at Jasper,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,27,junction:MF Willamette+CF Willamette,junction,MF Willamette+CF Willamette,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,28,reach:MF Willamette+CF Willamette to Willamette_at Eugene,reach,MF Willamette+CF Willamette to Willamette_at Eugene,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,29,junction:Willamette_at Eugene,junction,Willamette_at Eugene,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,30,reach:Willamette_at Eugene to Willamette+McKenzie,reach,Willamette_at Eugene to Willamette+McKenzie,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,31,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,32,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,33,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,34,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,35,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,36,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,37,junction:Willamette+Marys,junction,Willamette+Marys,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,38,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,39,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,40,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,41,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,42,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,43,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,44,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,45,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,46,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,47,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,48,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,49,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,50,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,51,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,52,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,53,junction:Willamette+Mill,junction,Willamette+Mill,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,54,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,55,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,56,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,57,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,58,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,59,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,60,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,61,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,62,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,63,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,64,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,65,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,66,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,LOOKOUT_POINT|DEXTER
+HILLS_CREEK,Hills Creek,LOP_HCR,67,junction:Willamette Falls,junction,Willamette Falls,False,,,LOOKOUT_POINT|DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,1,junction:Lookout Point_OUT,junction,Lookout Point_OUT,False,,,
+LOOKOUT_POINT,Lookout Point,LOP_HCR,2,reach:Lookout Point_OUT to Dexter_IN,reach,Lookout Point_OUT to Dexter_IN,False,,,
+LOOKOUT_POINT,Lookout Point,LOP_HCR,3,junction:Dexter_IN,junction,Dexter_IN,False,,,
+LOOKOUT_POINT,Lookout Point,LOP_HCR,4,reservoir:Dexter,reservoir,Dexter,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,5,junction:Dexter_OUT,junction,Dexter_OUT,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,6,reach:Dexter_OUT to MF Willamette_nr Dexter,reach,Dexter_OUT to MF Willamette_nr Dexter,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,7,junction:MF Willamette_nr Dexter,junction,MF Willamette_nr Dexter,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,8,reach:MF Willamette_nr Dexter to MF Willamette+Fall,reach,MF Willamette_nr Dexter to MF Willamette+Fall,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,9,junction:MF Willamette+Fall,junction,MF Willamette+Fall,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,10,reach:MF Willamette+Fall to MF Willamette_at Jasper,reach,MF Willamette+Fall to MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,11,junction:MF Willamette_at Jasper,junction,MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,12,reach:MF Willamette_at Jasper to MF Willamette+CF Willamette,reach,MF Willamette_at Jasper to MF Willamette+CF Willamette,True,JASPER,MF Willamette_at Jasper,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,13,junction:MF Willamette+CF Willamette,junction,MF Willamette+CF Willamette,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,14,reach:MF Willamette+CF Willamette to Willamette_at Eugene,reach,MF Willamette+CF Willamette to Willamette_at Eugene,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,15,junction:Willamette_at Eugene,junction,Willamette_at Eugene,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,16,reach:Willamette_at Eugene to Willamette+McKenzie,reach,Willamette_at Eugene to Willamette+McKenzie,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,17,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,18,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,19,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,20,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,21,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,22,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,23,junction:Willamette+Marys,junction,Willamette+Marys,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,24,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,25,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,26,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,27,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,28,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,29,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,30,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,31,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,32,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,33,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,34,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,35,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,36,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,37,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,38,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,39,junction:Willamette+Mill,junction,Willamette+Mill,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,40,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,41,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,42,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,43,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,44,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,45,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,46,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,47,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,48,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,49,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,50,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,51,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,52,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,DEXTER
+LOOKOUT_POINT,Lookout Point,LOP_HCR,53,junction:Willamette Falls,junction,Willamette Falls,False,,,DEXTER
+FALL_CREEK,Fall Creek,FALL_CREEK,1,junction:Fall Creek_OUT,junction,Fall Creek_OUT,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,2,reach:Fall Creek_OUT to MF Willamette+Fall,reach,Fall Creek_OUT to MF Willamette+Fall,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,3,junction:MF Willamette+Fall,junction,MF Willamette+Fall,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,4,reach:MF Willamette+Fall to MF Willamette_at Jasper,reach,MF Willamette+Fall to MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,
+FALL_CREEK,Fall Creek,FALL_CREEK,5,junction:MF Willamette_at Jasper,junction,MF Willamette_at Jasper,True,JASPER,MF Willamette_at Jasper,
+FALL_CREEK,Fall Creek,FALL_CREEK,6,reach:MF Willamette_at Jasper to MF Willamette+CF Willamette,reach,MF Willamette_at Jasper to MF Willamette+CF Willamette,True,JASPER,MF Willamette_at Jasper,
+FALL_CREEK,Fall Creek,FALL_CREEK,7,junction:MF Willamette+CF Willamette,junction,MF Willamette+CF Willamette,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,8,reach:MF Willamette+CF Willamette to Willamette_at Eugene,reach,MF Willamette+CF Willamette to Willamette_at Eugene,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,9,junction:Willamette_at Eugene,junction,Willamette_at Eugene,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,10,reach:Willamette_at Eugene to Willamette+McKenzie,reach,Willamette_at Eugene to Willamette+McKenzie,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,11,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,12,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+FALL_CREEK,Fall Creek,FALL_CREEK,13,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+FALL_CREEK,Fall Creek,FALL_CREEK,14,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,
+FALL_CREEK,Fall Creek,FALL_CREEK,15,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,16,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,17,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,18,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,19,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,20,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+FALL_CREEK,Fall Creek,FALL_CREEK,21,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+FALL_CREEK,Fall Creek,FALL_CREEK,22,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+FALL_CREEK,Fall Creek,FALL_CREEK,23,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,24,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,25,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,26,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,27,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,28,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,29,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,30,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FALL_CREEK,Fall Creek,FALL_CREEK,31,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FALL_CREEK,Fall Creek,FALL_CREEK,32,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+FALL_CREEK,Fall Creek,FALL_CREEK,33,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,34,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,35,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,36,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,37,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,38,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,39,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,40,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,41,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,42,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,43,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,44,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,45,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,46,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+FALL_CREEK,Fall Creek,FALL_CREEK,47,junction:Willamette Falls,junction,Willamette Falls,False,,,
+DORENA,Dorena,DORENA,1,junction:Dorena_OUT,junction,Dorena_OUT,False,,,
+DORENA,Dorena,DORENA,2,reach:Dorena_OUT to CF Willamette+Row,reach,Dorena_OUT to CF Willamette+Row,False,,,
+DORENA,Dorena,DORENA,3,junction:CF Willamette+Row,junction,CF Willamette+Row,False,,,
+DORENA,Dorena,DORENA,4,reach:CF Willamette+Row to CF WIllamette_nr Goshen,reach,CF Willamette+Row to CF WIllamette_nr Goshen,False,,,
+DORENA,Dorena,DORENA,5,junction:CF WIllamette_nr Goshen,junction,CF WIllamette_nr Goshen,False,,,
+DORENA,Dorena,DORENA,6,reach:CF WIllamette_nr Goshen to MF Willamette+CF Willamette,reach,CF WIllamette_nr Goshen to MF Willamette+CF Willamette,False,,,
+DORENA,Dorena,DORENA,7,junction:MF Willamette+CF Willamette,junction,MF Willamette+CF Willamette,False,,,
+DORENA,Dorena,DORENA,8,reach:MF Willamette+CF Willamette to Willamette_at Eugene,reach,MF Willamette+CF Willamette to Willamette_at Eugene,False,,,
+DORENA,Dorena,DORENA,9,junction:Willamette_at Eugene,junction,Willamette_at Eugene,False,,,
+DORENA,Dorena,DORENA,10,reach:Willamette_at Eugene to Willamette+McKenzie,reach,Willamette_at Eugene to Willamette+McKenzie,False,,,
+DORENA,Dorena,DORENA,11,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,
+DORENA,Dorena,DORENA,12,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+DORENA,Dorena,DORENA,13,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+DORENA,Dorena,DORENA,14,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,
+DORENA,Dorena,DORENA,15,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+DORENA,Dorena,DORENA,16,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+DORENA,Dorena,DORENA,17,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+DORENA,Dorena,DORENA,18,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+DORENA,Dorena,DORENA,19,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+DORENA,Dorena,DORENA,20,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+DORENA,Dorena,DORENA,21,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+DORENA,Dorena,DORENA,22,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+DORENA,Dorena,DORENA,23,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+DORENA,Dorena,DORENA,24,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+DORENA,Dorena,DORENA,25,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+DORENA,Dorena,DORENA,26,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+DORENA,Dorena,DORENA,27,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+DORENA,Dorena,DORENA,28,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+DORENA,Dorena,DORENA,29,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+DORENA,Dorena,DORENA,30,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+DORENA,Dorena,DORENA,31,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+DORENA,Dorena,DORENA,32,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+DORENA,Dorena,DORENA,33,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+DORENA,Dorena,DORENA,34,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+DORENA,Dorena,DORENA,35,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+DORENA,Dorena,DORENA,36,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+DORENA,Dorena,DORENA,37,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+DORENA,Dorena,DORENA,38,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+DORENA,Dorena,DORENA,39,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+DORENA,Dorena,DORENA,40,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+DORENA,Dorena,DORENA,41,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+DORENA,Dorena,DORENA,42,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+DORENA,Dorena,DORENA,43,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+DORENA,Dorena,DORENA,44,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+DORENA,Dorena,DORENA,45,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+DORENA,Dorena,DORENA,46,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+DORENA,Dorena,DORENA,47,junction:Willamette Falls,junction,Willamette Falls,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,1,junction:Cottage Grove_OUT,junction,Cottage Grove_OUT,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,2,reach:Cottage Grove_OUT to CF Willamette+Row,reach,Cottage Grove_OUT to CF Willamette+Row,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,3,junction:CF Willamette+Row,junction,CF Willamette+Row,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,4,reach:CF Willamette+Row to CF WIllamette_nr Goshen,reach,CF Willamette+Row to CF WIllamette_nr Goshen,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,5,junction:CF WIllamette_nr Goshen,junction,CF WIllamette_nr Goshen,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,6,reach:CF WIllamette_nr Goshen to MF Willamette+CF Willamette,reach,CF WIllamette_nr Goshen to MF Willamette+CF Willamette,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,7,junction:MF Willamette+CF Willamette,junction,MF Willamette+CF Willamette,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,8,reach:MF Willamette+CF Willamette to Willamette_at Eugene,reach,MF Willamette+CF Willamette to Willamette_at Eugene,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,9,junction:Willamette_at Eugene,junction,Willamette_at Eugene,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,10,reach:Willamette_at Eugene to Willamette+McKenzie,reach,Willamette_at Eugene to Willamette+McKenzie,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,11,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,12,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,13,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,14,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,15,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,16,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,17,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,18,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,19,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,20,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,21,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,22,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,23,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,24,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,25,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,26,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,27,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,28,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,29,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,30,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,31,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,32,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,33,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,34,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,35,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,36,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,37,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,38,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,39,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,40,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,41,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,42,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,43,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,44,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,45,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,46,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+COTTAGE_GROVE,Cottage Grove,COTTAGE_GROVE,47,junction:Willamette Falls,junction,Willamette Falls,False,,,
+COUGAR,Cougar,COUGAR,1,junction:Cougar_OUT,junction,Cougar_OUT,False,,,
+COUGAR,Cougar,COUGAR,2,reach:Cougar_OUT to SF MkKenzie_nr Rainbow,reach,Cougar_OUT to SF MkKenzie_nr Rainbow,False,,,
+COUGAR,Cougar,COUGAR,3,junction:SF MkKenzie_nr Rainbow,junction,SF MkKenzie_nr Rainbow,False,,,
+COUGAR,Cougar,COUGAR,4,reach:SF MkKenzie_nr Rainbow to McKenzie+SF McKenzie,reach,SF MkKenzie_nr Rainbow to McKenzie+SF McKenzie,False,,,
+COUGAR,Cougar,COUGAR,5,junction:McKenzie+SF McKenzie,junction,McKenzie+SF McKenzie,False,,,
+COUGAR,Cougar,COUGAR,6,reach:McKenzie+SF McKenzie to McKenzie+Blue,reach,McKenzie+SF McKenzie to McKenzie+Blue,False,,,
+COUGAR,Cougar,COUGAR,7,junction:McKenzie+Blue,junction,McKenzie+Blue,False,,,
+COUGAR,Cougar,COUGAR,8,reach:McKenzie+Blue to McKenzie_at Vida,reach,McKenzie+Blue to McKenzie_at Vida,True,VIDA,McKenzie_at Vida,
+COUGAR,Cougar,COUGAR,9,junction:McKenzie_at Vida,junction,McKenzie_at Vida,True,VIDA,McKenzie_at Vida,
+COUGAR,Cougar,COUGAR,10,reach:McKenzie_at Vida to Below Leaburg Dam,reach,McKenzie_at Vida to Below Leaburg Dam,True,VIDA,McKenzie_at Vida,
+COUGAR,Cougar,COUGAR,11,junction:Below Leaburg Dam,junction,Below Leaburg Dam,False,,,
+COUGAR,Cougar,COUGAR,12,reach:Below Leaburg Dam to Mkenzie_nr Walterville,reach,Below Leaburg Dam to Mkenzie_nr Walterville,False,,,
+COUGAR,Cougar,COUGAR,13,junction:Mkenzie_nr Walterville,junction,Mkenzie_nr Walterville,False,,,
+COUGAR,Cougar,COUGAR,14,reach:Mkenzie_nr Walterville to Abv Hayden Bridge_at Springfield,reach,Mkenzie_nr Walterville to Abv Hayden Bridge_at Springfield,False,,,
+COUGAR,Cougar,COUGAR,15,junction:Abv Hayden Bridge_at Springfield,junction,Abv Hayden Bridge_at Springfield,False,,,
+COUGAR,Cougar,COUGAR,16,reach:Abv Hayden Bridge_at Springfield to McKenzie+Mohawk,reach,Abv Hayden Bridge_at Springfield to McKenzie+Mohawk,False,,,
+COUGAR,Cougar,COUGAR,17,junction:McKenzie+Mohawk,junction,McKenzie+Mohawk,False,,,
+COUGAR,Cougar,COUGAR,18,reach:McKenzie+Mohawk to McKenzie_nr Coburg,reach,McKenzie+Mohawk to McKenzie_nr Coburg,False,,,
+COUGAR,Cougar,COUGAR,19,junction:McKenzie_nr Coburg,junction,McKenzie_nr Coburg,False,,,
+COUGAR,Cougar,COUGAR,20,reach:McKenzie_nr Coburg to Willamette+McKenzie,reach,McKenzie_nr Coburg to Willamette+McKenzie,False,,,
+COUGAR,Cougar,COUGAR,21,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,
+COUGAR,Cougar,COUGAR,22,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+COUGAR,Cougar,COUGAR,23,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+COUGAR,Cougar,COUGAR,24,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,
+COUGAR,Cougar,COUGAR,25,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+COUGAR,Cougar,COUGAR,26,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+COUGAR,Cougar,COUGAR,27,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+COUGAR,Cougar,COUGAR,28,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+COUGAR,Cougar,COUGAR,29,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+COUGAR,Cougar,COUGAR,30,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+COUGAR,Cougar,COUGAR,31,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+COUGAR,Cougar,COUGAR,32,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+COUGAR,Cougar,COUGAR,33,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+COUGAR,Cougar,COUGAR,34,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+COUGAR,Cougar,COUGAR,35,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+COUGAR,Cougar,COUGAR,36,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+COUGAR,Cougar,COUGAR,37,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+COUGAR,Cougar,COUGAR,38,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+COUGAR,Cougar,COUGAR,39,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+COUGAR,Cougar,COUGAR,40,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+COUGAR,Cougar,COUGAR,41,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+COUGAR,Cougar,COUGAR,42,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+COUGAR,Cougar,COUGAR,43,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+COUGAR,Cougar,COUGAR,44,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+COUGAR,Cougar,COUGAR,45,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+COUGAR,Cougar,COUGAR,46,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+COUGAR,Cougar,COUGAR,47,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+COUGAR,Cougar,COUGAR,48,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+COUGAR,Cougar,COUGAR,49,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+COUGAR,Cougar,COUGAR,50,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+COUGAR,Cougar,COUGAR,51,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+COUGAR,Cougar,COUGAR,52,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+COUGAR,Cougar,COUGAR,53,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+COUGAR,Cougar,COUGAR,54,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+COUGAR,Cougar,COUGAR,55,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+COUGAR,Cougar,COUGAR,56,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+COUGAR,Cougar,COUGAR,57,junction:Willamette Falls,junction,Willamette Falls,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,1,junction:Blue River_OUT,junction,Blue River_OUT,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,2,reach:Blue River_OUT to Blue_at Blue River,reach,Blue River_OUT to Blue_at Blue River,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,3,junction:Blue_at Blue River,junction,Blue_at Blue River,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,4,reach:Blue_at Blue River to McKenzie+Blue,reach,Blue_at Blue River to McKenzie+Blue,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,5,junction:McKenzie+Blue,junction,McKenzie+Blue,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,6,reach:McKenzie+Blue to McKenzie_at Vida,reach,McKenzie+Blue to McKenzie_at Vida,True,VIDA,McKenzie_at Vida,
+BLUE_RIVER,Blue River,BLUE_RIVER,7,junction:McKenzie_at Vida,junction,McKenzie_at Vida,True,VIDA,McKenzie_at Vida,
+BLUE_RIVER,Blue River,BLUE_RIVER,8,reach:McKenzie_at Vida to Below Leaburg Dam,reach,McKenzie_at Vida to Below Leaburg Dam,True,VIDA,McKenzie_at Vida,
+BLUE_RIVER,Blue River,BLUE_RIVER,9,junction:Below Leaburg Dam,junction,Below Leaburg Dam,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,10,reach:Below Leaburg Dam to Mkenzie_nr Walterville,reach,Below Leaburg Dam to Mkenzie_nr Walterville,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,11,junction:Mkenzie_nr Walterville,junction,Mkenzie_nr Walterville,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,12,reach:Mkenzie_nr Walterville to Abv Hayden Bridge_at Springfield,reach,Mkenzie_nr Walterville to Abv Hayden Bridge_at Springfield,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,13,junction:Abv Hayden Bridge_at Springfield,junction,Abv Hayden Bridge_at Springfield,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,14,reach:Abv Hayden Bridge_at Springfield to McKenzie+Mohawk,reach,Abv Hayden Bridge_at Springfield to McKenzie+Mohawk,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,15,junction:McKenzie+Mohawk,junction,McKenzie+Mohawk,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,16,reach:McKenzie+Mohawk to McKenzie_nr Coburg,reach,McKenzie+Mohawk to McKenzie_nr Coburg,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,17,junction:McKenzie_nr Coburg,junction,McKenzie_nr Coburg,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,18,reach:McKenzie_nr Coburg to Willamette+McKenzie,reach,McKenzie_nr Coburg to Willamette+McKenzie,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,19,junction:Willamette+McKenzie,junction,Willamette+McKenzie,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,20,reach:Willamette+McKenzie to Willamette_at Harrisburg,reach,Willamette+McKenzie to Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+BLUE_RIVER,Blue River,BLUE_RIVER,21,junction:Willamette_at Harrisburg,junction,Willamette_at Harrisburg,True,HARRISBURG,Willamette_at Harrisburg,
+BLUE_RIVER,Blue River,BLUE_RIVER,22,reach:Willamette_at Harrisburg to Willamette+Long Tom,reach,Willamette_at Harrisburg to Willamette+Long Tom,True,HARRISBURG,Willamette_at Harrisburg,
+BLUE_RIVER,Blue River,BLUE_RIVER,23,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,24,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,25,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,26,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,27,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,28,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+BLUE_RIVER,Blue River,BLUE_RIVER,29,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+BLUE_RIVER,Blue River,BLUE_RIVER,30,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+BLUE_RIVER,Blue River,BLUE_RIVER,31,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,32,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,33,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,34,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,35,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,36,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,37,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,38,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+BLUE_RIVER,Blue River,BLUE_RIVER,39,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+BLUE_RIVER,Blue River,BLUE_RIVER,40,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+BLUE_RIVER,Blue River,BLUE_RIVER,41,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,42,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,43,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,44,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,45,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,46,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,47,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,48,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,49,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,50,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,51,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,52,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,53,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,54,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+BLUE_RIVER,Blue River,BLUE_RIVER,55,junction:Willamette Falls,junction,Willamette Falls,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,1,junction:Fern Ridge_OUT,junction,Fern Ridge_OUT,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,2,reach:Fern Ridge_OUT to Long Tom_nr Alvadore,reach,Fern Ridge_OUT to Long Tom_nr Alvadore,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,3,junction:Long Tom_nr Alvadore,junction,Long Tom_nr Alvadore,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,4,reach:Long Tom_nr Alvadore to Long Tom+Amazon Cr,reach,Long Tom_nr Alvadore to Long Tom+Amazon Cr,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,5,junction:Long Tom+Amazon Cr,junction,Long Tom+Amazon Cr,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,6,reach:Long Tom+Amazon Cr to Long Tom_at Monroe,reach,Long Tom+Amazon Cr to Long Tom_at Monroe,True,MONROE,Long Tom_at Monroe,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,7,junction:Long Tom_at Monroe,junction,Long Tom_at Monroe,True,MONROE,Long Tom_at Monroe,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,8,reach:Long Tom_at Monroe to Willamette+Long Tom,reach,Long Tom_at Monroe to Willamette+Long Tom,True,MONROE,Long Tom_at Monroe,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,9,junction:Willamette+Long Tom,junction,Willamette+Long Tom,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,10,reach:Willamette+Long Tom to Willamette+Marys,reach,Willamette+Long Tom to Willamette+Marys,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,11,junction:Willamette+Marys,junction,Willamette+Marys,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,12,reach:Willamette+Marys to Willamette+Calapooia,reach,Willamette+Marys to Willamette+Calapooia,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,13,junction:Willamette+Calapooia,junction,Willamette+Calapooia,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,14,reach:Willamette+Calapooia to Willamette_at Albany,reach,Willamette+Calapooia to Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,15,junction:Willamette_at Albany,junction,Willamette_at Albany,True,ALBANY,Willamette_at Albany,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,16,reach:Willamette_at Albany to Willamette+Santiam,reach,Willamette_at Albany to Willamette+Santiam,True,ALBANY,Willamette_at Albany,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,17,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,18,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,19,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,20,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,21,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,22,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,23,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,24,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,25,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,26,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,27,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,28,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,29,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,30,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,31,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,32,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,33,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,34,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,35,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,36,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,37,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,38,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,39,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,40,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+FERN_RIDGE,Fern Ridge,FERN_RIDGE,41,junction:Willamette Falls,junction,Willamette Falls,False,,,
+GREEN_PETER,Green Peter,GREEN_PETER,1,junction:Green Peter_OUT,junction,Green Peter_OUT,False,,,
+GREEN_PETER,Green Peter,GREEN_PETER,2,reach:Green Peter_OUT to Foster_IN,reach,Green Peter_OUT to Foster_IN,False,,,
+GREEN_PETER,Green Peter,GREEN_PETER,3,junction:Foster_IN,junction,Foster_IN,False,,,
+GREEN_PETER,Green Peter,GREEN_PETER,4,reservoir:Foster,reservoir,Foster,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,5,junction:Foster_OUT,junction,Foster_OUT,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,6,reach:Foster_OUT to So Santiam+McDowell Cr,reach,Foster_OUT to So Santiam+McDowell Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,7,junction:So Santiam+McDowell Cr,junction,So Santiam+McDowell Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,8,reach:So Santiam+McDowell Cr to So Santiam_at Waterloo,reach,So Santiam+McDowell Cr to So Santiam_at Waterloo,True,WATERLOO,So Santiam_at Waterloo,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,9,junction:So Santiam_at Waterloo,junction,So Santiam_at Waterloo,True,WATERLOO,So Santiam_at Waterloo,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,10,reach:So Santiam_at Waterloo to Lebanon Div_IN,reach,So Santiam_at Waterloo to Lebanon Div_IN,True,WATERLOO,So Santiam_at Waterloo,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,11,junction:Lebanon Div_IN,junction,Lebanon Div_IN,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,12,reach:Lebanon Div_IN to So Santiam+Crabtree Cr,reach,Lebanon Div_IN to So Santiam+Crabtree Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,13,junction:So Santiam+Crabtree Cr,junction,So Santiam+Crabtree Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,14,reach:So Santiam+Crabtree Cr to So Santiam+Thomas Cr,reach,So Santiam+Crabtree Cr to So Santiam+Thomas Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,15,junction:So Santiam+Thomas Cr,junction,So Santiam+Thomas Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,16,reach:So Santiam+Thomas Cr to No Santiam+So Santiam,reach,So Santiam+Thomas Cr to No Santiam+So Santiam,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,17,junction:No Santiam+So Santiam,junction,No Santiam+So Santiam,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,18,reach:No Santiam+So Santiam to Santiam_at Jefferson,reach,No Santiam+So Santiam to Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,19,junction:Santiam_at Jefferson,junction,Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,20,reach:Santiam_at Jefferson to Willamette+Santiam,reach,Santiam_at Jefferson to Willamette+Santiam,True,JEFFERSON,Santiam_at Jefferson,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,21,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,22,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,23,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,24,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,25,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,26,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,27,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,28,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,29,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,30,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,31,junction:Willamette+Mill,junction,Willamette+Mill,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,32,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,33,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,34,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,35,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,36,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,37,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,38,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,39,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,40,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,41,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,42,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,43,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,44,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,FOSTER
+GREEN_PETER,Green Peter,GREEN_PETER,45,junction:Willamette Falls,junction,Willamette Falls,False,,,FOSTER
+FOSTER,Foster,FOSTER,1,junction:Foster_OUT,junction,Foster_OUT,False,,,
+FOSTER,Foster,FOSTER,2,reach:Foster_OUT to So Santiam+McDowell Cr,reach,Foster_OUT to So Santiam+McDowell Cr,False,,,
+FOSTER,Foster,FOSTER,3,junction:So Santiam+McDowell Cr,junction,So Santiam+McDowell Cr,False,,,
+FOSTER,Foster,FOSTER,4,reach:So Santiam+McDowell Cr to So Santiam_at Waterloo,reach,So Santiam+McDowell Cr to So Santiam_at Waterloo,True,WATERLOO,So Santiam_at Waterloo,
+FOSTER,Foster,FOSTER,5,junction:So Santiam_at Waterloo,junction,So Santiam_at Waterloo,True,WATERLOO,So Santiam_at Waterloo,
+FOSTER,Foster,FOSTER,6,reach:So Santiam_at Waterloo to Lebanon Div_IN,reach,So Santiam_at Waterloo to Lebanon Div_IN,True,WATERLOO,So Santiam_at Waterloo,
+FOSTER,Foster,FOSTER,7,junction:Lebanon Div_IN,junction,Lebanon Div_IN,False,,,
+FOSTER,Foster,FOSTER,8,reach:Lebanon Div_IN to So Santiam+Crabtree Cr,reach,Lebanon Div_IN to So Santiam+Crabtree Cr,False,,,
+FOSTER,Foster,FOSTER,9,junction:So Santiam+Crabtree Cr,junction,So Santiam+Crabtree Cr,False,,,
+FOSTER,Foster,FOSTER,10,reach:So Santiam+Crabtree Cr to So Santiam+Thomas Cr,reach,So Santiam+Crabtree Cr to So Santiam+Thomas Cr,False,,,
+FOSTER,Foster,FOSTER,11,junction:So Santiam+Thomas Cr,junction,So Santiam+Thomas Cr,False,,,
+FOSTER,Foster,FOSTER,12,reach:So Santiam+Thomas Cr to No Santiam+So Santiam,reach,So Santiam+Thomas Cr to No Santiam+So Santiam,False,,,
+FOSTER,Foster,FOSTER,13,junction:No Santiam+So Santiam,junction,No Santiam+So Santiam,False,,,
+FOSTER,Foster,FOSTER,14,reach:No Santiam+So Santiam to Santiam_at Jefferson,reach,No Santiam+So Santiam to Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,
+FOSTER,Foster,FOSTER,15,junction:Santiam_at Jefferson,junction,Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,
+FOSTER,Foster,FOSTER,16,reach:Santiam_at Jefferson to Willamette+Santiam,reach,Santiam_at Jefferson to Willamette+Santiam,True,JEFFERSON,Santiam_at Jefferson,
+FOSTER,Foster,FOSTER,17,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,
+FOSTER,Foster,FOSTER,18,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,
+FOSTER,Foster,FOSTER,19,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,
+FOSTER,Foster,FOSTER,20,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,
+FOSTER,Foster,FOSTER,21,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,
+FOSTER,Foster,FOSTER,22,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,
+FOSTER,Foster,FOSTER,23,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,
+FOSTER,Foster,FOSTER,24,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FOSTER,Foster,FOSTER,25,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,
+FOSTER,Foster,FOSTER,26,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,
+FOSTER,Foster,FOSTER,27,junction:Willamette+Mill,junction,Willamette+Mill,False,,,
+FOSTER,Foster,FOSTER,28,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,
+FOSTER,Foster,FOSTER,29,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,
+FOSTER,Foster,FOSTER,30,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,
+FOSTER,Foster,FOSTER,31,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,
+FOSTER,Foster,FOSTER,32,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,
+FOSTER,Foster,FOSTER,33,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,
+FOSTER,Foster,FOSTER,34,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,
+FOSTER,Foster,FOSTER,35,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,
+FOSTER,Foster,FOSTER,36,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,
+FOSTER,Foster,FOSTER,37,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,
+FOSTER,Foster,FOSTER,38,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,
+FOSTER,Foster,FOSTER,39,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,
+FOSTER,Foster,FOSTER,40,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,
+FOSTER,Foster,FOSTER,41,junction:Willamette Falls,junction,Willamette Falls,False,,,
+DETROIT,Detroit,DETROIT,1,junction:Detroit_OUT,junction,Detroit_OUT,False,,,
+DETROIT,Detroit,DETROIT,2,reach:Detroit_OUT to Big Cliff_IN,reach,Detroit_OUT to Big Cliff_IN,False,,,
+DETROIT,Detroit,DETROIT,3,junction:Big Cliff_IN,junction,Big Cliff_IN,False,,,
+DETROIT,Detroit,DETROIT,4,reservoir:Big Cliff,reservoir,Big Cliff,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,5,junction:Big Cliff_OUT,junction,Big Cliff_OUT,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,6,reach:Big Cliff_OUT to No Santiam_at Niagara,reach,Big Cliff_OUT to No Santiam_at Niagara,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,7,junction:No Santiam_at Niagara,junction,No Santiam_at Niagara,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,8,reach:No Santiam_at Niagara to No Santiam_at Mehama,reach,No Santiam_at Niagara to No Santiam_at Mehama,True,MEHAMA,No Santiam_at Mehama,BIG_CLIFF
+DETROIT,Detroit,DETROIT,9,junction:No Santiam_at Mehama,junction,No Santiam_at Mehama,True,MEHAMA,No Santiam_at Mehama,BIG_CLIFF
+DETROIT,Detroit,DETROIT,10,reach:No Santiam_at Mehama to Stayton Div_IN,reach,No Santiam_at Mehama to Stayton Div_IN,True,MEHAMA,No Santiam_at Mehama,BIG_CLIFF
+DETROIT,Detroit,DETROIT,11,junction:Stayton Div_IN,junction,Stayton Div_IN,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,12,reach:Stayton Div_IN to GreensBridge_nr Jefferson,reach,Stayton Div_IN to GreensBridge_nr Jefferson,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,13,junction:GreensBridge_nr Jefferson,junction,GreensBridge_nr Jefferson,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,14,reach:GreensBridge_nr Jefferson to No Santiam+So Santiam,reach,GreensBridge_nr Jefferson to No Santiam+So Santiam,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,15,junction:No Santiam+So Santiam,junction,No Santiam+So Santiam,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,16,reach:No Santiam+So Santiam to Santiam_at Jefferson,reach,No Santiam+So Santiam to Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,BIG_CLIFF
+DETROIT,Detroit,DETROIT,17,junction:Santiam_at Jefferson,junction,Santiam_at Jefferson,True,JEFFERSON,Santiam_at Jefferson,BIG_CLIFF
+DETROIT,Detroit,DETROIT,18,reach:Santiam_at Jefferson to Willamette+Santiam,reach,Santiam_at Jefferson to Willamette+Santiam,True,JEFFERSON,Santiam_at Jefferson,BIG_CLIFF
+DETROIT,Detroit,DETROIT,19,junction:Willamette+Santiam,junction,Willamette+Santiam,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,20,reach:Willamette+Santiam to Willamette+Luckiamute,reach,Willamette+Santiam to Willamette+Luckiamute,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,21,junction:Willamette+Luckiamute,junction,Willamette+Luckiamute,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,22,reach:Willamette+Luckiamute to Willamette+Ash Cr,reach,Willamette+Luckiamute to Willamette+Ash Cr,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,23,junction:Willamette+Ash Cr,junction,Willamette+Ash Cr,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,24,reach:Willamette+Ash Cr to Willamette+Rickreall,reach,Willamette+Ash Cr to Willamette+Rickreall,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,25,junction:Willamette+Rickreall,junction,Willamette+Rickreall,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,26,reach:Willamette+Rickreall to Willamette_at Salem,reach,Willamette+Rickreall to Willamette_at Salem,True,SALEM,Willamette_at Salem,BIG_CLIFF
+DETROIT,Detroit,DETROIT,27,junction:Willamette_at Salem,junction,Willamette_at Salem,True,SALEM,Willamette_at Salem,BIG_CLIFF
+DETROIT,Detroit,DETROIT,28,reach:Willamette_at Salem to Willamette+Mill,reach,Willamette_at Salem to Willamette+Mill,True,SALEM,Willamette_at Salem,BIG_CLIFF
+DETROIT,Detroit,DETROIT,29,junction:Willamette+Mill,junction,Willamette+Mill,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,30,reach:Willamette+Mill to Willamette+Yamhill,reach,Willamette+Mill to Willamette+Yamhill,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,31,junction:Willamette+Yamhill,junction,Willamette+Yamhill,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,32,reach:Willamette+Yamhill to Willamette_at Newberg,reach,Willamette+Yamhill to Willamette_at Newberg,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,33,junction:Willamette_at Newberg,junction,Willamette_at Newberg,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,34,reach:Willamette_at Newberg to Willamette_at Wilsonville,reach,Willamette_at Newberg to Willamette_at Wilsonville,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,35,junction:Willamette_at Wilsonville,junction,Willamette_at Wilsonville,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,36,reach:Willamette_at Wilsonville to Willamette+Molalla,reach,Willamette_at Wilsonville to Willamette+Molalla,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,37,junction:Willamette+Molalla,junction,Willamette+Molalla,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,38,reach:Willamette+Molalla to Willamette+Tualatin,reach,Willamette+Molalla to Willamette+Tualatin,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,39,junction:Willamette+Tualatin,junction,Willamette+Tualatin,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,40,reach:Willamette+Tualatin to Willamette_abv Falls at Oregon City,reach,Willamette+Tualatin to Willamette_abv Falls at Oregon City,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,41,junction:Willamette_abv Falls at Oregon City,junction,Willamette_abv Falls at Oregon City,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,42,reach:Willamette_abv Falls at Oregon City to Willamette Falls,reach,Willamette_abv Falls at Oregon City to Willamette Falls,False,,,BIG_CLIFF
+DETROIT,Detroit,DETROIT,43,junction:Willamette Falls,junction,Willamette Falls,False,,,BIG_CLIFF

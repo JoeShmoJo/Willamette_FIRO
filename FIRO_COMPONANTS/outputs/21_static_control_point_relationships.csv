@@ -1,0 +1,37 @@
+﻿decision_unit_id,control_point_id,control_point_name,space_limit_kaf,control_point_role,member_project_ids,member_project_names,member_project_count,first_control_point_path_order,intervening_reservoirs,routing_factor,relationship_source,verification_status
+BLUE_RIVER,ALBANY,Albany,174.2222100448832,downstream,BLUE_RIVER,Blue River,1,28,,1.0,network.json,TOPOLOGY_CONFIRMED
+COTTAGE_GROVE,ALBANY,Albany,174.2222100448832,downstream,COTTAGE_GROVE,Cottage Grove,1,20,,1.0,network.json,TOPOLOGY_CONFIRMED
+COUGAR,ALBANY,Albany,174.2222100448832,downstream,COUGAR,Cougar,1,30,,1.0,network.json,TOPOLOGY_CONFIRMED
+DORENA,ALBANY,Albany,174.2222100448832,downstream,DORENA,Dorena,1,20,,1.0,network.json,TOPOLOGY_CONFIRMED
+FALL_CREEK,ALBANY,Albany,174.2222100448832,downstream,FALL_CREEK,Fall Creek,1,20,,1.0,network.json,TOPOLOGY_CONFIRMED
+FERN_RIDGE,ALBANY,Albany,174.2222100448832,downstream,FERN_RIDGE,Fern Ridge,1,14,,1.0,network.json,TOPOLOGY_CONFIRMED
+LOP_HCR,ALBANY,Albany,174.2222100448832,downstream,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,26,DEXTER|LOOKOUT_POINT,1.0,network.json,TOPOLOGY_CONFIRMED
+COTTAGE_GROVE,GOSHEN,Goshen,87.11869108051548,direct_tributary,COTTAGE_GROVE,Cottage Grove,1,,,1.0,direct_control_point_assignment,INFERRED_LEGACY_DS_SUM
+DORENA,GOSHEN,Goshen,87.11869108051548,direct_tributary,DORENA,Dorena,1,,,1.0,direct_control_point_assignment,INFERRED_LEGACY_DS_SUM
+BLUE_RIVER,HARRISBURG,Harrisburg,189.42818373480043,downstream,BLUE_RIVER,Blue River,1,20,,1.0,network.json,TOPOLOGY_CONFIRMED
+COTTAGE_GROVE,HARRISBURG,Harrisburg,189.42818373480043,downstream,COTTAGE_GROVE,Cottage Grove,1,12,,1.0,network.json,TOPOLOGY_CONFIRMED
+COUGAR,HARRISBURG,Harrisburg,189.42818373480043,downstream,COUGAR,Cougar,1,22,,1.0,network.json,TOPOLOGY_CONFIRMED
+DORENA,HARRISBURG,Harrisburg,189.42818373480043,downstream,DORENA,Dorena,1,12,,1.0,network.json,TOPOLOGY_CONFIRMED
+FALL_CREEK,HARRISBURG,Harrisburg,189.42818373480043,downstream,FALL_CREEK,Fall Creek,1,12,,1.0,network.json,TOPOLOGY_CONFIRMED
+LOP_HCR,HARRISBURG,Harrisburg,189.42818373480043,downstream,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,18,DEXTER|LOOKOUT_POINT,1.0,network.json,TOPOLOGY_CONFIRMED
+FALL_CREEK,JASPER,Jasper,123.8523511271549,direct_tributary,FALL_CREEK,Fall Creek,1,,,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+LOP_HCR,JASPER,Jasper,123.8523511271549,direct_tributary,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,,DEXTER|LOOKOUT_POINT,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+DETROIT,JEFFERSON,Jefferson,261.79763258043147,downstream,DETROIT,Detroit,1,16,BIG_CLIFF,1.0,network.json,TOPOLOGY_CONFIRMED
+FOSTER,JEFFERSON,Jefferson,261.79763258043147,downstream,FOSTER,Foster,1,14,,1.0,network.json,TOPOLOGY_CONFIRMED
+GREEN_PETER,JEFFERSON,Jefferson,261.79763258043147,downstream,GREEN_PETER,Green Peter,1,18,FOSTER,1.0,network.json,TOPOLOGY_CONFIRMED
+DETROIT,MEHAMA,Mehama,108.06773640506597,direct_tributary,DETROIT,Detroit,1,,BIG_CLIFF,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+FERN_RIDGE,MONROE,Monroe,32.41423251943961,direct_tributary,FERN_RIDGE,Fern Ridge,1,,,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+BLUE_RIVER,SALEM,Salem,219.19310449094024,downstream,BLUE_RIVER,Blue River,1,38,,1.0,network.json,TOPOLOGY_CONFIRMED
+COTTAGE_GROVE,SALEM,Salem,219.19310449094024,downstream,COTTAGE_GROVE,Cottage Grove,1,30,,1.0,network.json,TOPOLOGY_CONFIRMED
+COUGAR,SALEM,Salem,219.19310449094024,downstream,COUGAR,Cougar,1,40,,1.0,network.json,TOPOLOGY_CONFIRMED
+DETROIT,SALEM,Salem,219.19310449094024,downstream,DETROIT,Detroit,1,26,BIG_CLIFF,1.0,network.json,TOPOLOGY_CONFIRMED
+DORENA,SALEM,Salem,219.19310449094024,downstream,DORENA,Dorena,1,30,,1.0,network.json,TOPOLOGY_CONFIRMED
+FALL_CREEK,SALEM,Salem,219.19310449094024,downstream,FALL_CREEK,Fall Creek,1,30,,1.0,network.json,TOPOLOGY_CONFIRMED
+FERN_RIDGE,SALEM,Salem,219.19310449094024,downstream,FERN_RIDGE,Fern Ridge,1,24,,1.0,network.json,TOPOLOGY_CONFIRMED
+FOSTER,SALEM,Salem,219.19310449094024,downstream,FOSTER,Foster,1,24,,1.0,network.json,TOPOLOGY_CONFIRMED
+GREEN_PETER,SALEM,Salem,219.19310449094024,downstream,GREEN_PETER,Green Peter,1,28,FOSTER,1.0,network.json,TOPOLOGY_CONFIRMED
+LOP_HCR,SALEM,Salem,219.19310449094024,downstream,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,36,DEXTER|LOOKOUT_POINT,1.0,network.json,TOPOLOGY_CONFIRMED
+BLUE_RIVER,VIDA,Vida,173.43493497629862,direct_tributary,BLUE_RIVER,Blue River,1,,,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+COUGAR,VIDA,Vida,173.43493497629862,direct_tributary,COUGAR,Cougar,1,,,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+FOSTER,WATERLOO,Waterloo,148.3376285793522,direct_tributary,FOSTER,Foster,1,,,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED
+GREEN_PETER,WATERLOO,Waterloo,148.3376285793522,direct_tributary,GREEN_PETER,Green Peter,1,,FOSTER,1.0,direct_control_point_assignment,TOPOLOGY_CONFIRMED

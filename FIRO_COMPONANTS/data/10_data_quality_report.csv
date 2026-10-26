@@ -1,0 +1,5 @@
+﻿severity,dataset,issue,details
+WARNING,project_space_summary.csv,DSControlPoint field was not mapped to a named location,The field is preserved in the reconciled legacy summary but requires confirmation before use as a control-point relationship.
+INFO,source_coverage,Rule curve exists without current project allocation parameters,BIG_CLIFF; held outside initial allocation scope unless project operating data are added.
+INFO,source_coverage,Rule curve exists without current project allocation parameters,DEXTER; held outside initial allocation scope unless project operating data are added.
+INFO,control_points_space.csv,Loaded control-point limits,10 control point(s)
