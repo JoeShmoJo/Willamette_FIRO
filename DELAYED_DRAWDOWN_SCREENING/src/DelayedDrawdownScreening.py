@@ -37,10 +37,10 @@ import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
-SHARED_DATA = REPOSITORY_ROOT / "SHARED_DATA"
+SHARED_DATA = REPOSITORY_ROOT / "shared"
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
 OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
-MODULE_PATH = str(REPOSITORY_ROOT / "modules")
+MODULE_PATH = str(SHARED_DATA / "modules")
 if MODULE_PATH not in sys.path:
     sys.path.insert(0, MODULE_PATH)
 

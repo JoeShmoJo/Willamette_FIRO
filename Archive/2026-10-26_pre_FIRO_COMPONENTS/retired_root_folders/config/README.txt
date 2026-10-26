@@ -1,0 +1,1 @@
+This folder houses configuration files used by scripts, preferably .csv or .py files. Please use .xlsx files only as a last resort.

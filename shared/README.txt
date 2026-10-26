@@ -4,7 +4,7 @@ Formerly the repository-root data/ folder. Contents were relocated intact.
 The common_data subfolder and legacy root datasets are intentionally preserved
 until their sources and differences have been reviewed. No authoritative
 source selection or dataset consolidation is implied by this move.
-Project-specific derived FIRO inputs remain in FIRO_COMPONANTS/data/.
+Project-specific derived FIRO inputs remain in FIRO_COMPONENTS/data/.
 
 Original notes follow:
 
@@ -23,3 +23,4 @@ Ignored by git.
 LP3Residual.csv: Residual flood frequency curves from a given date through the end of flood season
 	sourced from: ResidualVolumeFrequency\out
 	On 9/1/2026
+Shared Python utility modules now live in shared/modules/.

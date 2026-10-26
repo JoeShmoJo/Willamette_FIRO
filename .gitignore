@@ -1,7 +1,7 @@
 #Specific folders with ResSim output (too big for git)
-SHARED_DATA/ressim_output/*
-SHARED_DATA/temp_data/*
-SHARED_DATA/datasets_sharepoint/*
+shared/ressim_output/*
+shared/temp_data/*
+shared/datasets_sharepoint/*
 
 #Don't output plots/tables (too big for git)
 out/
@@ -133,5 +133,10 @@ dmypy.json
 !/ROUTING_RAMP_EVACUATION/outputs/README.md
 
 # Keep directory documentation when external datasets are ignored
-!/SHARED_DATA/temp_data/README.txt
-!/SHARED_DATA/datasets_sharepoint/README.txt
+!/shared/temp_data/README.txt
+!/shared/datasets_sharepoint/README.txt
+
+# Preserve the historical snapshot, including formerly ignored directory notes
+!/Archive/
+!/Archive/**/
+!/Archive/**/README.txt

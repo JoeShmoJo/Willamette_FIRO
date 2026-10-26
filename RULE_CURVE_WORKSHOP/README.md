@@ -12,7 +12,7 @@ Paths are resolved from the script location, so invocation does not depend on yo
 
 Inputs: Shared rule curves, drawdown targets, storage ratings, reservoir parameters and LP3 residuals.
 
-Outputs: reservoir_plots.pptx plus exploratory plots. Generated files are written to this project's `outputs/` and ignored by Git. Shared utility modules remain in root `modules/`.
+Outputs: reservoir_plots.pptx plus exploratory plots. Generated files are written to this project's `outputs/` and ignored by Git. Shared utility modules remain in `shared/modules/`.
 
 Status: The plotting script was successfully run during reorganization.
 

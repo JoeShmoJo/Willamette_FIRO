@@ -1,23 +1,22 @@
 # Willamette FIRO
 
-Analysis projects share source data and utility modules at repository level:
-
 ```text
-FIRO_COMPONANTS/                 Component allocation, curves and review packages
-DELAYED_DRAWDOWN_SCREENING/       Component J screening with ResSim output
-ROUTING_RAMP_EVACUATION/          Travel times, release ramps and evacuation times
-RULE_CURVE_WORKSHOP/             Workshop diagrams and exploratory plots
-SHARED_DATA/                    Existing source datasets, pending reconciliation
-modules/                        Shared Python utilities
-config/                         Legacy configuration not assigned to a workflow
+FIRO_COMPONENTS/                 Component allocation, curves and review packages
+DELAYED_DRAWDOWN_SCREENING/      Component J screening with ResSim output
+ROUTING_RAMP_EVACUATION/         Travel times, release ramps and evacuation times
+RULE_CURVE_WORKSHOP/            Workshop diagrams and exploratory plots
+shared/                        Shared source datasets, pending reconciliation
+    common_data/               Existing common datasets, retained separately
+    modules/                   Shared Python utilities
+Archive/2026-10-26_pre_FIRO_COMPONENTS/
+    original_repository/       Tracked snapshot immediately before the FIRO upload
+    retired_root_folders/      Former root config, docs and out folders
 ```
 
-See each project README for inputs, execution and outputs. The three newly separated workflows each use `src/`, `config/` and `outputs/`. FIRO_COMPONANTS retains its existing layout and derived model inputs in its own `data/`.
+Each active workflow has its own source and output folders. See its README for execution and required external inputs. The three separated workflows resolve their paths from the script location; moving utilities into shared/modules does not require a special working directory or PYTHONPATH. FIRO_COMPONENTS retains its own derived data and generated review packages; its scripts resolve their project directory from __file__.
 
-## Shared data transition
+The previous root data folder was renamed to shared, with dataset contents preserved. Legacy files and common_data remain separate pending authoritative-source review. No storage-rating or rule-curve datasets have been reconciled or removed.
 
-The former root `data/` folder is now `SHARED_DATA/`, with its contents and subfolders preserved. No dataset values were changed, merged or removed. In particular, `SHARED_DATA/common_data/` and the legacy files immediately inside `SHARED_DATA/` remain separate pending a source review. Their storage ratings and rule-curve representations must not be assumed equivalent.
+The pre-upload archive is a historical reference, not an active workflow. Its original names and paths are intentionally preserved. See its README and snapshot manifest for provenance. It does not include unpushed or ignored files from anyone's PC.
 
-Workflow scripts resolve paths from their own locations; shared utility modules remain in `modules/`. Generated results for the three separated workflows go into their own ignored `outputs/` folders. Existing root `out/` results are left in place as legacy outputs. `config/PostProcessConfig.xlsx` remains unassigned rather than being attributed to a workflow without evidence.
-
-See [the structure guide](REPO_STRUCTURE.txt) and [the relocation manifest](docs/reorganization-manifest.csv) for details. The original source-folder notes are preserved in `docs/legacy_src_README.txt`.
+Generated outputs and caches of the three separated workflows are ignored. External ResSim, SharePoint and temporary data under shared remain ignored. Dependency setup is unchanged; use the prepared Python environment for development.
