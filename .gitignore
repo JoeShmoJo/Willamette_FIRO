@@ -1,5 +1,7 @@
 #Specific folders with ResSim output (too big for git)
-data/ressim_output/
+data/ressim_output/*
+data/temp_data/*
+data/datasets_sharepoint/*
 
 #Don't output plots/tables (too big for git)
 out/
