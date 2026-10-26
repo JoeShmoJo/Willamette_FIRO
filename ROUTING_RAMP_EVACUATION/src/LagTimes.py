@@ -8,6 +8,19 @@ July 2026
 
 """
 
+# Resolve shared inputs and local outputs independently of the working directory.
+from pathlib import Path
+import sys
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = PROJECT_ROOT.parent
+SHARED_DATA = REPOSITORY_ROOT / "SHARED_DATA"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+MODULE_PATH = str(REPOSITORY_ROOT / "modules")
+if MODULE_PATH not in sys.path:
+    sys.path.insert(0, MODULE_PATH)
+
 import pandas as pd
 import numpy as np
 import pickle
@@ -39,16 +52,16 @@ register_matplotlib_converters()
 ###############################################################################
 #CONFIGURATION
 
-CONFIG_FILE = "../config/LagConfig.xlsx" 
-ROUTING_PARAM_FILE = "../data/RoutingParams.xlsx"
-RAMP_RATE_FILE = "../data/RampRates.xlsx"
-DSS_IN_FILE = "../data/HourlyObservedInputs.dss"
-DSS_LOCALFLOW_FILE = "../data/MeldedHourlyDaily_WY1982-2019.dss"
-NAME_ALIAS = "../data/LocationAlias.xlsx"
+CONFIG_FILE = PROJECT_ROOT / "config/LagConfig.xlsx"
+ROUTING_PARAM_FILE = SHARED_DATA / "common_data/RoutingParams.xlsx"
+RAMP_RATE_FILE = SHARED_DATA / "common_data/RampRates.xlsx"
+DSS_IN_FILE = str(SHARED_DATA / "HourlyObservedInputs.dss")
+DSS_LOCALFLOW_FILE = str(SHARED_DATA / "MeldedHourlyDaily_WY1982-2019.dss")
+NAME_ALIAS = SHARED_DATA / "common_data/LocationAlias.xlsx"
 
 FORCE_RELOAD = True
-DATA_PICKLE_FILE = "../data/AllData.pickle" 
-UNREG_PICKLE_FILE = "../data/UnregFlows.pickle" 
+DATA_PICKLE_FILE = OUTPUT_DIRECTORY / "AllData.pickle"
+UNREG_PICKLE_FILE = OUTPUT_DIRECTORY / "UnregFlows.pickle"
 
 USE_MULTI_THREAD = True
 
@@ -714,6 +727,10 @@ def plotEvacTimeByPercentile():
 # MAIN CODE
 if __name__ == "main" or __name__ == "__main__":
     # Code starts here when called as script.  Otherwise can be loaded as a module
+    # The DSS library creates empty files for missing paths; fail before opening inputs.
+    for required_input in [DSS_IN_FILE, DSS_LOCALFLOW_FILE]:
+        if not Path(required_input).is_file():
+            raise FileNotFoundError(f"Required external DSS input is missing: {required_input}")
     # Read in the excel config file
     dfTravelTimeReaches = pd.read_excel(CONFIG_FILE, sheet_name="TravelTimeReaches", header = 5)
     dfTravelTimeReaches = dfTravelTimeReaches.loc[dfTravelTimeReaches["Compute?"]==True].copy()
@@ -756,7 +773,7 @@ if __name__ == "main" or __name__ == "__main__":
 
     #Method 2: Get lag times from changing reservoir releases  
     dfReservoirLags, dfResvLagMedians = getResvLagMedians(dfEvents)
-    dfResvLagMedians.to_csv("../out/ResvLagTimes_Median.csv")
+    dfResvLagMedians.to_csv(OUTPUT_DIRECTORY / "ResvLagTimes_Median.csv")
     
     #Get results at Detroit for demonstration
     dfLagsAllEvents = dfReservoirLags.loc[dfReservoirLags["Reservoir"]=="Detroit"].drop(columns="Reservoir")
@@ -779,7 +796,7 @@ if __name__ == "main" or __name__ == "__main__":
     dictEvacTime = getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.20)
     dfEvacTimeCSV = pd.DataFrame(list(dictEvacTime.items()), columns=['Reservoir', 'EvacTimeDays'])
     dfEvacTimeCSV["PctConStorEvacuated"] = 0.20
-    dfEvacTimeCSV.to_csv("../out/ResvEvacTimes_75thPctInflow.csv",index=False)
+    dfEvacTimeCSV.to_csv(OUTPUT_DIRECTORY / "ResvEvacTimes_75thPctInflow.csv",index=False)
     
     #Plot up the evacuation times for all reservoirs
     plotEvacTimes(dictEvacTime, pctOfConStor=0.20)

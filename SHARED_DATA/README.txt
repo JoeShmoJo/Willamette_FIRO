@@ -1,3 +1,13 @@
+SHARED DATA TRANSITION
+
+Formerly the repository-root data/ folder. Contents were relocated intact.
+The common_data subfolder and legacy root datasets are intentionally preserved
+until their sources and differences have been reviewed. No authoritative
+source selection or dataset consolidation is implied by this move.
+Project-specific derived FIRO inputs remain in FIRO_COMPONANTS/data/.
+
+Original notes follow:
+
 This folder houses script inputs. Individual files should not exceed 50 mb. Watch git commit warnings about size.
 
 common_data: houses data that is used by a bunch of different scripts (e.g. elev-stor tables, etc)

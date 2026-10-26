@@ -1,14 +1,19 @@
-REPO STRUCTURE
+REPOSITORY STRUCTURE
 
-config: For configuration files, preferably .csv, .py. Use xlsx as a last resort.
+Project folders: FIRO_COMPONANTS, DELAYED_DRAWDOWN_SCREENING,
+ROUTING_RAMP_EVACUATION, RULE_CURVE_WORKSHOP.
 
-data: For data inputs, less than ~50mb per file preferred. store large data outside repository. 
+Each separated workflow has src (entry-point scripts), config (workflow-specific
+configuration), and outputs (ignored generated results/caches).
+FIRO_COMPONANTS retains its existing project-local data, src and outputs layout.
 
-out: For script output. This can (and should) have sub folders. timestamped output is usually a good idea.
+SHARED_DATA replaces the former root data folder. Existing content and the
+common_data subfolder are preserved pending authoritative-source reconciliation.
+External ResSim, SharePoint and temporary contents remain ignored.
+modules contains reusable Python utilities shared across projects.
+config/PostProcessConfig.xlsx is legacy/unassigned.
+out is legacy output; existing files have not been relocated.
+docs contains the relocation manifest and original source-folder notes.
 
-src: For .py script files (source code). All paths used in code should be relative to this folder.
-
-modules: For .py files that house functions that are imported into other scripts.
-
-ref: For reference info and documentation that doesn't have a good home in a script. 
-
+Scripts in the three separated workflows resolve inputs/output paths from their
+own file locations and can be invoked from any working directory.

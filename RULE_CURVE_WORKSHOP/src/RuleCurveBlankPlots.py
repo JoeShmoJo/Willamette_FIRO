@@ -19,21 +19,27 @@ from pptx import Presentation
 from pptx.util import Inches
 from datetime import timedelta
 
-import sys
+# Resolve shared inputs and local outputs independently of the working directory.
 from pathlib import Path
+import sys
 
-MODULE_PATH = '../modules'
-if not MODULE_PATH in sys.path:
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = PROJECT_ROOT.parent
+SHARED_DATA = REPOSITORY_ROOT / "SHARED_DATA"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+MODULE_PATH = str(REPOSITORY_ROOT / "modules")
+if MODULE_PATH not in sys.path:
     sys.path.insert(0, MODULE_PATH)
 
 from Utils_Plots import xAxisSeasonal
 from ProbabilityDistributions import LP3Dist, ppfLP3, cdfLP3
 
-RULECURVE_CSV_FILE = "../data/common_data/Willamette_Rule_Curves.csv"
-DRAWDOWNCURVE_CSV_FILE = "../data/common_data/Drawdown_Target_Curves.csv"
-ELEV_STOR_CSV = "../data/common_data/ElevStor.csv" 
-RESERVOIR_ELEV_XLSX = "../data/common_data/Reservoirs.xlsx" 
-RESIDUAL_LP3_CSV = "../data/LP3_Residual.csv" 
+RULECURVE_CSV_FILE = SHARED_DATA / "common_data/Willamette_Rule_Curves.csv"
+DRAWDOWNCURVE_CSV_FILE = SHARED_DATA / "common_data/Drawdown_Target_Curves.csv"
+ELEV_STOR_CSV = SHARED_DATA / "common_data/ElevStor.csv"
+RESERVOIR_ELEV_XLSX = SHARED_DATA / "common_data/Reservoirs.xlsx"
+RESIDUAL_LP3_CSV = SHARED_DATA / "LP3_Residual.csv"
 
 
 # A list of 11 distinct colors using Tableau 10 and a complementary XKCD color
@@ -365,7 +371,7 @@ for resvName in dfReservoirs["ReservoirName"]:
     )
 
 # Save final deck
-prs.save("../out/reservoir_plots.pptx")
+prs.save(OUTPUT_DIRECTORY / "reservoir_plots.pptx")
     
 
 # Plot up the rule curve space vs the probability of flood it takes to fill it in 3 days
