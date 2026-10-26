@@ -1,8 +1,8 @@
-﻿"""
+"""
 Add navigation controls to existing Plotly FIRO component-review pages.
 
 Run this after:
-    python .\src\04_build_plotly_component_review.py
+    python FIRO_COMPONENTS/src/04_build_plotly_component_review.py
 
 The script adds:
 - Alternative selector

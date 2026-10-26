@@ -458,11 +458,14 @@ a {{
 <div class="note">
 Use this folder for normal model review. The numbered files in the parent
 <code>outputs</code> folder remain technical traceability files and do not
-need to be opened routinely.
+need to be opened routinely. Daily charts below use baseline allocations; the summary tables also show the separate redistribution case. All daily loading is unrouted storage-space screening.
 </div>
 
 <h2>Review Files</h2>
 <ul>
+<li><a href="utilization_ribbon_overview/index.html">Start here: FIRO utilization overview</a> — baseline daily space, relative to physical/control-point capacities.</li>
+<li><a href="constraint_controller_overview/index.html">Constraint and component-controller diagnostics</a> — what limits or controls the daily envelope.</li>
+
 <li><a href="01_alternative_summary.csv">01_alternative_summary.csv</a>
 — alternative-level baseline versus redistribution results.</li>
 <li><a href="02_decision_unit_changes.csv">02_decision_unit_changes.csv</a>

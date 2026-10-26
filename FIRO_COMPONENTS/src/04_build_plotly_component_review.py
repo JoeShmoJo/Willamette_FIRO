@@ -1,4 +1,4 @@
-﻿"""
+"""
 Build interactive Plotly component-review pages.
 
 Each page contains only:
@@ -29,8 +29,8 @@ REVIEW_DIRECTORY = OUTPUT_DIRECTORY / "plotly_component_review"
 CAPPED_COMPONENT_FILE = OUTPUT_DIRECTORY / "35_component_daily_curves_capped.csv"
 RAW_COMPONENT_FILE = OUTPUT_DIRECTORY / "31_component_daily_curves.csv"
 
-# Set False only if the individual HTML files become too large.
-INCLUDE_PLOTLY_JS = True
+# Share the offline Plotly library across pages in this directory.
+INCLUDE_PLOTLY_JS = "directory"
 
 
 COMPONENT_COLORS = {
@@ -44,13 +44,13 @@ COMPONENT_COLORS = {
 }
 
 COMPONENT_NAMES = {
-    "A": "A â€” Flat Winter Pool",
-    "C": "C â€” Early Refill",
-    "E": "E â€” Maximum-Conservation Cutover",
-    "H": "H â€” Two-Segment Refill",
-    "I": "I â€” April 1 Refill",
-    "J": "J â€” Time-Shifted Rule Curve",
-    "K": "K â€” Early Refill Cutover",
+    "A": "A - Flat Winter Pool",
+    "C": "C - Early Refill",
+    "E": "E - Maximum-Conservation Cutover",
+    "H": "H - Two-Segment Refill",
+    "I": "I - April 1 Refill",
+    "J": "J - Time-Shifted Rule Curve",
+    "K": "K - Early Refill Cutover",
 }
 
 
@@ -251,7 +251,7 @@ def build_review_figure(
 
     figure.update_layout(
         title=(
-            f"Alternative {alternative_id} â€” {project_name}"
+            f"Alternative {alternative_id} - {project_name}"
             "<br><sup>Click legend items to show/hide curves; "
             "double-click an item to isolate it.</sup>"
         ),
@@ -425,7 +425,7 @@ def main() -> None:
         entries.append(
             (
                 filename,
-                f"Alternative {int(alternative_id)} â€” {project_name}",
+                f"Alternative {int(alternative_id)} - {project_name}",
                 int(alternative_id),
                 str(project_name),
             )
