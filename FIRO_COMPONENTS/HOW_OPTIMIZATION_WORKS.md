@@ -57,7 +57,9 @@ uses static volumes, not daily routed releases or component timing.
 ## 2. Fit component shapes to the baseline space budget
 
 Script 02 constructs each selected component separately, using the project's
-rule curve, elevation/storage rating, seasonal dates and allocation.
+rule curve, elevation/storage rating, seasonal dates and allocation. Storage
+ratings are loaded from shared/storage_elevation.xlsx; static control-point
+limits come from shared/control_points_space.csv.
 
 The budget limits additional storage above the ordinary rule curve. It is not
 a separate budget assigned to every component and then added together.

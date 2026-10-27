@@ -32,15 +32,15 @@ RULE_CURVE_FILE = (
 )
 
 BACKUP_DIRECTORY = (
-    DATA_DIRECTORY / "rule_curve_backups"
+    PROJECT_ROOT / "outputs" / "input_patches" / "rule_curve_backups"
 )
 
 AUDIT_FILE = (
-    DATA_DIRECTORY / "green_peter_rule_curve_patch_audit.csv"
+    PROJECT_ROOT / "outputs" / "input_patches" / "green_peter_rule_curve_patch_audit.csv"
 )
 
 ANCHOR_FILE = (
-    DATA_DIRECTORY / "green_peter_rule_curve_patch_anchors.csv"
+    PROJECT_ROOT / "outputs" / "input_patches" / "green_peter_rule_curve_patch_anchors.csv"
 )
 
 

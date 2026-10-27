@@ -1,6 +1,7 @@
 """Rebuild both allocation cases and put a before/after selector in each review page."""
 from pathlib import Path
 import hashlib
+import os
 from html import escape
 import importlib.util
 import json
@@ -185,6 +186,8 @@ def main():
     detail.write_index(detail_entries)
     load_script('07_add_plotly_review_navigation.py').main()
     sources = [*ROOT.joinpath('data').glob('*.csv'),
+               ROOT.parent / 'shared/storage_elevation.xlsx',
+               ROOT.parent / 'shared/control_points_space.csv',
                *[OUTPUTS / n for n in ['24_alternative_decision_unit_allocations.csv',
                   '25_alternative_physical_project_allocations.csv','41_redistributed_decision_unit_allocations.csv',
                   '43_redistributed_physical_project_allocations.csv']],
@@ -193,7 +196,7 @@ def main():
                     '04_build_plotly_component_review.py','13_build_constraint_controller_overview.py',
                     '14_build_utilization_ribbon_overview.py','15_build_reallocation_comparison.py']]]
     manifest = {'cases':['before','after'], 'inputs_and_calculations':
-                {str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
+                {os.path.relpath(p, ROOT):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
                 'overview_pages':sum(map(len,entries)), 'component_pages':len(detail_entries)}
     (SCENARIOS / 'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(f'Built {manifest["overview_pages"]} comparison overviews and {len(detail_entries)} component pages.')

@@ -1,5 +1,5 @@
 """
-04_allocate_static_firo_space.py
+01_allocate_static_firo_space.py
 
 Purpose
 -------
@@ -50,11 +50,11 @@ Important limitations
 
 Inputs
 ------
-    outputs/01_projects_physical.csv
-    outputs/02_decision_units.csv
-    outputs/05_control_point_limits.csv
-    outputs/12_alternative_component_selections.csv
-    outputs/15_network_control_points_decision_units.csv
+    data/01_projects_physical.csv
+    data/02_decision_units.csv
+    ../shared/control_points_space.csv
+    data/12_alternative_component_selections.csv
+    data/15_network_control_points_decision_units.csv
 
 Outputs
 -------
@@ -98,7 +98,7 @@ DECISION_UNITS_FILE = (
 )
 
 CONTROL_POINT_LIMITS_FILE = (
-    DATA_DIRECTORY / "05_control_point_limits.csv"
+    PROJECT_ROOT.parent / "shared" / "control_points_space.csv"
 )
 
 ALTERNATIVE_SELECTIONS_FILE = (
@@ -308,9 +308,14 @@ def load_inputs():
     )
 
     control_points = pd.read_csv(
-        CONTROL_POINT_LIMITS_FILE,
-        encoding="utf-8-sig",
+        CONTROL_POINT_LIMITS_FILE, encoding="utf-8-sig"
+    ).rename(columns={"Location": "control_point_name", "SpaceLimit": "space_limit_kaf"})
+    control_points["control_point_id"] = (
+        control_points["control_point_name"].astype(str).str.upper()
+        .str.replace(r"[^A-Z0-9]+", "_", regex=True).str.strip("_")
     )
+    control_points = control_points.sort_values("control_point_id").reset_index(drop=True)
+
 
     component_selections = pd.read_csv(
         ALTERNATIVE_SELECTIONS_FILE,

@@ -9,7 +9,7 @@ Inputs
 data/
     01_projects_physical.csv
     03_rule_curves_long.csv
-    04_storage_elevation_long.csv
+    ../shared/storage_elevation.xlsx (normalized on load)
     12_alternative_component_selections.csv
 
 outputs/
@@ -63,7 +63,7 @@ RULE_CURVES_FILE = (
 )
 
 STORAGE_ELEVATION_FILE = (
-    DATA_DIRECTORY / "04_storage_elevation_long.csv"
+    PROJECT_ROOT.parent / "shared" / "storage_elevation.xlsx"
 )
 
 COMPONENT_SELECTIONS_FILE = (
@@ -234,10 +234,16 @@ def load_inputs():
         encoding="utf-8-sig",
     )
 
-    ratings = pd.read_csv(
-        STORAGE_ELEVATION_FILE,
-        encoding="utf-8-sig",
+    # Normalize the verified shared rating source instead of maintaining a copy.
+    ratings = pd.read_excel(STORAGE_ELEVATION_FILE, sheet_name="stor_elev").rename(
+        columns={"Project": "project_name", "Elevation (ft)": "elevation_ft",
+                 "Storage (ac-ft)": "storage_af"}
     )
+    ratings["project_id"] = ratings["project_name"].map(canonical_id)
+    ratings["storage_kaf"] = ratings["storage_af"] / 1000.0
+    ratings = ratings[["project_id", "project_name", "elevation_ft", "storage_af", "storage_kaf"]]
+    ratings = ratings.sort_values(["project_id", "elevation_ft"]).reset_index(drop=True)
+
 
     selections = pd.read_csv(
         COMPONENT_SELECTIONS_FILE,

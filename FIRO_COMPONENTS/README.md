@@ -51,9 +51,11 @@ Keep the complete review folders together: HTML pages use local Plotly assets.
 | 06 | Allocation/QA summary and review landing page | review/index.html and summary tables |
 
 `00_patch_green_peter_rule_curve.py` is an explicit input-patching operation,
-not a routine run step. Its anchors, audits and backups remain in `data/`.
-The existing 24 data/provenance files are retained pending source reconciliation.
-Some reference/staging tables are not direct model inputs. The initial canonical
+not a routine run step. Saved patch history and preparation records are in `provenance/`; new patch
+outputs go to `outputs/input_patches/`. Only six local input tables remain in
+`data/`; storage ratings and control-point limits are loaded directly from their
+verified sources in `shared/`. See [the input guide](data/README.md) and
+[provenance guide](provenance/README.md). No conflicting source was substituted. The initial canonical
 input/network generation is not fully captured here; do not assume this project
 can regenerate those inputs from the shared originals.
 
@@ -64,8 +66,10 @@ source-editing tools. Removed earlier no-routing utilization/alternative overvie
 and combined-constraint visualization families. The standalone capacity pages
 were removed while retaining their numerical preparation for scripts 13/14.
 
-Core model scripts 01/02/03/05, all input data, and existing root allocation/curve
-CSV outputs were preserved byte-for-byte during cleanup. Component-detail HTML
+Core calculation logic and existing root allocation/curve CSV outputs were
+preserved during input cleanup; source-loading in 01/02 now reuses verified
+shared tables. The before/after calculation-chain regression matched all 26
+output tables within floating-point rounding. Component-detail HTML
 was regenerated with a shared offline Plotly asset and matching filename case.
 The capacity-table preparation was checked against its original implementation:
 all three resulting tables matched exactly. These checks do not independently
@@ -73,8 +77,7 @@ validate the hydrologic assumptions or certify the stored results as current.
 
 Alternative 5 is cataloged but has no component-selection rows and no daily
 outputs. F/G components remain deferred. A zero-exception output-stage QA summary
-does not resolve every source-data/provisional-model warning; consult the input
-quality and topology reports as well.
+does not resolve every source-data/provisional-model warning; consult the preparation quality and topology reports in `provenance/` as well.
 
 ## Reallocation comparison data
 
