@@ -48,7 +48,7 @@ function Get-Crosswalk {
                         $flow = 'Output (inferred)'
                     }
                 }
-                $state = 'Code' 
+                $state = 'Code'
                 if ($code.TrimStart() -match '^#') { $state = 'Comment only' }
                 if ($candidates.Count -eq 0) { $candidates = @($null) }
                 foreach ($candidate in $candidates) {
@@ -90,6 +90,17 @@ function Get-Crosswalk {
     }
 }
 
+function Test-ColumnFilters {
+    param($Row, [System.Collections.IDictionary]$Filters)
+    foreach ($column in $Filters.Keys) {
+        $query = ([string]$Filters[$column]).Trim()
+        if ($query -and ([string]$Row.$column).IndexOf($query, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+            return $false
+        }
+    }
+    return $true
+}
+
 $script:Rows = @(Get-Crosswalk -Root $Repository)
 if ($ExportCsv) { $script:Rows | Export-Csv -LiteralPath $ExportCsv -NoTypeInformation -Encoding UTF8 }
 if ($ScanOnly) { $script:Rows; return }
@@ -102,7 +113,7 @@ $form.Text = 'Willamette: scripts, inputs and outputs'
 $form.Size = New-Object System.Drawing.Size(1450,850)
 $form.StartPosition = 'CenterScreen'
 $panel = New-Object System.Windows.Forms.FlowLayoutPanel
-$panel.Dock = 'Top'; $panel.Height = 80; $panel.WrapContents = $true
+$panel.Dock = 'Top'; $panel.Height = 250; $panel.WrapContents = $true; $panel.AutoScroll = $true
 $form.Controls.Add($panel)
 $label = New-Object System.Windows.Forms.Label
 $label.Text = 'Search any column:'; $label.AutoSize = $true; $panel.Controls.Add($label)
@@ -112,6 +123,26 @@ $comments = New-Object System.Windows.Forms.CheckBox
 $comments.Text = 'Include commented references'; $comments.AutoSize = $true; $panel.Controls.Add($comments)
 $missing = New-Object System.Windows.Forms.CheckBox
 $missing.Text = 'Only files not found'; $missing.AutoSize = $true; $panel.Controls.Add($missing)
+$script:ColumnFilters = [ordered]@{}
+$script:ResettingFilters = $false
+$filterPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+$filterPanel.Width = 1380; $filterPanel.Height = 160; $filterPanel.AutoScroll = $true
+$panel.SetFlowBreak($missing, $true)
+$panel.Controls.Add($filterPanel)
+$panel.SetFlowBreak($filterPanel, $true)
+foreach ($column in 'Project','Script','Direction','Availability','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence') {
+    $group = New-Object System.Windows.Forms.FlowLayoutPanel
+    $group.FlowDirection = 'TopDown'; $group.WrapContents = $false
+    $group.Width = 215; $group.Height = 46
+    $caption = New-Object System.Windows.Forms.Label
+    $caption.Text = $column; $caption.AutoSize = $true; $group.Controls.Add($caption)
+    $box = New-Object System.Windows.Forms.TextBox
+    $box.Width = 205; $group.Controls.Add($box)
+    $script:ColumnFilters[$column] = $box
+    $box.Add_TextChanged({ Update-View })
+    $filterPanel.Controls.Add($group)
+}
+$form.Add_Resize({ $filterPanel.Width = [Math]::Max(220, $form.ClientSize.Width - 35) })
 function Add-Action([string]$Text, [scriptblock]$Action) {
     $button = New-Object System.Windows.Forms.Button
     $button.Text = $Text; $button.AutoSize = $true; $button.Add_Click($Action)
@@ -124,20 +155,24 @@ $grid.AutoSizeColumnsMode = 'DisplayedCells'; $grid.RowHeadersVisible = $false
 $form.Controls.Add($grid); $grid.BringToFront()
 $status = New-Object System.Windows.Forms.Label
 $status.Dock = 'Bottom'; $status.Height = 45
-$status.Text = 'Click a column heading to sort. Select rows to open files. References are static clues, not a proven execution graph; computed paths and dynamic filenames may be missed.'
+$status.Text = 'Blank column filters show all values; filled filters combine. Click a column heading to sort. Select rows to open files. References are static clues, not a proven execution graph; computed paths and dynamic filenames may be missed.'
 $form.Controls.Add($status)
 
 function Update-View {
+    if ($script:ResettingFilters) { return }
     $table = New-Object System.Data.DataTable
     foreach ($column in 'Project','Script','Direction','Availability','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence','ScriptPath','FilePath') {
         if ($column -eq 'Line') { [void]$table.Columns.Add($column, [int]) }
         else { [void]$table.Columns.Add($column) }
     }
     $query = $search.Text.Trim()
+    $filters = [ordered]@{}
+    foreach ($column in $script:ColumnFilters.Keys) { $filters[$column] = $script:ColumnFilters[$column].Text }
     foreach ($row in $script:Rows) {
         if (-not $comments.Checked -and $row.Reference -eq 'Comment only') { continue }
         if ($missing.Checked -and $row.FilePath) { continue }
         if ($query -and (($row.PSObject.Properties.Value -join ' ').IndexOf($query, [System.StringComparison]::OrdinalIgnoreCase) -lt 0)) { continue }
+        if (-not (Test-ColumnFilters -Row $row -Filters $filters)) { continue }
         $values = foreach ($column in $table.Columns) { [string]$row.($column.ColumnName) }
         [void]$table.Rows.Add([object[]]$values)
     }
@@ -156,7 +191,17 @@ function Open-Selection([string]$Column, [switch]$Folder) {
         }
     }
 }
-Add-Action 'Open data file(s)' { Open-Selection 'FilePath' }
+Add-Action 'Reset filters' {
+    $script:ResettingFilters = $true
+    try {
+        $search.Clear()
+        foreach ($box in $script:ColumnFilters.Values) { $box.Clear() }
+        $missing.Checked = $false
+        $comments.Checked = $false
+    } finally { $script:ResettingFilters = $false }
+    Update-View
+}
+Add-Action 'Open data file(s)'  { Open-Selection 'FilePath' }
 Add-Action 'Open script(s)' { Open-Selection 'ScriptPath' }
 Add-Action 'Locate data' { Open-Selection 'FilePath' -Folder }
 Add-Action 'Locate script' { Open-Selection 'ScriptPath' -Folder }

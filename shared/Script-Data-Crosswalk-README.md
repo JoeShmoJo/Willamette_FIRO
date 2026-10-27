@@ -55,3 +55,16 @@ Availability label to narrow further. Availability is included in CSV exports.
 A match elsewhere in the repository does not prove that the expected input path
 exists. Files outside the repository, or in excluded directories, are not checked.
 Read/write uses of simple path variables are also considered when inferring direction.
+
+## Combine column filters
+
+Each visible column has a labeled filter box above the table. Leave a box blank
+to leave that column unfiltered. Enter part of a value to match it, ignoring case.
+All filled boxes must match the same row; they also combine with the general
+search and missing-file/comment checkboxes. For example, Project = `FIRO`,
+Direction = `Input`, and DataFile = `Elev` narrow the list together.
+
+**Reset filters** clears the general search and every column filter and restores
+the default checkboxes (all file statuses shown, commented references hidden).
+Refresh scan keeps your filters. Export shown CSV exports only matching rows.
+On smaller windows, scroll the filter area to reach additional fields.
