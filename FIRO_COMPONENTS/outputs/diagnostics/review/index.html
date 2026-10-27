@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FIRO Targeted Review Package</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 32px;
+    color: #1f2933;
+}
+h1, h2 {
+    color: #12355b;
+}
+table {
+    border-collapse: collapse;
+    min-width: 950px;
+}
+th, td {
+    border: 1px solid #c8d1dc;
+    padding: 8px 12px;
+    text-align: left;
+}
+th {
+    background: #dce9f6;
+}
+tr:nth-child(even) {
+    background: #f7f9fb;
+}
+a {
+    color: #0645ad;
+    font-weight: 600;
+}
+.note {
+    background: #fff7d6;
+    border-left: 5px solid #d59f00;
+    padding: 12px;
+    max-width: 950px;
+}
+</style>
+</head>
+<body>
+<p><a href="../../final/README.md">Final combined curve CSVs and column guide</a></p>
+<h1>FIRO Targeted Review Package</h1>
+
+<div class="note">
+Use this folder for normal model review. Supporting tables are consolidated in
+<code>outputs/diagnostics/scenarios</code>. Extra intermediate and QA exports are
+optional and live in <code>outputs/diagnostics/extra</code> when requested. Daily charts below let you toggle between before and after reallocation; component geometry and status are rebuilt for each case. All daily loading is unrouted storage-space screening.
+</div>
+
+<h2>Review Files</h2>
+<ul>
+<li><a href="utilization_ribbon_overview/index.html">Start here: FIRO utilization overview</a> — before/after daily space, relative to physical/control-point capacities.</li>
+<li><a href="constraint_controller_overview/index.html">Constraint and component-controller diagnostics</a> — what limits or controls the daily envelope.</li>
+
+<li><a href="01_alternative_summary.csv">01_alternative_summary.csv</a>
+— alternative-level baseline versus redistribution results.</li>
+<li><a href="02_decision_unit_changes.csv">02_decision_unit_changes.csv</a>
+— only decision units receiving additional FIRO space.</li>
+<li><a href="03_project_changes.csv">03_project_changes.csv</a>
+— only physical projects receiving additional FIRO space.</li>
+<li><a href="04_control_point_comparison.csv">04_control_point_comparison.csv</a>
+— baseline and redistributed control-point use side by side.</li>
+<li><a href="05_quality_exceptions.csv">05_quality_exceptions.csv</a>
+— warnings, errors, and non-passing QA/QC rows.</li>
+<li><a href="README_review_package.txt">README_review_package.txt</a>
+— plain-text explanation of the review package.</li>
+<li><a href="../plotly_component_review/index.html">Plotly Component Review</a>
+— interactive component geometry pages.</li>
+</ul>
+
+<h2>Alternative Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Name</th>
+<th>Baseline FIRO (KAF)</th>
+<th>Redistributed FIRO (KAF)</th>
+<th>Increase (KAF)</th>
+<th>Decision Units Receiving Space</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Optimize Cat 1 Spill</td><td>202.044</td><td>219.193</td><td>17.149</td><td>2</td></tr><tr><td>2</td><td>Support Temperature Management</td><td>219.193</td><td>219.193</td><td>0.000</td><td>1</td></tr><tr><td>3</td><td>Max Con Storage</td><td>219.193</td><td>219.193</td><td>0.000</td><td>0</td></tr><tr><td>4</td><td>Min Winter Waste</td><td>219.193</td><td>219.193</td><td>0.000</td><td>0</td></tr><tr><td>6</td><td>Flow Delivery + Storage Reliability</td><td>219.193</td><td>219.193</td><td>0.000</td><td>1</td></tr><tr><td>7</td><td>Winter Pool Plus</td><td>219.193</td><td>219.193</td><td>0.000</td><td>0</td></tr><tr><td>8</td><td>Winter Pool + Fall Flex</td><td>219.193</td><td>219.193</td><td>0.000</td><td>0</td></tr><tr><td>9</td><td>Forget Winter Pools</td><td>219.193</td><td>219.193</td><td>0.000</td><td>0</td></tr>
+</tbody>
+</table>
+
+<h2>Review Counts</h2>
+<ul>
+<li>Decision-unit allocation changes: 4</li>
+<li>Physical-project allocation changes: 4</li>
+<li>Quality/QA exceptions: 0</li>
+</ul>
+
+</body>
+</html>

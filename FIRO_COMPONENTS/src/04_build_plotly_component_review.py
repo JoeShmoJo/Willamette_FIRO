@@ -22,11 +22,11 @@ from plotly.subplots import make_subplots
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 REVIEW_DIRECTORY = OUTPUT_DIRECTORY / "plotly_component_review"
 
 # Prefer capped curves when they are available.
-CAPPED_COMPONENT_FILE = OUTPUT_DIRECTORY / "35_component_daily_curves_capped.csv"
+CAPPED_COMPONENT_FILE = OUTPUT_DIRECTORY / "scenarios/after/35_component_daily_curves_capped.csv"
 RAW_COMPONENT_FILE = OUTPUT_DIRECTORY / "31_component_daily_curves.csv"
 
 # Share the offline Plotly library across pages in this directory.

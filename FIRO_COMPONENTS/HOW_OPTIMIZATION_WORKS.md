@@ -141,13 +141,13 @@ review products are unrouted storage-space screening products.
 ## Where to look
 
 - `data/12_alternative_component_selections.csv`: specified combinations.
-- `outputs/24_alternative_decision_unit_allocations.csv` and
+- `outputs/diagnostics/24_alternative_decision_unit_allocations.csv` and
   `25_alternative_physical_project_allocations.csv`: baseline budgets.
-- `outputs/30_component_parameters.csv`: selected component dates/parameters.
-- `outputs/36_project_combined_daily_curves_capped.csv`: capped combinations.
-- `outputs/41_redistributed_decision_unit_allocations.csv` and
+- `outputs/diagnostics/30_component_parameters.csv`: selected component dates/parameters.
+- `outputs/diagnostics/36_project_combined_daily_curves_capped.csv`: capped combinations.
+- `outputs/diagnostics/41_redistributed_decision_unit_allocations.csv` and
   `43_redistributed_physical_project_allocations.csv`: optimized allocations.
-- `outputs/47_redistribution_optimization_summary.csv`: totals and solver status.
+- `outputs/diagnostics/47_redistribution_optimization_summary.csv`: totals and solver status.
 
 Implementation: scripts 01 (baseline), 02 (geometry), 03 (capping), and
 05 (redistribution). This explanation describes their current code and saved

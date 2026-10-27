@@ -26,6 +26,7 @@ Dependencies
 """
 
 from pathlib import Path
+import os
 
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ import matplotlib.dates as mdates
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 PLOT_DIRECTORY = OUTPUT_DIRECTORY / "plots"
 
 COMPONENT_CURVES_FILE = (
@@ -67,6 +68,9 @@ PLOT_ALTERNATIVES = {
     3,  # Max Con Storage
     6,  # Flow Delivery + Storage Reliability
 }
+
+if os.environ.get('FIRO_EXTRA_DIAGNOSTICS') != '1':
+    PLOT_ALTERNATIVES = set()
 
 # To plot only named projects, use a set such as:
 #
@@ -107,7 +111,7 @@ def require_file(path):
 
 
 def write_csv(dataframe, filename):
-    """Write UTF-8 CSV to outputs/."""
+    """Write UTF-8 CSV to outputs/diagnostics/."""
     OUTPUT_DIRECTORY.mkdir(
         parents=True,
         exist_ok=True,
@@ -854,10 +858,10 @@ def main():
     print(f"Plots created in: {PLOT_DIRECTORY}")
     print("")
     print("Review:")
-    print("  outputs/38_curve_cap_validation.csv")
-    print("  outputs/39_curve_cap_quality_report.csv")
-    print("  outputs/36_project_combined_daily_curves_capped.csv")
-    print("  outputs/plots/")
+    print("  outputs/diagnostics/38_curve_cap_validation.csv")
+    print("  outputs/diagnostics/39_curve_cap_quality_report.csv")
+    print("  outputs/diagnostics/36_project_combined_daily_curves_capped.csv")
+    print("  outputs/diagnostics/plots/")
 
 
 if __name__ == "__main__":

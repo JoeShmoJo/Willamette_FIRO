@@ -38,7 +38,7 @@ from scipy.optimize import linprog, minimize
 # =============================================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 
 BASELINE_DECISION_FILE = (
     OUTPUT_DIRECTORY / "24_alternative_decision_unit_allocations.csv"

@@ -1,5 +1,6 @@
 """Rebuild both allocation cases and put a before/after selector in each review page."""
 from pathlib import Path
+import argparse
 import hashlib
 import os
 from html import escape
@@ -12,7 +13,7 @@ import plotly.io as pio
 from plotly.offline import get_plotlyjs
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS = ROOT / 'outputs'
+OUTPUTS = ROOT / 'outputs' / 'diagnostics'
 SCENARIOS = OUTPUTS / 'scenarios'
 
 
@@ -106,7 +107,46 @@ chooser.addEventListener('change',draw);draw();
 </script></body></html>''', encoding='utf-8')
 
 
-def main():
+def export_final_curves():
+    """Publish capped project envelopes, with explicit allocation-case provenance."""
+    final = ROOT / 'outputs' / 'final'
+    for case, directory in [('after', final), ('before', final / 'baseline')]:
+        source = SCENARIOS / case / '36_project_combined_daily_curves_capped.csv'
+        curves = pd.read_csv(source)
+        if curves.duplicated(['alternative_id', 'project_id', 'date']).any():
+            raise ValueError(f'Duplicate final curve rows in {source}')
+        directory.mkdir(parents=True, exist_ok=True)
+        for aid, table in curves.groupby('alternative_id', sort=True):
+            table = table.sort_values(['project_id', 'date']).copy()
+            table.insert(0, 'allocation_case', case)
+            table.to_csv(directory / f'alternative_{int(aid):02d}_combined_curves.csv', index=False)
+    (final / 'README.md').write_text('''# Final combined FIRO curves
+
+Use `alternative_XX_combined_curves.csv` in this folder for the **after-reallocation** result.
+Each file contains all modeled reservoirs for one alternative, one row per reservoir per day.
+`baseline/` holds the corresponding **before-reallocation** curves for comparison.
+Alternative 5 has no selected components and therefore has no curve file.
+
+These are the final capped combined envelopes, not the individual component curves.
+- `combined_storage_kaf`: total storage coordinate of the combined envelope.
+- `combined_offset_kaf`: FIRO-space offset from the rule-curve storage; use this for FIRO space.
+- `rule_storage_kaf`: reference rule-curve storage.
+- `rule_elevation_ft`: reference rule-curve elevation, in feet.
+- `allocated_project_firo_space_kaf`: allocation limit used for that reservoir and alternative.
+- `controlling_component`: component controlling the envelope on that date.
+- `allocation_case`: `after` or `before`; IDs and names identify the alternative and reservoir.
+
+KAF means thousand acre-feet. Dates cover the existing August 2018–July 2019 model year;
+these are planning curves, not historical observations or a routed operating simulation.
+Do not treat `combined_storage_kaf` as FIRO space or infer elevation from storage without a rating table.
+
+Rebuild with `python FIRO_COMPONENTS/run.py model` (or `all`). Source inputs, physical assumptions,
+and supplied control-point limits retain the limitations documented in the project README.
+Supporting numerical tables, QA reports, plots, and scenario provenance live in `../diagnostics/`.
+''', encoding='utf-8')
+
+
+def main(curves_only=False):
     physical = pd.read_csv(OUTPUTS / '25_alternative_physical_project_allocations.csv')
     decision = pd.read_csv(OUTPUTS / '24_alternative_decision_unit_allocations.csv')
     reallocated = pd.read_csv(OUTPUTS / '43_redistributed_physical_project_allocations.csv')
@@ -152,6 +192,9 @@ def main():
     after_physical['decision_unit_limiting_factor'] = 'OPTIMIZED_STATIC_ALLOCATION'
     cases = {'before': prepare_case('before', physical, decision),
              'after': prepare_case('after', after_physical, after_decision)}
+    export_final_curves()
+    if curves_only:
+        return
     before_components, before_reservoirs, before_controls = cases['before']
     after_components, after_reservoirs, after_controls = cases['after']
     renderers = [load_script('14_build_utilization_ribbon_overview.py'),
@@ -194,13 +237,17 @@ def main():
                *[ROOT / 'src' / n for n in ['02_build_component_curves.py',
                     '03_cap_validate_and_plot_curves.py','11_build_capacity_constraint_review.py',
                     '04_build_plotly_component_review.py','13_build_constraint_controller_overview.py',
-                    '14_build_utilization_ribbon_overview.py','15_build_reallocation_comparison.py']]]
+                    '14_build_utilization_ribbon_overview.py','07_add_plotly_review_navigation.py',
+                    '15_build_reallocation_comparison.py']]]
     manifest = {'cases':['before','after'], 'inputs_and_calculations':
-                {os.path.relpath(p, ROOT):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
+                {os.path.relpath((SCENARIOS / 'model' / p.name) if p.parent == OUTPUTS else p, ROOT):
+                 hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
                 'overview_pages':sum(map(len,entries)), 'component_pages':len(detail_entries)}
     (SCENARIOS / 'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(f'Built {manifest["overview_pages"]} comparison overviews and {len(detail_entries)} component pages.')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--curves-only', action='store_true', help='Publish final curves without rendering plots')
+    main(curves_only=parser.parse_args().curves_only)
