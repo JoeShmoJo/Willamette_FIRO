@@ -5,6 +5,9 @@ Created on Fri Oct  9 13:38:39 2026
 @author: g2echsfb
 """
 
+# Task boundary: MAX calculates capacities; FIRO_COMPONENTS allocates them
+# and constructs component curves. Earlier overlapping work is retained below.
+
 import pandas as pd 
 import requests
 import numpy as np
@@ -121,116 +124,125 @@ def calculate_7_day_evacuation_volume(project_data):
     project_data["SevenDayEvacuationVolumeKAF"] = (seven_day_evacuation_volumes)
     return project_data
 
-def distribute_downstream_space(project_data, alternatives, control_point_space):  
-    '''
-    For each alternative, projects are mapped to their corresponding downstream
-    control points. The total upstream conservation storage is calculated for
-    each control point, and the available downstream FIRO space is allocated 
-    to individual projects in proportion to their conservation storage.
+# BEGIN COMMENTED FIRO WORK: distribute_downstream_space
+# Alternative-specific allocation now belongs to FIRO_COMPONENTS/src/01_allocate_static_firo_space.py.
+# def distribute_downstream_space(project_data, alternatives, control_point_space):
+#     '''
+#     For each alternative, projects are mapped to their corresponding downstream
+#     control points. The total upstream conservation storage is calculated for
+#     each control point, and the available downstream FIRO space is allocated
+#     to individual projects in proportion to their conservation storage.
+#
+#     Parameters
+#     ----------
+#     project_data : pandas.DataFrame
+#         DataFrame containing project information, including the project
+#         identifier ('Project') and conservation storage ('ConStorageKAF').
+#
+#     alternatives : pandas.DataFrame
+#         DataFrame defining the project-to-control-point assignments for each
+#         alternative. Each column represents an alternative
+#
+#     control_point_space : pandas.DataFrame
+#         Dataframe of downstream locations and amount of available space.
+#
+#     Returns
+#     -------
+#     dict
+#         Dictionary containing the results for each alternative
+#     '''
+#     project_data = project_data.copy()
+#     results = {}
+#     for col in alternatives.columns:
+#         control_point_dict = alternatives[col].to_dict()
+#         # add control point to project_data
+#         project_data['ControlPoint'] = project_data['Project'].map(control_point_dict)
+#         alternative = project_data.dropna(subset=["ControlPoint"])
+#         alternative = alternative.copy() # create a copy
+#         # find the total upstream storage for each regulating control point
+#         total_us_con_storage = alternative.groupby("ControlPoint")["ConStorageKAF"].sum()
+#         ds_space = []
+#         stor_percent = []
+#         for row in alternative.itertuples():
+#             # find the project's con storage, the downstream control point, and total storage available for that control point
+#             con_stor = row.ConStorageKAF
+#             ds_control_point = row.ControlPoint
+#             # total storage at indiviual projects
+#             total_stor = total_us_con_storage.loc[ds_control_point]
+#             # Available FIRO space for that control point
+#             total_available_ds_space = control_point_space["SpaceLimit"].loc[ds_control_point]
+#             # find the percent of storage allocated for that project
+#             percent = con_stor / total_stor
+#             project_space = percent * total_available_ds_space
+#             stor_percent.append(percent)
+#             ds_space.append(project_space)
+#         alternative["StorPercent"] = stor_percent
+#         alternative["DownstreamSpaceKAF"] = ds_space
+#         results[col] = alternative
+#     return results
+# END COMMENTED FIRO WORK: distribute_downstream_space
 
-    Parameters
-    ----------
-    project_data : pandas.DataFrame
-        DataFrame containing project information, including the project
-        identifier ('Project') and conservation storage ('ConStorageKAF').
+# BEGIN COMMENTED FIRO WORK: calculate_limiting_space
+# Alternative-specific limiting allocations now belong to FIRO_COMPONENTS (01 and 05).
+# def calculate_limiting_space(alternative_dict, project_data, HCR_LOP_COMBINED_EVAC_RATE=True):
+#     '''
+#     if frio space > max evac space, it will use evac space.
+#     Caviout
+#     '''
+#     HCR_LOP_evac_rate_combined = project_data.loc[project_data["Project"] == "Lookout Point+Hills Creek", "SevenDayEvacuationVolumeKAF"].iloc[0]
+#     for alt, df in alternative_dict.items():
+#         df = df.copy()
+#         firo_space_kaf = []
+#         limiting_factors = []
+#         for row in df.itertuples():
+#             if HCR_LOP_COMBINED_EVAC_RATE:
+#                 if row.Project == "Hills Creek" or row.Project == "Lookout Point":
+#                     seven_day_evacuation_kaf = HCR_LOP_evac_rate_combined
+#                 else:
+#                     seven_day_evacuation_kaf = row.SevenDayEvacuationVolumeKAF
+#             else:
+#                 seven_day_evacuation_kaf = row.SevenDayEvacuationVolumeKAF
+#             downstream_space_kaf = row.DownstreamSpaceKAF
+#             if seven_day_evacuation_kaf < downstream_space_kaf:
+#                 firo_space = seven_day_evacuation_kaf
+#                 limiting_factor = "Evacuation Rate"
+#             elif downstream_space_kaf < seven_day_evacuation_kaf:
+#                 firo_space = downstream_space_kaf
+#                 limiting_factor = "Downstream Space"
+#             else:
+#                 firo_space = seven_day_evacuation_kaf
+#                 limiting_factor = "Both"
+#             firo_space_kaf.append(firo_space)
+#             limiting_factors.append(limiting_factor)
+#         df["FIROSpaceKAF"] = firo_space_kaf
+#         df["LimitingFactor"] = limiting_factors
+#         alternative_dict[alt] = df
+# END COMMENTED FIRO WORK: calculate_limiting_space
 
-    alternatives : pandas.DataFrame
-        DataFrame defining the project-to-control-point assignments for each
-        alternative. Each column represents an alternative
-
-    control_point_space : pandas.DataFrame
-        Dataframe of downstream locations and amount of available space.
-
-    Returns
-    -------
-    dict
-        Dictionary containing the results for each alternative
-    '''
-    project_data = project_data.copy()
-    results = {}
-    for col in alternatives.columns:
-        control_point_dict = alternatives[col].to_dict()
-        # add control point to project_data 
-        project_data['ControlPoint'] = project_data['Project'].map(control_point_dict)
-        alternative = project_data.dropna(subset=["ControlPoint"])
-        alternative = alternative.copy() # create a copy
-        # find the total upstream storage for each regulating control point
-        total_us_con_storage = alternative.groupby("ControlPoint")["ConStorageKAF"].sum()
-        ds_space = []
-        stor_percent = []
-        for row in alternative.itertuples():
-            # find the project's con storage, the downstream control point, and total storage available for that control point
-            con_stor = row.ConStorageKAF
-            ds_control_point = row.ControlPoint
-            # total storage at indiviual projects
-            total_stor = total_us_con_storage.loc[ds_control_point]
-            # Available FIRO space for that control point 
-            total_available_ds_space = control_point_space["SpaceLimit"].loc[ds_control_point]
-            # find the percent of storage allocated for that project 
-            percent = con_stor / total_stor
-            project_space = percent * total_available_ds_space
-            stor_percent.append(percent)
-            ds_space.append(project_space)
-        alternative["StorPercent"] = stor_percent
-        alternative["DownstreamSpaceKAF"] = ds_space
-        results[col] = alternative
-    return results
-
-def calculate_limiting_space(alternative_dict, project_data, HCR_LOP_COMBINED_EVAC_RATE=True):
-    '''
-    if frio space > max evac space, it will use evac space.
-    Caviout 
-    '''
-    HCR_LOP_evac_rate_combined = project_data.loc[project_data["Project"] == "Lookout Point+Hills Creek", "SevenDayEvacuationVolumeKAF"].iloc[0]
-    for alt, df in alternative_dict.items(): 
-        df = df.copy()
-        firo_space_kaf = []
-        limiting_factors = []
-        for row in df.itertuples():
-            if HCR_LOP_COMBINED_EVAC_RATE:
-                if row.Project == "Hills Creek" or row.Project == "Lookout Point":
-                    seven_day_evacuation_kaf = HCR_LOP_evac_rate_combined
-                else: 
-                    seven_day_evacuation_kaf = row.SevenDayEvacuationVolumeKAF
-            else:
-                seven_day_evacuation_kaf = row.SevenDayEvacuationVolumeKAF
-            downstream_space_kaf = row.DownstreamSpaceKAF
-            if seven_day_evacuation_kaf < downstream_space_kaf:
-                firo_space = seven_day_evacuation_kaf
-                limiting_factor = "Evacuation Rate"
-            elif downstream_space_kaf < seven_day_evacuation_kaf:
-                firo_space = downstream_space_kaf
-                limiting_factor = "Downstream Space"
-            else:
-                firo_space = seven_day_evacuation_kaf
-                limiting_factor = "Both"
-            firo_space_kaf.append(firo_space)
-            limiting_factors.append(limiting_factor)
-        df["FIROSpaceKAF"] = firo_space_kaf
-        df["LimitingFactor"] = limiting_factors
-        alternative_dict[alt] = df
-
-def summary_of_alternatives(alterative_dict, project_data):
-    # TODO, turn this into table for public communication
-    """
-    Create one DataFrame with summary information for each alternative.
-    """
-    # Start with project-level data
-    summary_df = pd.DataFrame({
-        "Project": project_data["Project"], "ConStorageKAF": project_data["ConStorageKAF"],
-        "SevenDayEvacuationVolumeKAF": project_data["SevenDayEvacuationVolumeKAF"]})
-
-    # Add downstream space for each alternative
-    for alt, df in alterative_dict.items():
-        project_space_map = dict(zip(df["Project"], df["DownstreamSpaceKAF"]))
-        summary_df[f"{alt}"] = (summary_df["Project"].map(project_space_map))
-    summary_df = summary_df.set_index('Project')
-    for col in summary_df.columns:
-        if col == "ConStorageKAF":
-            continue
-        else:
-            summary_df[f'{col}_percent'] = summary_df[col] / summary_df["ConStorageKAF"]
-    summary_df.to_csv(r'../output/project_space_summary.csv')
+# BEGIN COMMENTED FIRO WORK: summary_of_alternatives
+# Alternative allocation summaries now belong to FIRO_COMPONENTS/src/06_build_review_package.py.
+# def summary_of_alternatives(alterative_dict, project_data):
+#     # TODO, turn this into table for public communication
+#     """
+#     Create one DataFrame with summary information for each alternative.
+#     """
+#     # Start with project-level data
+#     summary_df = pd.DataFrame({
+#         "Project": project_data["Project"], "ConStorageKAF": project_data["ConStorageKAF"],
+#         "SevenDayEvacuationVolumeKAF": project_data["SevenDayEvacuationVolumeKAF"]})
+#
+#     # Add downstream space for each alternative
+#     for alt, df in alterative_dict.items():
+#         project_space_map = dict(zip(df["Project"], df["DownstreamSpaceKAF"]))
+#         summary_df[f"{alt}"] = (summary_df["Project"].map(project_space_map))
+#     summary_df = summary_df.set_index('Project')
+#     for col in summary_df.columns:
+#         if col == "ConStorageKAF":
+#             continue
+#         else:
+#             summary_df[f'{col}_percent'] = summary_df[col] / summary_df["ConStorageKAF"]
+#     summary_df.to_csv(r'../output/project_space_summary.csv')
+# END COMMENTED FIRO WORK: summary_of_alternatives
 
 def caclulate_lag_times(lag_times):
     lag_times = lag_times.copy()
@@ -270,7 +282,10 @@ if __name__ == "main" or __name__ == "__main__":
     
     # Bring in data
     cp_data = pd.read_excel(CONFIG, sheet_name="control_points", skiprows=5)
-    alternatives = pd.read_excel(CONFIG, sheet_name="alternatives", skiprows=5).set_index('Project')
+# BEGIN COMMENTED FIRO WORK: legacy alternatives configuration
+# Only needed by the commented alternative-allocation code; MAX capacity calculations do not use it.
+#     alternatives = pd.read_excel(CONFIG, sheet_name="alternatives", skiprows=5).set_index('Project')
+# END COMMENTED FIRO WORK: legacy alternatives configuration
     # weigth lag time based on conservation storage:
     lag_times = pd.read_csv("../data/ResvLagTimes_Median.csv")
     lag_times_df = caclulate_lag_times(lag_times)
@@ -288,11 +303,17 @@ if __name__ == "main" or __name__ == "__main__":
     project_data = calculate_7_day_evacuation_volume(project_data)
     # project_data.to_csv(PROJECT_DATA, index=False)
     
-    # distribute_downstream_space(project_data, alternatives, control_point_space)
+# BEGIN COMMENTED FIRO WORK: legacy allocation example
+# Reference only; FIRO_COMPONENTS handles allocation.
+#     # distribute_downstream_space(project_data, alternatives, control_point_space)
+# END COMMENTED FIRO WORK: legacy allocation example
     control_point_space = limits_at_locations(fitted_data, project_data, CONTROL_POINT_SPACE, PERCENT_CHANCE_EXCEEDED)
-    # alterative_dict = distribute_downstream_space(project_data, alternatives, control_point_space)
-    # calculate_limiting_space(alterative_dict, project_data, HCR_LOP_COMBINED_EVAC_RATE=True)
-    # summary_of_alternatives(alterative_dict, project_data)
+# BEGIN COMMENTED FIRO WORK: legacy allocation calls
+# Reference only. Removing this entire commented block does not change MAX capacity calculations.
+#     # alterative_dict = distribute_downstream_space(project_data, alternatives, control_point_space)
+#     # calculate_limiting_space(alterative_dict, project_data, HCR_LOP_COMBINED_EVAC_RATE=True)
+#     # summary_of_alternatives(alterative_dict, project_data)
+# END COMMENTED FIRO WORK: legacy allocation calls
     ##################
 
     
