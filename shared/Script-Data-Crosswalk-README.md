@@ -1,8 +1,8 @@
 # Script, input, and output crosswalk
 
 Double-click **Start-Script-Data-Crosswalk.cmd** on Windows. The repository is
-located automatically from this folder. Python 3.9 or newer is required; the
-launcher finds `py -3`, `python`, or `python3`. No extra Python packages are needed.
+located automatically from this folder. It runs entirely in Windows PowerShell: no Python installation, environment
+activation, or additional packages are needed.
 The tool reads source code without executing analysis scripts or modifying data.
 
 ## Browse and filter
@@ -27,9 +27,9 @@ full paths identify different files, even when filenames or contents agree.
 Repeated references to the same full path share one FileID. There is no search
 for alternative copies by filename and no "multiple copies" classification.
 
-The resolver reads Python syntax to follow module path constants, `__file__`,
-`Path(...).resolve().parents[...]`, `/` joins, and supported simple local paths
-and output helpers. Comments and docstrings do not become file references.
+The PowerShell resolver recognizes module-level path constants, `__file__`,
+`Path(...).resolve().parents[...]`, `.parent`, literal `/` joins, absolute paths,
+and the simple `write_csv(frame, filename)` wrapper used by FIRO. Comments and docstrings do not become file references.
 Input/output roles come from recognized read/write calls; definitions without
 an identified role are marked Unclassified.
 
@@ -58,7 +58,8 @@ Unanchored relative strings remain working-directory dependent rather than being
 guessed relative to the script or repository. Missing runtime-derived relationships
 still require inspection of the script.
 
-Only Python scripts currently have path resolution. **Scan notes** lists unsupported
+Only Python source files currently have path resolution; they are read as text,
+never executed. This is a limited expression parser, not a full Python interpreter. **Scan notes** lists unsupported
 script types or parse failures. Archive, temp, Git, virtual environments, and common
 dependency/cache directories are excluded. This is not a complete execution graph.
 
@@ -70,4 +71,4 @@ For a scan without the Windows window:
 
 The launcher uses Windows PowerShell in STA mode and unblocks only its own PS1.
 It does not change machine execution policy. Organization policy may still prevent
-launching. The Python helper must stay beside the PS1 when moving the tool.
+launching. Keep the PS1 beside the launcher when moving the tool.

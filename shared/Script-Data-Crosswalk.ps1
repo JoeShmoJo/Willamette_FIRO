@@ -6,25 +6,191 @@ param(
 $ErrorActionPreference = 'Stop'
 $Repository = (Resolve-Path -LiteralPath $Repository).Path
 
+function Resolve-SourcePath {
+    param([string]$Expression, [hashtable]$Variables, [string]$ScriptFile)
+    $expressionText = $Expression.Trim()
+    # A deliberately small path-expression parser. Never evaluates source as code.
+    $expressionText = $expressionText -replace '(?m)\s+#.*$', ''
+    $expressionText = $expressionText.Trim()
+    while ($expressionText.StartsWith('(') -and $expressionText.EndsWith(')')) {
+        $expressionText = $expressionText.Substring(1, $expressionText.Length - 2).Trim()
+    }
+    $base = $null; $tail = ''
+    if ($expressionText -match '^Path\(__file__\)(?:\.resolve\(\))?') {
+        $base = [System.IO.Path]::GetFullPath($ScriptFile)
+        $tail = $expressionText.Substring($Matches[0].Length)
+    } elseif ($expressionText -match '^([A-Za-z_]\w*)') {
+        $variable = $Matches[1]
+        if ($Variables.ContainsKey($variable)) { $base = $Variables[$variable] }
+        if ($null -eq $base) { return $null }
+        $tail = $expressionText.Substring($variable.Length)
+    } elseif ($expressionText -match '^[rR]?["'']([^"'']+)["'']$') {
+        # Bare relative strings depend on the runtime working directory.
+        if ([System.IO.Path]::IsPathRooted($Matches[1])) { return [System.IO.Path]::GetFullPath($Matches[1]) }
+        return $null
+    } else { return $null }
+    while ($tail.Trim()) {
+        $tail = $tail.Trim()
+        if ($tail -match '^\.parent\b') {
+            $base = Split-Path -Parent $base; $tail = $tail.Substring($Matches[0].Length)
+        } elseif ($tail -match '^\.parents\[(\d+)\]') {
+            $count = [int]$Matches[1] + 1; $length = $Matches[0].Length
+            for ($n = 0; $n -lt $count; $n++) { $base = Split-Path -Parent $base }
+            $tail = $tail.Substring($length)
+        } elseif ($tail -match '^\s*/\s*[rR]?["'']([^"'']+)["'']') {
+            $part = $Matches[1]; $length = $Matches[0].Length
+            if ($part -match '[{}*?]') { return $null }
+            $base = Join-Path $base ($part -replace '[\\/]', [System.IO.Path]::DirectorySeparatorChar)
+            $tail = $tail.Substring($length)
+        } else { return $null }
+    }
+    if ($base) { return [System.IO.Path]::GetFullPath($base) }
+    return $null
+}
+
 function Get-Crosswalk {
     param([string]$Root)
-    $helper = Join-Path $PSScriptRoot 'resolve_script_paths.py'
-    $python = $null; $prefix = @()
-    foreach ($command in 'py','python','python3') {
-        $found = Get-Command $command -ErrorAction SilentlyContinue
-        if ($found) {
-            $testArgs = @()
-            if ($command -eq 'py') { $testArgs = @('-3') }
-            & $found.Source @testArgs -c 'import sys; assert sys.version_info >= (3,9)' 2>$null
-            if ($LASTEXITCODE -eq 0) { $python = $found.Source; $prefix = $testArgs; break }
+    $script:ScanWarnings = @()
+    $excluded = '[\\/](Archive|\.git|\.venv|venv|node_modules|__pycache__|temp)[\\/]'
+    $scripts = @(Get-ChildItem -LiteralPath $Root -Recurse -File |
+        Where-Object { $_.FullName -notmatch $excluded -and $_.Extension -in '.py','.ps1','.r','.R','.ipynb' -and $_.Name -ne 'Script-Data-Crosswalk.ps1' })
+    foreach ($source in $scripts) {
+        if ($source.Extension -ne '.py') {
+            $script:ScanWarnings += "$($source.FullName): path analysis currently supports Python source only"
+            continue
+        }
+        $lines = @(Get-Content -LiteralPath $source.FullName)
+        $clean = New-Object System.Collections.Generic.List[string]
+        $docQuote = ''
+        foreach ($line in $lines) {
+            # Ignore whole comments and triple-quoted text, preserving line numbers.
+            if ($docQuote) {
+                if ($line.Contains($docQuote)) { $docQuote = '' }
+                $clean.Add(''); continue
+            }
+            if ($line -match '("""|'''''')') {
+                $quote = $Matches[1]
+                if ([regex]::Matches($line, [regex]::Escape($quote)).Count -eq 1) { $docQuote = $quote }
+                $clean.Add(''); continue
+            }
+            if ($line.TrimStart().StartsWith('#')) { $clean.Add('') } else { $clean.Add($line) }
+        }
+        $text = $clean -join "`n"
+        $variables = @{}; $definitions = New-Object System.Collections.Generic.List[object]
+        for ($i = 0; $i -lt $clean.Count; $i++) {
+            # Only module-level constants: do not mistake local variables for globals.
+            if ($clean[$i] -notmatch '^([A-Za-z_]\w*)\s*=\s*(.*)$') { continue }
+            $variable = $Matches[1]; $expressionText = $Matches[2]; $lineNumber = $i + 1
+            if ($expressionText.Trim() -eq '(') {
+                while ($i + 1 -lt $clean.Count) {
+                    $i++; $expressionText += ' ' + $clean[$i].Trim()
+                    if ($clean[$i].Trim() -eq ')') { break }
+                }
+            }
+            $full = Resolve-SourcePath $expressionText $variables $source.FullName
+            $variables[$variable] = $full
+            $definitions.Add([pscustomobject]@{ Variable=$variable; Expression=$expressionText; Full=$full; Line=$lineNumber })
+        }
+        # A function parameter or local assignment can shadow a module constant.
+        # Block those names rather than resolving them to the wrong global path.
+        $functionScopes = @{}
+        for ($start = 0; $start -lt $clean.Count; $start++) {
+            if ($clean[$start] -notmatch '^def\s+\w+\(([^)]*)\)') { continue }
+            $parameters = $Matches[1]; $blocked = @{}
+            foreach ($parameter in ($parameters -split ',')) {
+                if ($parameter.Trim() -match '^([A-Za-z_]\w*)') { $blocked[$Matches[1]] = $true }
+            }
+            $end = $start + 1
+            while ($end -lt $clean.Count -and ($clean[$end] -match '^\s' -or -not $clean[$end].Trim())) {
+                if ($clean[$end] -match '^\s+([A-Za-z_]\w*)\s*=') { $blocked[$Matches[1]] = $true }
+                if ($clean[$end] -match '^\s+for\s+([A-Za-z_]\w*)\s+in') { $blocked[$Matches[1]] = $true }
+                $end++
+            }
+            for ($lineIndex = $start + 1; $lineIndex -lt $end; $lineIndex++) { $functionScopes[$lineIndex] = $blocked }
+        }
+        $references = New-Object System.Collections.Generic.List[object]
+        foreach ($definition in $definitions) {
+            if ($definition.Expression -notmatch '\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml)["'']') { continue }
+            $escaped = [regex]::Escape($definition.Variable)
+            $roles = @()
+            if ($text -match ('(?is)(read_csv|read_excel|read_pickle|read_parquet|read_json|require_input|open)\(\s*' + $escaped + '\b')) { $roles += 'Input' }
+            if ($text -match ('(?is)(to_csv|to_excel|to_pickle|to_parquet|to_json)\(\s*' + $escaped + '\b')) { $roles += 'Output' }
+            if (-not $roles.Count) { $roles = @('Unclassified') }
+            foreach ($role in $roles) {
+                $references.Add([pscustomobject]@{ Full=$definition.Full; Expression=$definition.Expression; Line=$definition.Line; Direction=$role })
+            }
+        }
+        # Recognize direct I/O calls and explicitly anchored expressions. Unknown locals
+        # and relative string literals stay unresolved; no filename search is performed.
+        for ($i = 0; $i -lt $clean.Count; $i++) {
+            $callMatches = [regex]::Matches($clean[$i], '\b(read_csv|read_excel|read_pickle|read_parquet|read_json|require_input|open|to_csv|to_excel|to_pickle|to_parquet|to_json)\(\s*(.*)')
+            foreach ($call in $callMatches) {
+                $operation = $call.Groups[1].Value
+                $argument = $call.Groups[2].Value
+                if ($argument -match '^([A-Za-z_]\w*)\s*[,)]') { $argument = $Matches[1] }
+                elseif ($argument -match '^([rR]?["''][^"'']+["''])\s*[,)]') { $argument = $Matches[1] }
+                else { $argument = $argument -replace ',\s*(index|encoding|sheet_name|header|parse_dates)\s*=.*$', ''; $argument = $argument -replace '\)\s*$', '' }
+                $callVariables = $variables
+                if ($functionScopes.ContainsKey($i)) {
+                    $callVariables = $variables.Clone()
+                    foreach ($blockedName in $functionScopes[$i].Keys) { $callVariables.Remove($blockedName) }
+                }
+                $full = Resolve-SourcePath $argument $callVariables $source.FullName
+                if (-not $full -and $argument -notmatch '\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml)["'']') { continue }
+                if ($full -and $full -notmatch '\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml)$') { continue }
+                $direction = 'Input'
+                if ($operation -match '^to_') { $direction = 'Output' }
+                if ($operation -eq 'open' -and $call.Value -match ',\s*["''][wax][^"'']*["'']') { $direction = 'Output' }
+                $references.Add([pscustomobject]@{ Full=$full; Expression=$argument; Line=$i+1; Direction=$direction })
+            }
+        }
+        # Resolve the common write_csv(frame, 'name.csv') wrapper only when its
+        # body explicitly joins a known global directory to its filename argument.
+        $helperMatch = [regex]::Match($text, '(?ms)^def write_csv\(\s*\w+\s*,\s*(\w+)\s*\):\s*\n(.*?)(?=^\S|\z)')
+        if ($helperMatch.Success) {
+            $filenameArgument = [regex]::Escape($helperMatch.Groups[1].Value)
+            $body = $helperMatch.Groups[2].Value
+            $join = [regex]::Match($body, ('(?m)^\s*(\w+)\s*=\s*(\w+)\s*/\s*' + $filenameArgument + '\b'))
+            if ($join.Success -and $variables.ContainsKey($join.Groups[2].Value) -and $variables[$join.Groups[2].Value]) {
+                $pathVariable = [regex]::Escape($join.Groups[1].Value)
+                if ($body -match ('(?s)\.to_csv\(\s*' + $pathVariable + '\b')) {
+                    foreach ($call in [regex]::Matches($text, '\bwrite_csv\(\s*\w+\s*,\s*["'']([^"'']+\.csv)["'']\s*[,)]')) {
+                        $filename = $call.Groups[1].Value
+                        if ($filename -match '[{}*?]') { continue }
+                        $full = [System.IO.Path]::GetFullPath((Join-Path $variables[$join.Groups[2].Value] $filename))
+                        $lineNumber = [regex]::Matches($text.Substring(0, $call.Index), "`n").Count + 1
+                        $references.Add([pscustomobject]@{ Full=$full; Expression=$call.Value; Line=$lineNumber; Direction='Output' })
+                    }
+                }
+            }
+        }
+        foreach ($reference in $references) {
+            $full = [string]$reference.Full
+            $display = ''; $name = ''; $resolution = 'Path unresolved - no file assigned'; $availability = 'Path unresolved'
+            if ($full) {
+                $display = $full
+                if ($full.StartsWith($Root + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) { $display = $full.Substring($Root.Length + 1) }
+                $name = [System.IO.Path]::GetFileName($full)
+                $resolution = 'Resolved static path'
+                if (Test-Path -LiteralPath $full -PathType Leaf) { $availability = 'Present' }
+                elseif ($reference.Direction -eq 'Input') { $availability = 'Missing input' }
+                elseif ($reference.Direction -eq 'Output') { $availability = 'Output not generated' }
+                else { $availability = 'File absent - role unclassified' }
+            } elseif ($reference.Expression -match '["'']([^"'']+\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml))["'']') {
+                $name = ($Matches[1] -split '[\\/]')[-1]
+            }
+            $relativeScript = $source.FullName.Substring($Root.Length).TrimStart('\','/')
+            $fileID = $full
+            if ([System.IO.Path]::DirectorySeparatorChar -eq '\') { $fileID = $fileID.ToLowerInvariant() }
+            [pscustomobject]@{
+                Project=($relativeScript -split '[\\/]')[0]; Script=$relativeScript
+                Direction=$reference.Direction; Availability=$availability; DataFile=$name
+                DataPath=$display; Resolution=$resolution; Reference='Code'; FileID=$fileID
+                Line=$reference.Line; Literal=$reference.Expression; Evidence=$lines[$reference.Line-1].Trim()
+                ScriptPath=$source.FullName; FilePath=$full
+            }
         }
     }
-    if (-not $python) { throw 'Python 3.9 or newer is required for safe Python path analysis. Install Python or activate your project environment, then reopen this tool.' }
-    $json = & $python @prefix $helper $Root
-    if ($LASTEXITCODE -ne 0) { throw 'Path analysis failed. See the Python error above.' }
-    $report = ($json -join "`n") | ConvertFrom-Json
-    $script:ScanWarnings = @($report.warnings)
-    $report.rows
 }
 
 function Test-ColumnFilters {
@@ -142,7 +308,7 @@ Add-Action 'Open script(s)' { Open-Selection 'ScriptPath' }
 Add-Action 'Locate data' { Open-Selection 'FilePath' -Folder }
 Add-Action 'Locate script' { Open-Selection 'ScriptPath' -Folder }
 Add-Action 'Scan notes' {
-    $notes = 'Python paths are read from syntax without executing project code. Relative paths with an unknown working directory remain unresolved. Runtime parameter overrides, dynamic filenames, and imported settings may not resolve.'
+    $notes = 'PowerShell reads supported Python path expressions without executing project code. Relative paths with an unknown working directory remain unresolved. Runtime parameter overrides, dynamic filenames, and imported settings may not resolve.'
     if ($script:ScanWarnings.Count) { $notes += "`r`n`r`n" + ($script:ScanWarnings -join "`r`n") }
     [void][System.Windows.Forms.MessageBox]::Show($notes, 'Path analysis notes')
 }
