@@ -40,7 +40,7 @@ function Get-Category([string]$Name) {
 
 $Hints = @{
     'Rule curves' = 'Compare dates as well as elevations. The CWMS workbook uses 2400 labels; some other files use next-day 0000. The workbook includes source correspondence. FIRO recurring curves are not identical to the common CWMS series; check Hills Creek March 1.'
-    'Elevation-storage ratings' = 'storage_elevation.xlsx and ElevStor.csv contain different ratings. The FIRO long-form CSV is derived from storage_elevation.xlsx. Compare matching project/elevation rows and storage units; Green Peter conservation-storage totals differ.'
+    'Elevation-storage ratings' = 'Active FIRO, workshop and delayed-drawdown workflows now use shared/common_data/ElevStor.csv. The old active spreadsheet and normalized FIRO copy were removed. Earlier sources remain in Git history. Compare fixed conservation-storage parameters separately.'
     'Reservoir parameters' = 'Compare the two SpillwayCrest columns in Reservoirs.xlsx. Several spillway values are absent from project_data.csv and the derived FIRO table. The min/max conservation elevations agree for the 11 physical projects.'
     'Control-point limits' = 'Not all these files measure the same thing: Flood_Levels.xlsx contains flows in cfs; control_points_space.csv and its FIRO derivative contain storage limits in KAF. Compare units before choosing a source.'
     'Ramp rates and flow guidelines' = 'Evacuation rates also appear in Reservoirs.xlsx, Flood_Levels.xlsx and LagConfig.xlsx. Use the Reservoir parameters or Control-point limits groups to inspect those files. Cougar/Blue River normal evacuation rates disagree between the workbooks.'

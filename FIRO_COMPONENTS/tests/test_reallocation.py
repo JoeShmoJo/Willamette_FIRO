@@ -1,6 +1,7 @@
 """Regression checks for the built before/after comparison artifacts."""
 from pathlib import Path
 import hashlib
+import importlib.util
 import json
 import unittest
 
@@ -12,6 +13,25 @@ OUTPUTS = ROOT / 'outputs'
 
 
 class ReallocationComparisonTests(unittest.TestCase):
+    def test_shared_ratings_cover_active_project_elevations(self):
+        path = ROOT / 'src/02_build_component_curves.py'
+        spec = importlib.util.spec_from_file_location('rating_source_test', path)
+        builder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(builder)
+        self.assertEqual(builder.STORAGE_ELEVATION_FILE.resolve(),
+                         (ROOT.parent / 'shared/common_data/ElevStor.csv').resolve())
+        projects, _, ratings, _, _ = builder.load_inputs()
+        issues = []
+        lookup = builder.build_rating_lookup(ratings, issues)
+        self.assertFalse(issues)
+        self.assertGreater(len(projects), 0)
+        for project in projects.itertuples():
+            rating = lookup[project.project_id]
+            self.assertTrue(np.isfinite(rating.to_numpy()).all())
+            self.assertTrue((rating.storage_kaf.diff().dropna() >= 0).all())
+            self.assertLessEqual(rating.elevation_ft.min(), project.min_con_elev_ft)
+            self.assertGreaterEqual(rating.elevation_ft.max(), project.max_con_elev_ft)
+
     def test_scenarios_use_the_matching_allocations(self):
         source = pd.read_csv(OUTPUTS / '43_redistributed_physical_project_allocations.csv')
         self.assertGreater(len(source), 0)

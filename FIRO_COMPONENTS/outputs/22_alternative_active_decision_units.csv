@@ -12,7 +12,7 @@
 2,Support Temperature Management,LOP_HCR,Lookout Point + Hills Creek,lumped_system,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,A|C|E|I|A|C|E|I|J,519.16,90.36615338950146,combined_system_cap
 3,Max Con Storage,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,A|K,78.8,26.14304579840155,active_member_physical_cap
 3,Max Con Storage,COTTAGE_GROVE,Cottage Grove,standalone_reservoir,COTTAGE_GROVE,Cottage Grove,1,A|K,28.645,22.064322481984547,active_member_physical_cap
-3,Max Con Storage,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A|K,136.8,44.635178787170524,active_member_physical_cap
+3,Max Con Storage,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A|K,136.8,44.63517878717053,active_member_physical_cap
 3,Max Con Storage,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,A|K,280.487,85.20392818393056,active_member_physical_cap
 3,Max Con Storage,DORENA,Dorena,standalone_reservoir,DORENA,Dorena,1,A|K,65.0,30.01066179673453,active_member_physical_cap
 3,Max Con Storage,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,A|K,106.4557,32.94023254952248,active_member_physical_cap
@@ -22,7 +22,7 @@
 3,Max Con Storage,LOP_HCR,Lookout Point + Hills Creek,lumped_system,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,A|K,519.16,90.36615338950146,combined_system_cap
 4,Min Winter Waste,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,A,78.8,26.14304579840155,active_member_physical_cap
 4,Min Winter Waste,COTTAGE_GROVE,Cottage Grove,standalone_reservoir,COTTAGE_GROVE,Cottage Grove,1,A,28.645,22.064322481984547,active_member_physical_cap
-4,Min Winter Waste,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A,136.8,44.635178787170524,active_member_physical_cap
+4,Min Winter Waste,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A,136.8,44.63517878717053,active_member_physical_cap
 4,Min Winter Waste,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,A,280.487,85.20392818393056,active_member_physical_cap
 4,Min Winter Waste,DORENA,Dorena,standalone_reservoir,DORENA,Dorena,1,A,65.0,30.01066179673453,active_member_physical_cap
 4,Min Winter Waste,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,A,106.4557,32.94023254952248,active_member_physical_cap
@@ -31,14 +31,14 @@
 4,Min Winter Waste,GREEN_PETER,Green Peter,standalone_reservoir,GREEN_PETER,Green Peter,1,A,258.774,88.76502981436359,active_member_physical_cap
 4,Min Winter Waste,LOP_HCR,Lookout Point + Hills Creek,lumped_system,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,A,519.16,90.36615338950146,combined_system_cap
 6,Flow Delivery + Storage Reliability,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,C,78.8,26.14304579840155,active_member_physical_cap
-6,Flow Delivery + Storage Reliability,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,C,136.8,44.635178787170524,active_member_physical_cap
+6,Flow Delivery + Storage Reliability,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,C,136.8,44.63517878717053,active_member_physical_cap
 6,Flow Delivery + Storage Reliability,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,C,280.487,85.20392818393056,active_member_physical_cap
 6,Flow Delivery + Storage Reliability,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,C,106.4557,32.94023254952248,active_member_physical_cap
 6,Flow Delivery + Storage Reliability,GREEN_PETER,Green Peter,standalone_reservoir,GREEN_PETER,Green Peter,1,C,258.774,88.76502981436359,active_member_physical_cap
 6,Flow Delivery + Storage Reliability,LOP_HCR,Lookout Point + Hills Creek,lumped_system,LOOKOUT_POINT,Lookout Point,1,C,324.56,87.38862986951696,active_member_physical_cap
 7,Winter Pool Plus,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,A,78.8,26.14304579840155,active_member_physical_cap
 7,Winter Pool Plus,COTTAGE_GROVE,Cottage Grove,standalone_reservoir,COTTAGE_GROVE,Cottage Grove,1,A,28.645,22.064322481984547,active_member_physical_cap
-7,Winter Pool Plus,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A|K,136.8,44.635178787170524,active_member_physical_cap
+7,Winter Pool Plus,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A|K,136.8,44.63517878717053,active_member_physical_cap
 7,Winter Pool Plus,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,A|J|K,280.487,85.20392818393056,active_member_physical_cap
 7,Winter Pool Plus,DORENA,Dorena,standalone_reservoir,DORENA,Dorena,1,A,65.0,30.01066179673453,active_member_physical_cap
 7,Winter Pool Plus,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,A|K,106.4557,32.94023254952248,active_member_physical_cap
@@ -48,7 +48,7 @@
 7,Winter Pool Plus,LOP_HCR,Lookout Point + Hills Creek,lumped_system,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,A|J|A|K,519.16,90.36615338950146,combined_system_cap
 8,Winter Pool + Fall Flex,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,A,78.8,26.14304579840155,active_member_physical_cap
 8,Winter Pool + Fall Flex,COTTAGE_GROVE,Cottage Grove,standalone_reservoir,COTTAGE_GROVE,Cottage Grove,1,A,28.645,22.064322481984547,active_member_physical_cap
-8,Winter Pool + Fall Flex,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A,136.8,44.635178787170524,active_member_physical_cap
+8,Winter Pool + Fall Flex,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,A,136.8,44.63517878717053,active_member_physical_cap
 8,Winter Pool + Fall Flex,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,A|J,280.487,85.20392818393056,active_member_physical_cap
 8,Winter Pool + Fall Flex,DORENA,Dorena,standalone_reservoir,DORENA,Dorena,1,A,65.0,30.01066179673453,active_member_physical_cap
 8,Winter Pool + Fall Flex,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,A,106.4557,32.94023254952248,active_member_physical_cap
@@ -58,7 +58,7 @@
 8,Winter Pool + Fall Flex,LOP_HCR,Lookout Point + Hills Creek,lumped_system,HILLS_CREEK|LOOKOUT_POINT,Hills Creek|Lookout Point,2,A|A|J,519.16,90.36615338950146,combined_system_cap
 9,Forget Winter Pools,BLUE_RIVER,Blue River,standalone_reservoir,BLUE_RIVER,Blue River,1,K,78.8,26.14304579840155,active_member_physical_cap
 9,Forget Winter Pools,COTTAGE_GROVE,Cottage Grove,standalone_reservoir,COTTAGE_GROVE,Cottage Grove,1,K,28.645,22.064322481984547,active_member_physical_cap
-9,Forget Winter Pools,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,K,136.8,44.635178787170524,active_member_physical_cap
+9,Forget Winter Pools,COUGAR,Cougar,standalone_reservoir,COUGAR,Cougar,1,K,136.8,44.63517878717053,active_member_physical_cap
 9,Forget Winter Pools,DETROIT,Detroit,standalone_reservoir,DETROIT,Detroit,1,K,280.487,85.20392818393056,active_member_physical_cap
 9,Forget Winter Pools,DORENA,Dorena,standalone_reservoir,DORENA,Dorena,1,K,65.0,30.01066179673453,active_member_physical_cap
 9,Forget Winter Pools,FALL_CREEK,Fall Creek,standalone_reservoir,FALL_CREEK,Fall Creek,1,K,106.4557,32.94023254952248,active_member_physical_cap

@@ -54,8 +54,11 @@ Keep the complete review folders together: HTML pages use local Plotly assets.
 not a routine run step. Saved patch history and preparation records are in `provenance/`; new patch
 outputs go to `outputs/input_patches/`. Only six local input tables remain in
 `data/`; storage ratings and control-point limits are loaded directly from their
-verified sources in `shared/`. See [the input guide](data/README.md) and
-[provenance guide](provenance/README.md). No conflicting source was substituted. The initial canonical
+selected sources in `shared/`. See [the input guide](data/README.md) and
+[provenance guide](provenance/README.md). The rating source is now shared/common_data/ElevStor.csv, matching the other
+analysis workflows. This intentionally supersedes the earlier spreadsheet
+source choice; the original pre-cleanup numerical equivalence check described
+below applies only to that earlier deduplication. The initial canonical
 input/network generation is not fully captured here; do not assume this project
 can regenerate those inputs from the shared originals.
 

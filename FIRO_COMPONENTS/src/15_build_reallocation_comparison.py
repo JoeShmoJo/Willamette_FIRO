@@ -186,7 +186,7 @@ def main():
     detail.write_index(detail_entries)
     load_script('07_add_plotly_review_navigation.py').main()
     sources = [*ROOT.joinpath('data').glob('*.csv'),
-               ROOT.parent / 'shared/storage_elevation.xlsx',
+               ROOT.parent / 'shared/common_data/ElevStor.csv',
                ROOT.parent / 'shared/control_points_space.csv',
                *[OUTPUTS / n for n in ['24_alternative_decision_unit_allocations.csv',
                   '25_alternative_physical_project_allocations.csv','41_redistributed_decision_unit_allocations.csv',

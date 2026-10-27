@@ -13,18 +13,25 @@ not active in the current phase.
 | 12_alternative_component_selections.csv | Selected components for each alternative/project | 01, 02 |
 | 15_network_control_points_decision_units.csv | Downstream constraint relationships | 01 |
 
-Two formerly duplicated inputs are now read directly from shared sources:
+Two inputs are read directly from shared sources rather than copied into this folder:
 
 | Shared source | Replaces |
 | --- | --- |
-| shared/storage_elevation.xlsx, stor_elev sheet | 04_storage_elevation_long.csv |
+| shared/common_data/ElevStor.csv | 04_storage_elevation_long.csv |
 | shared/control_points_space.csv | 05_control_point_limits.csv |
 
 The paths above are relative to the repository root. Scripts normalize names,
 IDs, column headings and acre-feet-to-KAF units when loading these sources.
-No alternate source was selected: both shared files reproduced the former
-normalized tables. In particular, shared/common_data/ElevStor.csv is still a
-different rating source and has not been substituted.
+FIRO now uses the same ElevStor.csv rating source as the workshop and delayed-
+drawdown workflows. Its Reservoir/Elev/Stor columns are converted to normalized
+project IDs and KAF in memory. This is a deliberate change from the former
+spreadsheet rating source, so geometry results can change. The duplicated
+04_storage_elevation_long.csv was already removed; the retired active spreadsheet
+shared/storage_elevation.xlsx is removed as part of this source change.
+
+Conservation-storage weights and evacuation caps in 01_projects_physical.csv
+remain supplied project parameters; this source switch does not recompute them
+from the rating curves. Reconciling those parameters is a separate input decision.
 
 Preparation history, legacy comparisons and unresolved quality notes are in
 ../provenance/. They are not runtime input alternatives. The empty initial cap
@@ -33,6 +40,6 @@ was byte-identical to the working curve were removed. Current run coverage and
 cap results are available in generated model/QA outputs.
 
 Conflicts identified in the wider input review remain unresolved, including
-the source choice for recurring rule curves, alternate storage ratings, missing
+the source choice for recurring rule curves, remaining fixed conservation-storage parameters, missing
 spillway fields and operational-rate discrepancies. This cleanup does not
 certify the retained data as authoritative.

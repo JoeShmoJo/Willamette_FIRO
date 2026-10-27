@@ -9,7 +9,7 @@ Inputs
 data/
     01_projects_physical.csv
     03_rule_curves_long.csv
-    ../shared/storage_elevation.xlsx (normalized on load)
+    ../shared/common_data/ElevStor.csv (normalized on load)
     12_alternative_component_selections.csv
 
 outputs/
@@ -63,7 +63,7 @@ RULE_CURVES_FILE = (
 )
 
 STORAGE_ELEVATION_FILE = (
-    PROJECT_ROOT.parent / "shared" / "storage_elevation.xlsx"
+    PROJECT_ROOT.parent / "shared" / "common_data" / "ElevStor.csv"
 )
 
 COMPONENT_SELECTIONS_FILE = (
@@ -234,10 +234,9 @@ def load_inputs():
         encoding="utf-8-sig",
     )
 
-    # Normalize the verified shared rating source instead of maintaining a copy.
-    ratings = pd.read_excel(STORAGE_ELEVATION_FILE, sheet_name="stor_elev").rename(
-        columns={"Project": "project_name", "Elevation (ft)": "elevation_ft",
-                 "Storage (ac-ft)": "storage_af"}
+    # Use the same ResSim rating table as the other analysis workflows.
+    ratings = pd.read_csv(STORAGE_ELEVATION_FILE).rename(
+        columns={"Reservoir": "project_name", "Elev": "elevation_ft", "Stor": "storage_af"}
     )
     ratings["project_id"] = ratings["project_name"].map(canonical_id)
     ratings["storage_kaf"] = ratings["storage_af"] / 1000.0

@@ -1,3 +1,5 @@
 alternative_id,alternative_name,project_id,project_name,decision_unit_id,active_components,baseline_project_firo_space_kaf,redistributed_project_firo_space_kaf,project_redistribution_increase_kaf,project_physical_cap_kaf,project_physical_cap_exceeded
-1,Optimize Cat 1 Spill,GREEN_PETER,Green Peter,GREEN_PETER,A|C|E|H|I|J,53.590656668318736,63.05946586646392,9.46880919814518,88.76502981436359,False
-1,Optimize Cat 1 Spill,DETROIT,Detroit,DETROIT,A|C|E|H|I|J,58.087298248381664,65.76748623497485,7.680187986593189,85.20392818393056,False
+1,Optimize Cat 1 Spill,GREEN_PETER,Green Peter,GREEN_PETER,A|C|E|H|I|J,53.590656668318736,63.05946586646384,9.468809198145102,88.76502981436359,False
+1,Optimize Cat 1 Spill,DETROIT,Detroit,DETROIT,A|C|E|H|I|J,58.087298248381664,65.76748623497494,7.680187986593275,85.20392818393056,False
+2,Support Temperature Management,DETROIT,Detroit,DETROIT,A|C|E|I|J,42.93833751037239,42.9383385103724,1.0000000116860974e-06,85.20392818393056,False
+6,Flow Delivery + Storage Reliability,DETROIT,Detroit,DETROIT,C,51.8441894501767,51.84419045017671,1.0000000116860974e-06,85.20392818393056,False

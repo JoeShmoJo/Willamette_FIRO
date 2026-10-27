@@ -15,7 +15,9 @@ Archive/2026-10-26_pre_FIRO_COMPONENTS/
 
 Each active workflow has its own source and output folders. See its README for execution and required external inputs. The three separated workflows resolve their paths from the script location; moving utilities into shared/modules does not require a special working directory or PYTHONPATH. FIRO_COMPONENTS retains its own derived data and generated review packages; its scripts resolve their project directory from __file__.
 
-The previous root data folder was renamed to shared, with dataset contents preserved. Legacy files and common_data remain separate pending authoritative-source review. No storage-rating or rule-curve datasets have been reconciled or removed.
+The previous root data folder was renamed to shared, with dataset contents preserved. Legacy files and common_data remain separate pending authoritative-source review. Active workflows use shared/common_data/ElevStor.csv for storage ratings. The
+retired active storage_elevation.xlsx was removed; earlier versions remain in Git history.
+Rule-curve source reconciliation is still pending.
 
 The pre-upload archive is a historical reference, not an active workflow. Its original names and paths are intentionally preserved. See its README and snapshot manifest for provenance. It does not include unpushed or ignored files from anyone's PC.
 

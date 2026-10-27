@@ -31,3 +31,10 @@ was run against both old and new source-loading arrangements in isolated test
 folders. All 26 output tables matched within floating-point rounding, including
 component parameters and selected dates. Core model output CSVs in the working
 repository were not overwritten by that regression check.
+
+Subsequent source selection: FIRO now reads shared/common_data/ElevStor.csv,
+matching Ryan's plotting/drawdown workflows. The active storage_elevation.xlsx
+was removed. Unlike the earlier copy deduplication, this deliberately selects a
+different rating dataset: daily geometry and plots were rebuilt rather than
+claimed numerically equivalent to the old spreadsheet case. Fixed project
+conservation-storage weights and evacuation caps remain separate supplied inputs.

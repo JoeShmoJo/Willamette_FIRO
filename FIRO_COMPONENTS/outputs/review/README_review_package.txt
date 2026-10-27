@@ -34,8 +34,8 @@ Open these files first
 Current review counts
 ---------------------
 Alternatives:                         8
-Decision units receiving space:       2
-Physical projects receiving space:    2
+Decision units receiving space:       4
+Physical projects receiving space:    4
 Control-point comparison rows:        75
 Quality/QA exceptions:                0
 
