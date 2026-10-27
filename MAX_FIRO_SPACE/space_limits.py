@@ -8,25 +8,91 @@ Created on Fri Oct  9 13:38:39 2026
 # Task boundary: MAX calculates capacities; FIRO_COMPONENTS allocates them
 # and constructs component curves. Earlier overlapping work is retained below.
 
-import pandas as pd 
-import requests
+from pathlib import Path
+import pandas as pd
+# import requests  # Earlier exploratory work; not required by active capacities.
 import numpy as np
 import pickle
-from scipy.interpolate import interp1d
-import numpy as np
+# from scipy.interpolate import interp1d  # Earlier exploratory work; not required by active capacities.
+# import numpy as np
 from scipy.stats import skew, pearson3
-import matplotlib.pyplot as plt
-from pydsstools.heclib.dss import HecDss
-from pydsstools.core import TimeSeriesContainer
-import matplotlib.dates as mdates
+# import matplotlib.pyplot as plt  # Earlier exploratory work; not required by active capacities.
+# from pydsstools.heclib.dss import HecDss  # Earlier exploratory work; not required by active capacities.
+# from pydsstools.core import TimeSeriesContainer  # Earlier exploratory work; not required by active capacities.
+# import matplotlib.dates as mdates  # Earlier exploratory work; not required by active capacities.
 
 ### config
-CONFIG = r'../config/config.xlsx'
-STOR_ELEV = r"../data/storage_elevation.xlsx"
-DATA_DICT = r"../output/available_volume.pkl"
-CONTROL_POINT_SPACE =r'../output/control_points_space.csv'
-PROJECT_DATA  = r'../output/project_data.csv'
+# Previous paths retained for reference:
+# CONFIG = r'../config/config.xlsx'
+# STOR_ELEV = r"../data/storage_elevation.xlsx"
+# DATA_DICT = r"../output/available_volume.pkl"
+# CONTROL_POINT_SPACE =r'../output/control_points_space.csv'
+# PROJECT_DATA  = r'../output/project_data.csv'
+PROJECT_ROOT = Path(__file__).resolve().parent
+COMMON_DATA = PROJECT_ROOT.parent / "shared" / "common_data"
+STOR_ELEV = COMMON_DATA / "ElevStor.csv"
+RESERVOIR_DATA = COMMON_DATA / "Reservoirs.xlsx"
+PROJECT_SETTINGS = PROJECT_ROOT / "data" / "project_data.csv"
+DATA_DICT = PROJECT_ROOT / "data" / "available_volume.pkl"
+CONTROL_POINT_SPACE = PROJECT_ROOT / "outputs" / "control_points_space.csv"
+PROJECT_DATA = PROJECT_ROOT / "outputs" / "project_data.csv"
 PERCENT_CHANCE_EXCEEDED = 90
+
+### Shared-source adapters (the capacity functions below remain unchanged)
+def require_input(path):
+    if not Path(path).is_file():
+        raise FileNotFoundError(
+            f"Required MAX input is missing: {path}. "
+            "Saved files in MAX_FIRO_SPACE/data are historical snapshots, not a fresh rebuild."
+        )
+
+
+def load_storage_ratings():
+    require_input(STOR_ELEV)
+    ratings = pd.read_csv(STOR_ELEV)
+    required = ["Reservoir", "Elev", "Stor"]
+    missing = set(required) - set(ratings.columns)
+    if missing:
+        raise ValueError(f"Rating source is missing columns: {sorted(missing)}")
+    ratings = ratings[required].rename(columns={
+        "Reservoir": "Project", "Elev": "Elevation (ft)", "Stor": "Storage (ac-ft)"
+    }).copy()
+    for column in ["Elevation (ft)", "Storage (ac-ft)"]:
+        ratings[column] = pd.to_numeric(ratings[column], errors="raise")
+        if not np.isfinite(ratings[column]).all():
+            raise ValueError(f"Rating source contains non-finite {column} values")
+    ratings["Project"] = ratings["Project"].astype(str).str.strip()
+    return ratings.sort_values(["Project", "Elevation (ft)"]).reset_index(drop=True)
+
+
+def load_project_parameters():
+    # Keep the supplied evacuation times/seasonal settings until their upstream
+    # source is reconciled. Do not reuse the snapshot's calculated volumes.
+    require_input(PROJECT_SETTINGS)
+    require_input(RESERVOIR_DATA)
+    projects = pd.read_csv(PROJECT_SETTINGS).drop(
+        columns=["ConStorageKAF", "SevenDayEvacuationVolumeKAF"], errors="ignore"
+    )
+    if not {"Project", "DaysToEvac"}.issubset(projects.columns):
+        raise ValueError("Project settings require Project and DaysToEvac columns")
+    projects["Project"] = projects["Project"].astype(str).str.strip()
+    if projects["Project"].duplicated().any():
+        raise ValueError("Project settings contain duplicate project names")
+    projects["DaysToEvac"] = pd.to_numeric(projects["DaysToEvac"], errors="raise")
+    if not (np.isfinite(projects["DaysToEvac"]) & (projects["DaysToEvac"] > 0)).all():
+        raise ValueError("DaysToEvac must be finite and positive for each project")
+    shared = pd.read_excel(RESERVOIR_DATA, sheet_name="Reservoirs", header=5)
+    if shared["ReservoirName"].duplicated().any():
+        raise ValueError("Shared reservoir metadata contains duplicate names")
+    shared = shared.set_index("ReservoirName")
+    projects["MinCon"] = projects["Project"].map(shared["MinConElev"])
+    projects["MaxCon"] = projects["Project"].map(shared["MaxConElev"])
+    physical = projects["Project"] != "Lookout Point+Hills Creek"
+    bounds = projects.loc[physical, ["MinCon", "MaxCon"]]
+    if bounds.isna().any().any() or not (bounds["MaxCon"] > bounds["MinCon"]).all():
+        raise ValueError("Shared reservoir metadata needs valid conservation elevations for every physical project")
+    return projects
+
 
 ### Funtions
 def fit_distribution(event_volumes):
@@ -277,28 +343,33 @@ def limits_at_locations(fitted_data, project_data, CONTROL_POINT_SPACE, PERCENT_
 ######### Code starts 
 if __name__ == "main" or __name__ == "__main__":
     
+    require_input(DATA_DICT)
     with open(DATA_DICT, 'rb') as file:
         data_dict = pickle.load(file)
     
     # Bring in data
-    cp_data = pd.read_excel(CONFIG, sheet_name="control_points", skiprows=5)
+    # cp_data = pd.read_excel(CONFIG, sheet_name="control_points", skiprows=5)
+    # This loaded table was unused by the remaining capacity calculations.
 # BEGIN COMMENTED FIRO WORK: legacy alternatives configuration
 # Only needed by the commented alternative-allocation code; MAX capacity calculations do not use it.
 #     alternatives = pd.read_excel(CONFIG, sheet_name="alternatives", skiprows=5).set_index('Project')
 # END COMMENTED FIRO WORK: legacy alternatives configuration
     # weigth lag time based on conservation storage:
-    lag_times = pd.read_csv("../data/ResvLagTimes_Median.csv")
-    lag_times_df = caclulate_lag_times(lag_times)
+    # lag_times = pd.read_csv("../data/ResvLagTimes_Median.csv")
+    # lag_times_df = caclulate_lag_times(lag_times)
+    # The weighted-lag result was unused here; the helper is retained above.
     # storage elevtion
-    pd.read_excel(STOR_ELEV)
-    stor_elev = pd.read_excel(STOR_ELEV)
+    # pd.read_excel(STOR_ELEV)
+    # stor_elev = pd.read_excel(STOR_ELEV)
+    stor_elev = load_storage_ratings()
     
     # fit the data to a Person III distribution 
     fitted_data = fit_distribution(data_dict)
     
     # Find FIRO space at each project for each alterative  
-    stor_elev = pd.read_excel(STOR_ELEV)
-    project_data = pd.read_excel(CONFIG, sheet_name="projects", skiprows=5)
+    # stor_elev = pd.read_excel(STOR_ELEV)
+    # project_data = pd.read_excel(CONFIG, sheet_name="projects", skiprows=5)
+    project_data = load_project_parameters()
     project_data = find_conservation_storage(project_data, stor_elev)
     project_data = calculate_7_day_evacuation_volume(project_data)
     # project_data.to_csv(PROJECT_DATA, index=False)
