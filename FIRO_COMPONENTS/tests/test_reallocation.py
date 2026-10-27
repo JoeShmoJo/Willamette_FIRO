@@ -12,20 +12,36 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUTS = ROOT / 'outputs' / 'diagnostics'
 
 
+def load_final(case):
+    directory = ROOT / 'outputs/final'
+    if case == 'before':
+        directory = directory / 'baseline'
+    actual = pd.concat([pd.read_csv(p) for p in sorted(directory.glob('alternative_*_combined_curves.csv'))], ignore_index=True)
+    if set(actual.pop('allocation_case')) != {case}:
+        raise AssertionError('Incorrect allocation case in final exports')
+    return actual
+
+
 class ReallocationComparisonTests(unittest.TestCase):
-    def test_final_exports_match_capped_envelopes(self):
-        final = ROOT / 'outputs/final'
-        for case, directory in [('after', final), ('before', final / 'baseline')]:
-            source = pd.read_csv(OUTPUTS / 'scenarios' / case / '36_project_combined_daily_curves_capped.csv')
-            paths = sorted(directory.glob('alternative_*_combined_curves.csv'))
-            self.assertEqual(len(paths), source.alternative_id.nunique())
-            actual = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
-            self.assertEqual(set(actual.pop('allocation_case')), {case})
+    def test_final_exports_match_review_data(self):
+        for case in ['before', 'after']:
+            actual = load_final(case)
+            status = pd.read_csv(OUTPUTS / 'scenarios' / case / 'capacity_status/01_reservoir_daily_capacity_status.csv')
             keys = ['alternative_id', 'project_id', 'date']
             self.assertFalse(actual.duplicated(keys).any())
-            pd.testing.assert_frame_equal(
-                actual.sort_values(keys).reset_index(drop=True),
-                source.sort_values(keys).reset_index(drop=True))
+            matched = actual.merge(status, on=keys, validate='one_to_one', suffixes=('_final', '_review'))
+            self.assertEqual(len(actual), len(matched))
+            self.assertEqual(len(status), len(matched))
+            np.testing.assert_allclose(matched.combined_offset_kaf_final, matched.combined_offset_kaf_review)
+            np.testing.assert_allclose(actual.combined_storage_kaf - actual.rule_storage_kaf,
+                                       actual.combined_offset_kaf, atol=1e-8)
+
+    def test_compact_output_layout(self):
+        self.assertFalse(list(OUTPUTS.glob('*.csv')))
+        self.assertFalse((OUTPUTS / 'review/capacity_constraint_review').exists())
+        for case in ['before', 'after']:
+            self.assertFalse((OUTPUTS / 'scenarios' / case / '36_project_combined_daily_curves_capped.csv').exists())
+        self.assertTrue((OUTPUTS / 'scenarios/model/43_redistributed_physical_project_allocations.csv').exists())
 
     def test_shared_ratings_cover_active_project_elevations(self):
         path = ROOT / 'src/02_build_component_curves.py'
@@ -34,6 +50,7 @@ class ReallocationComparisonTests(unittest.TestCase):
         spec.loader.exec_module(builder)
         self.assertEqual(builder.STORAGE_ELEVATION_FILE.resolve(),
                          (ROOT.parent / 'shared/common_data/ElevStor.csv').resolve())
+        builder.PHYSICAL_ALLOCATIONS_FILE = OUTPUTS / 'scenarios/model/25_alternative_physical_project_allocations.csv'
         projects, _, ratings, _, _ = builder.load_inputs()
         issues = []
         lookup = builder.build_rating_lookup(ratings, issues)
@@ -47,7 +64,7 @@ class ReallocationComparisonTests(unittest.TestCase):
             self.assertGreaterEqual(rating.elevation_ft.max(), project.max_con_elev_ft)
 
     def test_scenarios_use_the_matching_allocations(self):
-        source = pd.read_csv(OUTPUTS / '43_redistributed_physical_project_allocations.csv')
+        source = pd.read_csv(OUTPUTS / 'scenarios/model/43_redistributed_physical_project_allocations.csv')
         self.assertGreater(len(source), 0)
         for case, field in [('before', 'baseline_project_firo_space_kaf'),
                             ('after', 'redistributed_project_firo_space_kaf')]:
@@ -57,7 +74,7 @@ class ReallocationComparisonTests(unittest.TestCase):
                                    on=['alternative_id', 'project_id'], validate='one_to_one')
             self.assertEqual(len(matched), len(source))
             np.testing.assert_allclose(matched.project_firo_space_kaf, matched[field], atol=1e-8)
-            daily = pd.read_csv(case_dir / '36_project_combined_daily_curves_capped.csv')
+            daily = load_final(case)
             limits = actual[['alternative_id','project_id','project_firo_space_kaf']]
             checked = daily.merge(limits, on=['alternative_id','project_id'], validate='many_to_one')
             self.assertEqual(len(checked), len(daily))
@@ -65,8 +82,8 @@ class ReallocationComparisonTests(unittest.TestCase):
             self.assertTrue((checked.combined_offset_kaf <= checked.project_firo_space_kaf + 1e-6).all())
 
     def test_reallocated_curves_are_rebuilt_not_just_relabeled(self):
-        before = pd.read_csv(OUTPUTS / 'scenarios/before/36_project_combined_daily_curves_capped.csv')
-        after = pd.read_csv(OUTPUTS / 'scenarios/after/36_project_combined_daily_curves_capped.csv')
+        before = load_final('before')
+        after = load_final('after')
         merged = before.merge(after, on=['alternative_id','project_id','date'],
                               suffixes=('_before','_after'), validate='one_to_one')
         self.assertEqual(len(merged), len(before))

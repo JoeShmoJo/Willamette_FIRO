@@ -4,8 +4,8 @@ FIRO REVIEW PACKAGE
 Purpose
 -------
 This folder is the normal human-review location for the FIRO model.
-The numbered files in the parent diagnostics folder remain technical
-traceability and model-working files.
+Review rebuild inputs are consolidated in ../scenarios/. Optional extra
+intermediate and QA exports are saved in ../extra/ only when requested.
 
 Open these files first
 ----------------------

@@ -40,15 +40,39 @@ From the repository root, using an activated Python environment:
 
 ```sh
 python -m pip install -r FIRO_COMPONENTS/requirements.txt
-python FIRO_COMPONENTS/run.py model
-python FIRO_COMPONENTS/run.py review
+python FIRO_COMPONENTS/run.py all
 ```
 
-`all` runs both stages. Commands stop on the first failing script. Running a stage
-overwrites its generated outputs. Headless machines should set `MPLBACKEND=Agg`.
-Keep the complete review folders together: HTML pages use local Plotly assets.
+The default builds final curves and the complete interactive review, then removes
+unneeded intermediate exports. Use `model` for numerical/final results only, or
+`review` to rebuild the plots from saved allocation inputs. Review calculations
+still run in compact mode; only expendable files are discarded after success.
+Existing plots are not refreshed by a model-only run; use `review` or `all` afterward.
 
-## What is retained
+For additional intermediate/QA CSVs and static diagnostic plots:
+
+```sh
+python FIRO_COMPONENTS/run.py all --diagnostics
+```
+
+These optional exports live in `outputs/diagnostics/extra/`. A subsequent default
+run removes that generated extra folder. Required inputs are consolidated under
+`outputs/diagnostics/scenarios/model/`; each before/after folder retains only its
+allocations, capped component curves, and reservoir/control-point plot data.
+The final combined curves are stored only in `outputs/final/`, with their baseline
+counterparts there. The legacy separate capacity-status set is no longer retained.
+
+Commands stop on failure and leave working files available for troubleshooting.
+Run stages through `run.py` for automatic staging and cleanup; individual scripts
+remain development tools and may require staged intermediate files. Headless
+machines should set `MPLBACKEND=Agg`. Keep review folders and their local Plotly
+assets together.
+
+## Calculation stages
+
+Numbered tables below identify calculation products; most intermediates are
+retained only with `--diagnostics`. The normal run keeps final curves and the
+consolidated inputs required to rebuild the review.
 
 | Scripts | Purpose | Outputs |
 | --- | --- | --- |
@@ -56,7 +80,7 @@ Keep the complete review folders together: HTML pages use local Plotly assets.
 | 02 | Component geometry and daily envelopes | 30–34 |
 | 03 | Cap and validate curves; static diagnostic plots | 35–39 and plots/ |
 | 05 | Separate redistribution optimization | 40–47 |
-| 11 | Numerical capacity/status/contribution preparation | review/capacity_constraint_review/*.csv |
+| 11 | Numerical capacity/status preparation | scenarios/before and after/capacity_status/ |
 | 15 (using 14, 13) | Two-case overview and controller diagnostics | review/utilization_ribbon_overview, review/constraint_controller_overview |
 | 15 (using 04, 07) | Two-case component detail and navigation | plotly_component_review/ |
 | 06 | Allocation/QA summary and review landing page | review/index.html and summary tables |
@@ -98,8 +122,9 @@ does not resolve every source-data/provisional-model warning; consult the prepar
 `run.py review` rebuilds the two daily curve cases from the baseline allocations
 (output 25) and redistributed allocations (output 43). It uses the same geometry
 and cap calculations for both, without replacing the original root model CSVs.
-Scenario-specific numerical outputs live in `outputs/diagnostics/scenarios/before/` and
-`after/`, with capacity-status tables in each case's `capacity_status/` folder.
+The retained plot-support tables live in `outputs/diagnostics/scenarios/before/` and
+`after/`, with reservoir/control-point plot data in each case's `capacity_status/` folder.
+Repeated combined curves and other intermediate CSVs are not retained in the default run.
 `outputs/diagnostics/scenarios/manifest.json` records source/algorithm hashes.
 
 All 89 retained chart pages contain both cases, rather than linking to a separate

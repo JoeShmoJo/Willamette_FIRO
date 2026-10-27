@@ -237,9 +237,11 @@ def main(curves_only=False):
                *[ROOT / 'src' / n for n in ['02_build_component_curves.py',
                     '03_cap_validate_and_plot_curves.py','11_build_capacity_constraint_review.py',
                     '04_build_plotly_component_review.py','13_build_constraint_controller_overview.py',
-                    '14_build_utilization_ribbon_overview.py','15_build_reallocation_comparison.py']]]
+                    '14_build_utilization_ribbon_overview.py','07_add_plotly_review_navigation.py',
+                    '15_build_reallocation_comparison.py']]]
     manifest = {'cases':['before','after'], 'inputs_and_calculations':
-                {os.path.relpath(p, ROOT):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
+                {os.path.relpath((SCENARIOS / 'model' / p.name) if p.parent == OUTPUTS else p, ROOT):
+                 hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
                 'overview_pages':sum(map(len,entries)), 'component_pages':len(detail_entries)}
     (SCENARIOS / 'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(f'Built {manifest["overview_pages"]} comparison overviews and {len(detail_entries)} component pages.')

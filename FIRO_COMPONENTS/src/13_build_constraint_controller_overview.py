@@ -41,8 +41,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INPUT_DIRECTORY = (
     PROJECT_ROOT
     / "outputs" / "diagnostics"
-    / "review"
-    / "capacity_constraint_review"
+    / "scenarios"
+    / "after"
+    / "capacity_status"
 )
 
 RESERVOIR_FILE = (

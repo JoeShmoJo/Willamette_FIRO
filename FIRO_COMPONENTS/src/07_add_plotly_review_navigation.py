@@ -24,7 +24,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 REVIEW_DIRECTORY = OUTPUT_DIRECTORY / "plotly_component_review"
 
-CAPPED_COMPONENT_FILE = OUTPUT_DIRECTORY / "35_component_daily_curves_capped.csv"
+CAPPED_COMPONENT_FILE = OUTPUT_DIRECTORY / "scenarios/after/35_component_daily_curves_capped.csv"
 RAW_COMPONENT_FILE = OUTPUT_DIRECTORY / "31_component_daily_curves.csv"
 
 
@@ -275,6 +275,8 @@ def main() -> None:
             / "24_alternative_decision_unit_allocations.csv"
         )
 
+        if not allocation_file.exists():
+            allocation_file = OUTPUT_DIRECTORY / 'scenarios/model/24_alternative_decision_unit_allocations.csv'
         if not allocation_file.exists():
             raise FileNotFoundError(
                 "Cannot add alternative names because this file is missing:\n"

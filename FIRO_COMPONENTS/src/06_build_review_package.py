@@ -340,8 +340,8 @@ def write_readme(
 Purpose
 -------
 This folder is the normal human-review location for the FIRO model.
-The numbered files in the parent diagnostics folder remain technical
-traceability and model-working files.
+Review rebuild inputs are consolidated in ../scenarios/. Optional extra
+intermediate and QA exports are saved in ../extra/ only when requested.
 
 Open these files first
 ----------------------
@@ -457,9 +457,9 @@ a {{
 <h1>FIRO Targeted Review Package</h1>
 
 <div class="note">
-Use this folder for normal model review. The numbered files in the parent
-<code>outputs/diagnostics</code> folder remain technical traceability files and do not
-need to be opened routinely. Daily charts below let you toggle between before and after reallocation; component geometry and status are rebuilt for each case. All daily loading is unrouted storage-space screening.
+Use this folder for normal model review. Supporting tables are consolidated in
+<code>outputs/diagnostics/scenarios</code>. Extra intermediate and QA exports are
+optional and live in <code>outputs/diagnostics/extra</code> when requested. Daily charts below let you toggle between before and after reallocation; component geometry and status are rebuilt for each case. All daily loading is unrouted storage-space screening.
 </div>
 
 <h2>Review Files</h2>

@@ -26,6 +26,7 @@ Dependencies
 """
 
 from pathlib import Path
+import os
 
 import numpy as np
 import pandas as pd
@@ -67,6 +68,9 @@ PLOT_ALTERNATIVES = {
     3,  # Max Con Storage
     6,  # Flow Delivery + Storage Reliability
 }
+
+if os.environ.get('FIRO_EXTRA_DIAGNOSTICS') != '1':
+    PLOT_ALTERNATIVES = set()
 
 # To plot only named projects, use a set such as:
 #
