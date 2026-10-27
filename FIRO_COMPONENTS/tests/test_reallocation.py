@@ -9,10 +9,24 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS = ROOT / 'outputs'
+OUTPUTS = ROOT / 'outputs' / 'diagnostics'
 
 
 class ReallocationComparisonTests(unittest.TestCase):
+    def test_final_exports_match_capped_envelopes(self):
+        final = ROOT / 'outputs/final'
+        for case, directory in [('after', final), ('before', final / 'baseline')]:
+            source = pd.read_csv(OUTPUTS / 'scenarios' / case / '36_project_combined_daily_curves_capped.csv')
+            paths = sorted(directory.glob('alternative_*_combined_curves.csv'))
+            self.assertEqual(len(paths), source.alternative_id.nunique())
+            actual = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
+            self.assertEqual(set(actual.pop('allocation_case')), {case})
+            keys = ['alternative_id', 'project_id', 'date']
+            self.assertFalse(actual.duplicated(keys).any())
+            pd.testing.assert_frame_equal(
+                actual.sort_values(keys).reset_index(drop=True),
+                source.sort_values(keys).reset_index(drop=True))
+
     def test_shared_ratings_cover_active_project_elevations(self):
         path = ROOT / 'src/02_build_component_curves.py'
         spec = importlib.util.spec_from_file_location('rating_source_test', path)

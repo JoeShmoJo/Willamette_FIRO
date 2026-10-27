@@ -2,7 +2,7 @@
 Create a compact human-review package from FIRO model outputs.
 
 This script does not move, rename, or delete existing technical outputs.
-It creates outputs/review/, which is the recommended location for normal
+It creates outputs/diagnostics/review/, which is the recommended location for normal
 allocation, redistribution, and QA/QC review.
 """
 
@@ -15,7 +15,7 @@ import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 REVIEW_DIRECTORY = OUTPUT_DIRECTORY / "review"
 
 TOLERANCE_KAF = 1.0e-6
@@ -340,7 +340,7 @@ def write_readme(
 Purpose
 -------
 This folder is the normal human-review location for the FIRO model.
-The numbered files in the parent outputs folder remain technical
+The numbered files in the parent diagnostics folder remain technical
 traceability and model-working files.
 
 Open these files first
@@ -453,11 +453,12 @@ a {{
 </style>
 </head>
 <body>
+<p><a href="../../final/README.md">Final combined curve CSVs and column guide</a></p>
 <h1>FIRO Targeted Review Package</h1>
 
 <div class="note">
 Use this folder for normal model review. The numbered files in the parent
-<code>outputs</code> folder remain technical traceability files and do not
+<code>outputs/diagnostics</code> folder remain technical traceability files and do not
 need to be opened routinely. Daily charts below let you toggle between before and after reallocation; component geometry and status are rebuilt for each case. All daily loading is unrouted storage-space screening.
 </div>
 

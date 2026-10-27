@@ -12,12 +12,12 @@ data/
     ../shared/common_data/ElevStor.csv (normalized on load)
     12_alternative_component_selections.csv
 
-outputs/
+outputs/diagnostics/
     25_alternative_physical_project_allocations.csv
 
 Outputs
 -------
-outputs/
+outputs/diagnostics/
     30_component_parameters.csv
     31_component_daily_curves.csv
     32_project_combined_daily_curves.csv
@@ -52,7 +52,7 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIRECTORY = PROJECT_ROOT / "data"
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 
 PHYSICAL_PROJECTS_FILE = (
     DATA_DIRECTORY / "01_projects_physical.csv"
@@ -72,10 +72,10 @@ COMPONENT_SELECTIONS_FILE = (
 
 # Trial curves use accepted production allocations as their input.
 # Trial-generated curve outputs remain isolated in outputs.
-PRODUCTION_OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+PRODUCTION_OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 
 PHYSICAL_ALLOCATIONS_FILE = (
-    PROJECT_ROOT / "outputs"
+    PROJECT_ROOT / "outputs" / "diagnostics"
     / "25_alternative_physical_project_allocations.csv"
 )
 
@@ -112,7 +112,7 @@ def require_file(path):
 
 
 def write_csv(dataframe, filename):
-    """Write an Excel-friendly UTF-8 CSV to outputs/."""
+    """Write an Excel-friendly UTF-8 CSV to outputs/diagnostics/."""
     OUTPUT_DIRECTORY.mkdir(
         parents=True,
         exist_ok=True,
@@ -2195,10 +2195,10 @@ def main():
     )
     print("")
     print("Review these files:")
-    print("  outputs/30_component_parameters.csv")
-    print("  outputs/32_project_combined_daily_curves.csv")
-    print("  outputs/33_alternative_daily_storage_summary.csv")
-    print("  outputs/34_component_curve_quality_report.csv")
+    print("  outputs/diagnostics/30_component_parameters.csv")
+    print("  outputs/diagnostics/32_project_combined_daily_curves.csv")
+    print("  outputs/diagnostics/33_alternative_daily_storage_summary.csv")
+    print("  outputs/diagnostics/34_component_curve_quality_report.csv")
 
 
 if __name__ == "__main__":

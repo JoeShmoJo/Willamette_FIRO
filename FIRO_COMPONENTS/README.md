@@ -6,9 +6,20 @@ calculate a separate redistribution case, and review the resulting geometry.
 For a plain-language description of parameter searches and allocation optimization,
 see [How optimization works](HOW_OPTIMIZATION_WORKS.md).
 
+## Final curves
+
+**Use [`outputs/final/`](outputs/final/README.md) for downstream work.** Each
+`alternative_XX_combined_curves.csv` contains the final capped combined curves
+for all reservoirs in that alternative, after reallocation. Before-reallocation
+versions are in `outputs/final/baseline/`. The guide explains columns and units.
+Both `model` and `all` rebuild these final files. Alternative 5 has no curve output.
+
+All intermediate tables, QA reports, plots and comparison data are kept separately
+in `outputs/diagnostics/`.
+
 ## Start here
 
-Open `outputs/review/index.html`. It links to:
+Open `outputs/diagnostics/review/index.html`. It links to:
 
 - **Utilization overview:** the default reservoir/control-point daily overview.
 - **Controller diagnostics:** constraint status and the component controlling each envelope.
@@ -52,7 +63,7 @@ Keep the complete review folders together: HTML pages use local Plotly assets.
 
 `00_patch_green_peter_rule_curve.py` is an explicit input-patching operation,
 not a routine run step. Saved patch history and preparation records are in `provenance/`; new patch
-outputs go to `outputs/input_patches/`. Only six local input tables remain in
+outputs go to `outputs/diagnostics/input_patches/`. Only six local input tables remain in
 `data/`; storage ratings and control-point limits are loaded directly from their
 selected sources in `shared/`. See [the input guide](data/README.md) and
 [provenance guide](provenance/README.md). The rating source is now shared/common_data/ElevStor.csv, matching the other
@@ -87,9 +98,9 @@ does not resolve every source-data/provisional-model warning; consult the prepar
 `run.py review` rebuilds the two daily curve cases from the baseline allocations
 (output 25) and redistributed allocations (output 43). It uses the same geometry
 and cap calculations for both, without replacing the original root model CSVs.
-Scenario-specific numerical outputs live in `outputs/scenarios/before/` and
+Scenario-specific numerical outputs live in `outputs/diagnostics/scenarios/before/` and
 `after/`, with capacity-status tables in each case's `capacity_status/` folder.
-`outputs/scenarios/manifest.json` records source/algorithm hashes.
+`outputs/diagnostics/scenarios/manifest.json` records source/algorithm hashes.
 
 All 89 retained chart pages contain both cases, rather than linking to a separate
 set of reallocated charts. The selector redraws one chart in place. Alternative

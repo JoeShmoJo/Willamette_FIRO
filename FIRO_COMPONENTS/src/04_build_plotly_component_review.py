@@ -22,7 +22,7 @@ from plotly.subplots import make_subplots
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 REVIEW_DIRECTORY = OUTPUT_DIRECTORY / "plotly_component_review"
 
 # Prefer capped curves when they are available.

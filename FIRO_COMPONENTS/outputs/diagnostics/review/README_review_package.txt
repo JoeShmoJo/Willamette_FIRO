@@ -4,7 +4,7 @@ FIRO REVIEW PACKAGE
 Purpose
 -------
 This folder is the normal human-review location for the FIRO model.
-The numbered files in the parent outputs folder remain technical
+The numbered files in the parent diagnostics folder remain technical
 traceability and model-working files.
 
 Open these files first

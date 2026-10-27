@@ -35,7 +35,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 INPUT_DIRECTORY = (
     PROJECT_ROOT
-    / "outputs"
+    / "outputs" / "diagnostics"
     / "review"
     / "capacity_constraint_review"
 )
@@ -52,7 +52,7 @@ CONTROL_POINT_FILE = (
 
 OUTPUT_DIRECTORY = (
     PROJECT_ROOT
-    / "outputs"
+    / "outputs" / "diagnostics"
     / "review"
     / "utilization_ribbon_overview"
 )

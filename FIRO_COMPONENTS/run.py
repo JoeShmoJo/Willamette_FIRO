@@ -30,6 +30,9 @@ def main():
         print(f"Running {script}", flush=True)
         subprocess.run([sys.executable, str(ROOT / "src" / script)],
                        cwd=ROOT, check=True)
+        if script == MODEL[-1] and args.stage == "model":
+            subprocess.run([sys.executable, str(ROOT / 'src/15_build_reallocation_comparison.py'),
+                            '--curves-only'], cwd=ROOT, check=True)
 
 
 if __name__ == "__main__":

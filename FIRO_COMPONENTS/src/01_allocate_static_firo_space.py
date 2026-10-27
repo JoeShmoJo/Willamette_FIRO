@@ -58,14 +58,14 @@ Inputs
 
 Outputs
 -------
-    outputs/20_direct_control_point_assignments.csv
-    outputs/21_static_control_point_relationships.csv
-    outputs/22_alternative_active_decision_units.csv
-    outputs/23_alternative_control_point_shares.csv
-    outputs/24_alternative_decision_unit_allocations.csv
-    outputs/25_alternative_physical_project_allocations.csv
-    outputs/26_alternative_control_point_utilization.csv
-    outputs/27_static_allocation_quality_report.csv
+    outputs/diagnostics/20_direct_control_point_assignments.csv
+    outputs/diagnostics/21_static_control_point_relationships.csv
+    outputs/diagnostics/22_alternative_active_decision_units.csv
+    outputs/diagnostics/23_alternative_control_point_shares.csv
+    outputs/diagnostics/24_alternative_decision_unit_allocations.csv
+    outputs/diagnostics/25_alternative_physical_project_allocations.csv
+    outputs/diagnostics/26_alternative_control_point_utilization.csv
+    outputs/diagnostics/27_static_allocation_quality_report.csv
 
 Dependencies
 ------------
@@ -86,7 +86,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 SOURCE_DIRECTORY = PROJECT_ROOT / "src"
 DATA_DIRECTORY = PROJECT_ROOT / "data"
-OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
+OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "diagnostics"
 
 # Read canonical inputs directly from data/.
 PHYSICAL_PROJECTS_FILE = (
@@ -134,7 +134,7 @@ ACTIVE_COMPONENT_CODES = {
 #
 #     Dorena DS space + Cottage Grove DS space = Goshen SpaceLimit
 #
-# This file is written as outputs/20_direct_control_point_assignments.csv
+# This file is written as outputs/diagnostics/20_direct_control_point_assignments.csv
 # so it can be reviewed or moved to a user-maintained config folder later.
 #
 
@@ -1294,16 +1294,16 @@ def main():
     print("")
     print("Review these files next:")
     print(
-        "  outputs/24_alternative_decision_unit_allocations.csv"
+        "  outputs/diagnostics/24_alternative_decision_unit_allocations.csv"
     )
     print(
-        "  outputs/25_alternative_physical_project_allocations.csv"
+        "  outputs/diagnostics/25_alternative_physical_project_allocations.csv"
     )
     print(
-        "  outputs/26_alternative_control_point_utilization.csv"
+        "  outputs/diagnostics/26_alternative_control_point_utilization.csv"
     )
     print(
-        "  outputs/27_static_allocation_quality_report.csv"
+        "  outputs/diagnostics/27_static_allocation_quality_report.csv"
     )
 
 
