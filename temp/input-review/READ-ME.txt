@@ -1,0 +1,48 @@
+WILLAMETTE INPUT SOURCE REVIEW
+
+1. Pull the repository changes to your Windows PC.
+   This tool is temporarily stored in temp/input-review/.
+2. Double-click Start-Input-Review.cmd in that folder.
+3. The tool starts with C:\Projects\A_Recent_Projects\Willamette_FIRO_GIT.
+   Use Browse if your checkout is somewhere else.
+4. Choose a data type on the left, such as Rule curves or Conservation storage.
+5. The upper list contains competing source files. Ctrl-click two files and
+   click Open selected files to compare them in Excel or their normal apps.
+6. The lower list shows scripts mentioning the files. Select a source file to
+   narrow this list. Double-click a script row to view its code in Notepad.
+   The line number is included; Notepad's Ctrl+G can jump to it.
+7. Select one source and click Mark preferred source to remember your choice.
+
+Workbook contents can appear in several groups. For example, the release-rate
+fields in Reservoirs.xlsx, Flood_Levels.xlsx and LagConfig.xlsx appear together
+under Ramp rates and flow guidelines. The relevant tab or fields are listed.
+A workbook can contain complementary information, so marking one preferred
+source does not imply that all other files in its group should be deleted.
+
+Show file in Explorer locates a file without opening it. Column dividers and
+the left/right divider can be dragged. Filter files/scripts narrows the upper
+list by filename or referring script name. Scan / refresh re-reads your local
+checkout, including any uncommitted source data present in the input folders.
+
+The tool reads input/data/config folders and scans active Python, PowerShell,
+R, shell, batch and command scripts. Archive and generated outputs are excluded.
+References are literal filename matches, including comments. Dynamic filenames,
+indirect dependencies and ambiguous identical filenames need code inspection.
+The tool does not determine which sources are scientifically authoritative.
+
+Existing findings are provided as comparison hints. Those hints describe the
+repository reviewed in October 2026 and are not live numerical workbook tests.
+
+No repository files are changed or deleted. Your preferred-source selections
+are saved under %LOCALAPPDATA%\Willamette Input Review\preferred-sources.json.
+Excel/DSS/etc. files open in their installed Windows-associated applications.
+Script files open in Notepad rather than executing.
+
+The launcher uses built-in Windows PowerShell with STA for Windows Forms. It
+unblocks this downloaded PS1 and uses RemoteSigned for its process; it does not
+change your machine-wide execution policy. Managed organization policies can
+still prevent execution.
+
+Validation performed: PowerShell syntax parsing; the scanner and multi-group
+classification were exercised on the repository (41 sources, 26 active scripts).
+The Windows Forms window could not be run in the Linux development environment.
