@@ -1,7 +1,8 @@
-#Specific folders with ResSim output (too big for git)
+#Specific folders with data too big for git
 shared/ressim_output/*
 shared/temp_data/*
 shared/datasets_sharepoint/*
+**/data_temp/*
 
 #Don't output plots/tables (too big for git)
 out/
@@ -135,6 +136,10 @@ dmypy.json
 # Keep directory documentation when external datasets are ignored
 !/shared/temp_data/README.txt
 !/shared/datasets_sharepoint/README.txt
+
+# Do not ignore .md and .txt files anywhere in the repo
+!**/*.md
+!**/*.txt
 
 # Preserve the historical snapshot, including formerly ignored directory notes
 !/Archive/

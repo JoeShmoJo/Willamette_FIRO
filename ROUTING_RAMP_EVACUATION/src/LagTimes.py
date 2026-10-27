@@ -17,6 +17,8 @@ REPOSITORY_ROOT = PROJECT_ROOT.parent
 SHARED_DATA = REPOSITORY_ROOT / "shared"
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs"
 OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+TEMP_DATA_DIR = PROJECT_ROOT / "data_temp"
+TEMP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 MODULE_PATH = str(SHARED_DATA / "modules")
 if MODULE_PATH not in sys.path:
     sys.path.insert(0, MODULE_PATH)
@@ -55,13 +57,13 @@ register_matplotlib_converters()
 CONFIG_FILE = PROJECT_ROOT / "config/LagConfig.xlsx"
 ROUTING_PARAM_FILE = SHARED_DATA / "common_data/RoutingParams.xlsx"
 RAMP_RATE_FILE = SHARED_DATA / "common_data/RampRates.xlsx"
-DSS_IN_FILE = str(SHARED_DATA / "HourlyObservedInputs.dss")
-DSS_LOCALFLOW_FILE = str(SHARED_DATA / "MeldedHourlyDaily_WY1982-2019.dss")
+DSS_IN_FILE = str(SHARED_DATA / "datasets_sharepoint/HourlyObservedInputs.dss")
+DSS_LOCALFLOW_FILE = str(SHARED_DATA / "datasets_sharepoint/MeldedHourlyDaily_WY1982-2019.dss")
 NAME_ALIAS = SHARED_DATA / "common_data/LocationAlias.xlsx"
+UNREG_PICKLE_FILE = SHARED_DATA / "datasets_sharepoint/UnregFlows.pickle"
 
 FORCE_RELOAD = True
-DATA_PICKLE_FILE = OUTPUT_DIRECTORY / "AllData.pickle"
-UNREG_PICKLE_FILE = OUTPUT_DIRECTORY / "UnregFlows.pickle"
+DATA_PICKLE_FILE = TEMP_DATA_DIR / "AllData.pickle"
 
 USE_MULTI_THREAD = True
 
@@ -540,18 +542,18 @@ def getRampPerHour(dfRamp, curRel, normMaxRel):
 
     '''
     if len(dfRamp) == 1:
-        if dfRamp["RampPerHour_Pct"].isna().any():
-            rampCFS = dfRamp["RampPerHour_CFS"].iloc[0]
+        if dfRamp["Ramp_Pct"].isna().any():
+            rampCFS = dfRamp["Ramp_CFS"].iloc[0]
         else: 
             #a percent, assume this is % of max release.
             #Otherwise, if we kept doing 20% using current release, we'd never get to zero
-            rampCFS = dfRamp["RampPerHour_Pct"].iloc[0] * normMaxRel
+            rampCFS = dfRamp["Ramp_Pct"].iloc[0] * normMaxRel
     else:
         #Ramp rate has various flow ranges
         rampCFS = np.nan
         for j, rowRamp in dfRamp.iterrows():
             if rowRamp["FlowRange_Low"] <= curRel < rowRamp["FlowRange_High"]:
-                rampCFS = rowRamp["RampPerHour_CFS"]
+                rampCFS = rowRamp["Ramp_CFS"]
         if rampCFS == np.nan:
             raise AssertionError("Input flow outside the bounds of the table")
     return rampCFS
