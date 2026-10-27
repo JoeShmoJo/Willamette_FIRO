@@ -72,3 +72,19 @@ For a scan without the Windows window:
 The launcher uses Windows PowerShell in STA mode and unblocks only its own PS1.
 It does not change machine execution policy. Organization policy may still prevent
 launching. Keep the PS1 beside the launcher when moving the tool.
+
+## Output-directory inference
+
+The resolver also follows simple local output-directory assignments, typed
+`write_csv` helpers, and finite literal directory choices in tuple loops.
+For expressions such as `directory / f'alternative_{...}_combined_curves.csv'`,
+it checks the filename template only inside each resolved output directory.
+These existing files are marked **Output / Present**, with Resolution =
+**Inferred from resolved directory and filename template**. DataPath and FileID
+still identify each specific file. The tool never searches unrelated directories
+for same-named files. Template matches show a plausible generated output at the
+source-defined location; they do not prove that the current run generated it.
+
+This includes FIRO's after-reallocation files in `outputs/final/` and the
+before-reallocation files in `outputs/final/baseline/`. Filter Direction to
+`Output`, Availability to `Present`, and DataPath to `final` to see them together.

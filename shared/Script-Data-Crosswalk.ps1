@@ -48,12 +48,67 @@ function Resolve-SourcePath {
     return $null
 }
 
+function Get-OutputPathReferences {
+    param($Lines, [hashtable]$Globals, [string]$ScriptFile)
+    $scopes = @($Globals.Clone())
+    for ($i = 0; $i -lt $Lines.Count; $i++) {
+        $line = $Lines[$i]
+        if ($line -match '^def\s+\w+\(([^)]*)\)') {
+            $scope = $Globals.Clone()
+            foreach ($arg in ($Matches[1] -split ',')) {
+                if ($arg.Trim() -match '^([A-Za-z_]\w*)') { $scope.Remove($Matches[1]) }
+            }
+            $scopes = @($scope)
+        }
+        if ($line -match '^\s+([A-Za-z_]\w*)\s*=\s*(.+)$') {
+            $name = $Matches[1]; $expressionText = $Matches[2]
+            foreach ($scope in $scopes) { $scope[$name] = Resolve-SourcePath $expressionText $scope $ScriptFile }
+        }
+        # Finite literal tuple loops give explicit alternative directories, not guesses.
+        if ($line -match '^\s*for\s+\w+\s*,\s*(\w+)\s+in\s+\[(.+)\]:') {
+            $directoryName = $Matches[1]; $tuples = $Matches[2]
+            $expanded = @()
+            foreach ($scope in $scopes) {
+                foreach ($pair in [regex]::Matches($tuples, '\(["''][^"'']+["'']\s*,\s*([^()]+)\)')) {
+                    $value = Resolve-SourcePath $pair.Groups[1].Value $scope $ScriptFile
+                    if ($value) { $copy = $scope.Clone(); $copy[$directoryName] = $value; $expanded += $copy }
+                }
+            }
+            if ($expanded.Count) { $scopes = $expanded }
+        }
+        $calls = [regex]::Matches($line, '\.(to_csv|to_excel|to_pickle|to_parquet|to_json|write_html)\(\s*(.+)')
+        foreach ($call in $calls) {
+            $expressionText = $call.Groups[2].Value -replace ',\s*(index|encoding|engine|include_plotlyjs|full_html)\s*=.*$', ''
+            if ($expressionText.EndsWith(')')) { $expressionText = $expressionText.Substring(0, $expressionText.Length-1) }
+            foreach ($scope in $scopes) {
+                $full = Resolve-SourcePath $expressionText $scope $ScriptFile
+                if ($full -and $full -match '\.(csv|xlsx?|pkl|pickle|parquet|json|html)$') {
+                    [pscustomobject]@{Full=$full; Expression=$expressionText; Line=$i+1; Direction='Output'; Resolution='Resolved output-directory expression'}
+                } elseif ($expressionText -match '^(\w+)\s*/\s*f["'']([^"'']+)["'']$') {
+                    $directoryVariable = $Matches[1]; $template = $Matches[2]
+                    $directory = $scope[$directoryVariable]
+                    if (-not $directory) { continue }
+                    # Only match inside the directory specified by the source expression.
+                    $regex = '^' + ([regex]::Escape($template) -replace '\\\{.*?}', '[^/\\]+') + '$'
+                    if (Test-Path -LiteralPath $directory -PathType Container) {
+                        foreach ($file in Get-ChildItem -LiteralPath $directory -File) {
+                            if ($file.Name -match $regex) {
+                                [pscustomobject]@{Full=$file.FullName; Expression=$expressionText; Line=$i+1; Direction='Output'; Resolution='Inferred from resolved directory and filename template'}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 function Get-Crosswalk {
     param([string]$Root)
     $script:ScanWarnings = @()
     $excluded = '[\\/](Archive|\.git|\.venv|venv|node_modules|__pycache__|temp)[\\/]'
     $scripts = @(Get-ChildItem -LiteralPath $Root -Recurse -File |
-        Where-Object { $_.FullName -notmatch $excluded -and $_.Extension -in '.py','.ps1','.r','.R','.ipynb' -and $_.Name -ne 'Script-Data-Crosswalk.ps1' })
+        Where-Object { $_.FullName -notmatch $excluded -and $_.Extension -in '.py','.ps1','.r','.R','.ipynb' -and $_.Name -ne 'Script-Data-Crosswalk.ps1' -and $_.Name -notlike '*.Tests.ps1' })
     foreach ($source in $scripts) {
         if ($source.Extension -ne '.py') {
             $script:ScanWarnings += "$($source.FullName): path analysis currently supports Python source only"
@@ -63,17 +118,22 @@ function Get-Crosswalk {
         $clean = New-Object System.Collections.Generic.List[string]
         $docQuote = ''
         foreach ($line in $lines) {
-            # Ignore whole comments and triple-quoted text, preserving line numbers.
-            if ($docQuote) {
-                if ($line.Contains($docQuote)) { $docQuote = '' }
-                $clean.Add(''); continue
+            if (-not $docQuote -and $line.TrimStart().StartsWith('#')) { $clean.Add(''); continue }
+            $remaining = $line; $codePart = ''
+            while ($remaining.Length) {
+                if ($docQuote) {
+                    $end = $remaining.IndexOf($docQuote, [System.StringComparison]::Ordinal)
+                    if ($end -lt 0) { $remaining = ''; break }
+                    $remaining = $remaining.Substring($end + 3); $docQuote = ''
+                } else {
+                    $delimiter = [regex]::Match($remaining, '("""|'''''')')
+                    if (-not $delimiter.Success) { $codePart += $remaining; break }
+                    $codePart += $remaining.Substring(0, $delimiter.Index) + '"__MULTILINE_TEXT__"'
+                    $docQuote = $delimiter.Value
+                    $remaining = $remaining.Substring($delimiter.Index + 3)
+                }
             }
-            if ($line -match '("""|'''''')') {
-                $quote = $Matches[1]
-                if ([regex]::Matches($line, [regex]::Escape($quote)).Count -eq 1) { $docQuote = $quote }
-                $clean.Add(''); continue
-            }
-            if ($line.TrimStart().StartsWith('#')) { $clean.Add('') } else { $clean.Add($line) }
+            $clean.Add($codePart)
         }
         $text = $clean -join "`n"
         $variables = @{}; $definitions = New-Object System.Collections.Generic.List[object]
@@ -146,7 +206,7 @@ function Get-Crosswalk {
         }
         # Resolve the common write_csv(frame, 'name.csv') wrapper only when its
         # body explicitly joins a known global directory to its filename argument.
-        $helperMatch = [regex]::Match($text, '(?ms)^def write_csv\(\s*\w+\s*,\s*(\w+)\s*\):\s*\n(.*?)(?=^\S|\z)')
+        $helperMatch = [regex]::Match($text, '(?ms)^def write_csv\(\s*\w+(?:\s*:[^,]+)?\s*,\s*(\w+)(?:\s*:[^)]+)?\s*\)\s*(?:->[^:\n]+)?:\s*\n(.*?)(?=^\S|\z)')
         if ($helperMatch.Success) {
             $filenameArgument = [regex]::Escape($helperMatch.Groups[1].Value)
             $body = $helperMatch.Groups[2].Value
@@ -164,6 +224,10 @@ function Get-Crosswalk {
                 }
             }
         }
+        foreach ($outputReference in @(Get-OutputPathReferences $clean $variables $source.FullName)) {
+            $references.Add($outputReference)
+        }
+        $seenReferences = @{}
         foreach ($reference in $references) {
             $full = [string]$reference.Full
             $display = ''; $name = ''; $resolution = 'Path unresolved - no file assigned'; $availability = 'Path unresolved'
@@ -179,6 +243,10 @@ function Get-Crosswalk {
             } elseif ($reference.Expression -match '["'']([^"'']+\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml))["'']') {
                 $name = ($Matches[1] -split '[\\/]')[-1]
             }
+            if ($reference.Resolution) { $resolution = $reference.Resolution }
+            $referenceKey = "$($reference.Line)|$($reference.Direction)|$full|$($reference.Expression)"
+            if ($seenReferences.ContainsKey($referenceKey)) { continue }
+            $seenReferences[$referenceKey] = $true
             $relativeScript = $source.FullName.Substring($Root.Length).TrimStart('\','/')
             $fileID = $full
             if ([System.IO.Path]::DirectorySeparatorChar -eq '\') { $fileID = $fileID.ToLowerInvariant() }
