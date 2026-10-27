@@ -37,3 +37,9 @@ use common_data/Willamette_Rule_Curves.csv.
 MAX's retained snapshots are not freshly recalculated MAX outputs.
 Project-specific FIRO inputs remain in FIRO_COMPONENTS/data/, with preparation
 history in FIRO_COMPONENTS/provenance/.
+
+SCRIPT / INPUT / OUTPUT CROSSWALK
+
+Double-click Start-Script-Data-Crosswalk.cmd to browse sortable, searchable file
+references, open scripts/data, locate files in Explorer, and export to CSV.
+See Script-Data-Crosswalk-README.md for instructions and scan limitations.
