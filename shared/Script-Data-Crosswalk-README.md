@@ -1,70 +1,73 @@
 # Script, input, and output crosswalk
 
-Double-click **Start-Script-Data-Crosswalk.cmd** in this folder on Windows.
-The tool finds the repository automatically from its own location.
-It does not execute analysis scripts or modify their data.
+Double-click **Start-Script-Data-Crosswalk.cmd** on Windows. The repository is
+located automatically from this folder. Python 3.9 or newer is required; the
+launcher finds `py -3`, `python`, or `python3`. No extra Python packages are needed.
+The tool reads source code without executing analysis scripts or modifying data.
 
-1. Search for a data filename, project, script name, or part of a path.
-2. Click any column heading to sort. Sort by **DataFile** to group scripts
-   mentioning the same data, or by **Script** to inspect one script's references.
-3. Select rows (Ctrl-click for several) and use **Open data file(s)** to compare
-   files in their default applications. **Open script(s)** uses Notepad;
-   the **Line** and **Evidence** columns show where the reference was found.
-4. **Locate data/script** opens Explorer with the file selected.
-5. **Export shown CSV** saves the current filtered, sorted view for Excel.
-   **Refresh scan** rescans after repository changes.
+## Browse and filter
 
-**Direction** is inferred from read/write calls, variable names, or literal
-input/output directory names. Unclassified references need inspection.
-**CandidatePath** is a filename match, not proof that the script uses that copy.
-Multiple copies are shown separately. **No existing filename match** may mean
-an output not generated yet, a missing input, or an external path.
-Comment-only lines are hidden initially; check the box to include them.
-References in docstrings, notebook text, inactive branches, or disabled blocks
-may still appear as code. Computed filenames and paths assembled from variables
-can be missed. This is a review aid, not a complete execution/dependency graph.
+Search across all columns or fill the labeled per-column filter boxes. Blank
+boxes are unfiltered; filled boxes combine and ignore case. For example,
+Project = `FIRO`, Direction = `Input`, and DataFile = `Elev` narrow the view together.
+Click column headings to sort. On smaller windows, scroll the filter area.
+**Reset filters** clears every search and restores all file statuses.
+**Refresh scan** rescans the repository while retaining filters.
 
-The scan includes current project scripts and data/results, including MAX and
-FIRO's final/diagnostic folders. Archive, temp, Git, virtual environments, and
-common dependency/cache folders are excluded. External files are not scanned.
+Select rows (Ctrl-click for several) and choose **Open data file(s)** to compare
+files in their default applications. **Open script(s)** opens Notepad; **Line**
+and **Evidence** show the relevant source location. **Locate data/script** selects
+the file in Explorer. **Export shown CSV** exports the current filtered, sorted view.
 
-For a scan without opening the window:
+## Paths identify files
+
+**DataPath** is the path resolved from the script, displayed relative to the
+repository when possible. **FileID** is the normalized absolute path: different
+full paths identify different files, even when filenames or contents agree.
+Repeated references to the same full path share one FileID. There is no search
+for alternative copies by filename and no "multiple copies" classification.
+
+The resolver reads Python syntax to follow module path constants, `__file__`,
+`Path(...).resolve().parents[...]`, `/` joins, and supported simple local paths
+and output helpers. Comments and docstrings do not become file references.
+Input/output roles come from recognized read/write calls; definitions without
+an identified role are marked Unclassified.
+
+**Availability** checks the resolved full path:
+
+- **Present**: the specific file exists.
+- **Missing input**: a resolved input path has no file.
+- **Output not generated**: a resolved output path has no file; this alone is not an error.
+- **File absent - role unclassified**: the resolved path is absent but its role needs review.
+- **Path unresolved**: the tool cannot establish a path; no file is assigned.
+
+**Only files not found** includes unresolved expressions and resolved absent files.
+Search Availability for `Missing input` to isolate known missing input paths.
+Exports contain the same statuses and paths. External absolute paths are checked
+on the computer running the tool; no external directories are searched for matches.
+
+## Limits of static analysis
+
+A resolved path is the source code's static path, not proof of a runtime read or
+write. Function arguments, imported settings, caller working directories,
+conditional assignments, loops, dynamic filenames, or another script rebinding
+module constants can change or prevent resolution. For example, FIRO's comparison
+builder overrides imported modules' output directories at runtime; their own
+source definitions still describe their default paths. No execution is simulated.
+Unanchored relative strings remain working-directory dependent rather than being
+guessed relative to the script or repository. Missing runtime-derived relationships
+still require inspection of the script.
+
+Only Python scripts currently have path resolution. **Scan notes** lists unsupported
+script types or parse failures. Archive, temp, Git, virtual environments, and common
+dependency/cache directories are excluded. This is not a complete execution graph.
+
+For a scan without the Windows window:
 
 ```powershell
 .\shared\Script-Data-Crosswalk.ps1 -ScanOnly -ExportCsv "$env:TEMP\firo-crosswalk.csv"
 ```
 
 The launcher uses Windows PowerShell in STA mode and unblocks only its own PS1.
-It does not change machine execution policy. A policy imposed by your organization
-may still prevent it from launching.
-
-## Missing inputs and outputs
-
-The **Availability** column distinguishes:
-
-- **Input not found in scanned repo**: an inferred input with no filename match.
-- **Output not found - may not be generated**: an inferred output with no filename match;
-  this alone is not an error.
-- **Not found - direction unknown**: inspect the source line to determine its role.
-- **Found by name - verify path**: a candidate exists, but its actual use is not proven.
-- **Ambiguous - multiple copies**: several candidates exist; inspect their paths.
-- **Comment only - not a requirement**: a commented reference, hidden by default.
-
-Check **Only files not found** to focus on absent candidates, or search an
-Availability label to narrow further. Availability is included in CSV exports.
-A match elsewhere in the repository does not prove that the expected input path
-exists. Files outside the repository, or in excluded directories, are not checked.
-Read/write uses of simple path variables are also considered when inferring direction.
-
-## Combine column filters
-
-Each visible column has a labeled filter box above the table. Leave a box blank
-to leave that column unfiltered. Enter part of a value to match it, ignoring case.
-All filled boxes must match the same row; they also combine with the general
-search and missing-file/comment checkboxes. For example, Project = `FIRO`,
-Direction = `Input`, and DataFile = `Elev` narrow the list together.
-
-**Reset filters** clears the general search and every column filter and restores
-the default checkboxes (all file statuses shown, commented references hidden).
-Refresh scan keeps your filters. Export shown CSV exports only matching rows.
-On smaller windows, scroll the filter area to reach additional fields.
+It does not change machine execution policy. Organization policy may still prevent
+launching. The Python helper must stay beside the PS1 when moving the tool.

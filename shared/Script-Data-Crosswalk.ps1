@@ -8,86 +8,23 @@ $Repository = (Resolve-Path -LiteralPath $Repository).Path
 
 function Get-Crosswalk {
     param([string]$Root)
-    # Exclude history, environments, third-party assets, and this tool itself.
-    $excluded = '[\\/](Archive|\.git|\.venv|venv|node_modules|__pycache__|temp)[\\/]'
-    $scripts = @(Get-ChildItem -LiteralPath $Root -Recurse -File |
-        Where-Object { $_.FullName -notmatch $excluded -and $_.Extension -in '.py','.ps1','.R','.r','.ipynb' -and $_.Name -ne 'Script-Data-Crosswalk.ps1' })
-    $files = @(Get-ChildItem -LiteralPath $Root -Recurse -File |
-        Where-Object { $_.FullName -notmatch $excluded -and $_.Extension -match '^\.(csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml)$' })
-    $byName = @{}
-    foreach ($file in $files) {
-        if (-not $byName.ContainsKey($file.Name)) { $byName[$file.Name] = @() }
-        $byName[$file.Name] += $file
-    }
-    foreach ($scriptFile in $scripts) {
-        $lines = @(Get-Content -LiteralPath $scriptFile.FullName)
-        $scriptText = $lines -join "`n"
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            $code = [string]$lines[$i]
-            # Quoted literal paths only. Dynamic names are explicitly outside this scan.
-            $matches = [regex]::Matches($code, '["'']([^"''\r\n]+\.(?:csv|xlsx?|dss|pkl|pickle|parquet|json|nc|h5|hdf5|feather|yaml|yml))["'']', 'IgnoreCase')
-            foreach ($match in $matches) {
-                $literal = $match.Groups[1].Value
-                $name = ($literal -split '[\\/]')[-1]
-                if ($name -match '[{}*?]') { continue }
-                $candidates = @()
-                if ($byName.ContainsKey($name)) { $candidates = @($byName[$name]) }
-                $flow = 'Unclassified'
-                if ($code -match '(?i)to_csv|to_excel|write_|dump\(|save\(|export-|OUTPUT|_OUT\b') { $flow = 'Output (inferred)' }
-                elseif ($code -match '(?i)read_|load\(|INPUT|SOURCE|SETTINGS') { $flow = 'Input (inferred)' }
-                elseif ($literal -match '(?i)(^|[\\/])outputs?([\\/]|$)') { $flow = 'Output (inferred)' }
-                elseif ($literal -match '(?i)(^|[\\/])(data|common_data|config)([\\/]|$)') { $flow = 'Input (inferred)' }
-                # Recover a multiline path assignment, then look for direct read/write use.
-                $context = ($lines[[Math]::Max(0, $i - 5)..$i] -join "`n")
-                $assignments = [regex]::Matches($context, '(?m)^\s*([A-Za-z_]\w*)\s*=')
-                if ($assignments.Count -gt 0) {
-                    $variable = [regex]::Escape($assignments[$assignments.Count - 1].Groups[1].Value)
-                    if ($scriptText -match ('(?i)(read_csv|read_excel|read_pickle|require_input)\(\s*' + $variable + '\b')) {
-                        $flow = 'Input (inferred)'
-                    } elseif ($scriptText -match ('(?i)(to_csv|to_excel|to_pickle)\(\s*' + $variable + '\b')) {
-                        $flow = 'Output (inferred)'
-                    }
-                }
-                $state = 'Code'
-                if ($code.TrimStart() -match '^#') { $state = 'Comment only' }
-                if ($candidates.Count -eq 0) { $candidates = @($null) }
-                foreach ($candidate in $candidates) {
-                    $relative = ''; $full = ''; $resolution = 'No existing filename match'
-                    if ($null -ne $candidate) {
-                        $full = $candidate.FullName
-                        $relative = $full.Substring($Root.Length).TrimStart('\','/')
-                        $resolution = 'Filename match; verify path'
-                        if ($candidates.Count -gt 1) { $resolution = 'Multiple copies; verify path' }
-                    }
-                    $availability = 'Not found - direction unknown'
-                    if ($null -ne $candidate) {
-                        $availability = 'Found by name - verify path'
-                        if ($candidates.Count -gt 1) { $availability = 'Ambiguous - multiple copies' }
-                    } elseif ($flow -eq 'Input (inferred)') {
-                        $availability = 'Input not found in scanned repo'
-                    } elseif ($flow -eq 'Output (inferred)') {
-                        $availability = 'Output not found - may not be generated'
-                    }
-                    if ($state -eq 'Comment only') { $availability = 'Comment only - not a requirement' }
-                    [pscustomobject]@{
-                        Project = ($scriptFile.FullName.Substring($Root.Length).TrimStart('\','/') -split '[\\/]')[0]
-                        Script = $scriptFile.FullName.Substring($Root.Length).TrimStart('\','/')
-                        Direction = $flow
-                        Availability = $availability
-                        DataFile = $name
-                        CandidatePath = $relative
-                        Resolution = $resolution
-                        Reference = $state
-                        Line = $i + 1
-                        Literal = $literal
-                        Evidence = $code.Trim()
-                        ScriptPath = $scriptFile.FullName
-                        FilePath = $full
-                    }
-                }
-            }
+    $helper = Join-Path $PSScriptRoot 'resolve_script_paths.py'
+    $python = $null; $prefix = @()
+    foreach ($command in 'py','python','python3') {
+        $found = Get-Command $command -ErrorAction SilentlyContinue
+        if ($found) {
+            $testArgs = @()
+            if ($command -eq 'py') { $testArgs = @('-3') }
+            & $found.Source @testArgs -c 'import sys; assert sys.version_info >= (3,9)' 2>$null
+            if ($LASTEXITCODE -eq 0) { $python = $found.Source; $prefix = $testArgs; break }
         }
     }
+    if (-not $python) { throw 'Python 3.9 or newer is required for safe Python path analysis. Install Python or activate your project environment, then reopen this tool.' }
+    $json = & $python @prefix $helper $Root
+    if ($LASTEXITCODE -ne 0) { throw 'Path analysis failed. See the Python error above.' }
+    $report = ($json -join "`n") | ConvertFrom-Json
+    $script:ScanWarnings = @($report.warnings)
+    $report.rows
 }
 
 function Test-ColumnFilters {
@@ -103,7 +40,10 @@ function Test-ColumnFilters {
 
 $script:Rows = @(Get-Crosswalk -Root $Repository)
 if ($ExportCsv) { $script:Rows | Export-Csv -LiteralPath $ExportCsv -NoTypeInformation -Encoding UTF8 }
-if ($ScanOnly) { $script:Rows; return }
+if ($ScanOnly) {
+    foreach ($warning in $script:ScanWarnings) { Write-Warning $warning }
+    $script:Rows; return
+}
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -119,8 +59,6 @@ $label = New-Object System.Windows.Forms.Label
 $label.Text = 'Search any column:'; $label.AutoSize = $true; $panel.Controls.Add($label)
 $search = New-Object System.Windows.Forms.TextBox
 $search.Width = 300; $panel.Controls.Add($search)
-$comments = New-Object System.Windows.Forms.CheckBox
-$comments.Text = 'Include commented references'; $comments.AutoSize = $true; $panel.Controls.Add($comments)
 $missing = New-Object System.Windows.Forms.CheckBox
 $missing.Text = 'Only files not found'; $missing.AutoSize = $true; $panel.Controls.Add($missing)
 $script:ColumnFilters = [ordered]@{}
@@ -130,7 +68,7 @@ $filterPanel.Width = 1380; $filterPanel.Height = 160; $filterPanel.AutoScroll = 
 $panel.SetFlowBreak($missing, $true)
 $panel.Controls.Add($filterPanel)
 $panel.SetFlowBreak($filterPanel, $true)
-foreach ($column in 'Project','Script','Direction','Availability','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence') {
+foreach ($column in 'Project','Script','Direction','Availability','DataFile','DataPath','Resolution','Reference','FileID','Line','Literal','Evidence') {
     $group = New-Object System.Windows.Forms.FlowLayoutPanel
     $group.FlowDirection = 'TopDown'; $group.WrapContents = $false
     $group.Width = 215; $group.Height = 46
@@ -155,13 +93,13 @@ $grid.AutoSizeColumnsMode = 'DisplayedCells'; $grid.RowHeadersVisible = $false
 $form.Controls.Add($grid); $grid.BringToFront()
 $status = New-Object System.Windows.Forms.Label
 $status.Dock = 'Bottom'; $status.Height = 45
-$status.Text = 'Blank column filters show all values; filled filters combine. Click a column heading to sort. Select rows to open files. References are static clues, not a proven execution graph; computed paths and dynamic filenames may be missed.'
+$status.Text = 'Blank column filters show all values; filled filters combine. Click a column heading to sort. Select rows to open files. Files are identified by their full path. Unresolved expressions have no file assigned. Runtime overrides may change static paths; use Scan notes for limitations.'
 $form.Controls.Add($status)
 
 function Update-View {
     if ($script:ResettingFilters) { return }
     $table = New-Object System.Data.DataTable
-    foreach ($column in 'Project','Script','Direction','Availability','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence','ScriptPath','FilePath') {
+    foreach ($column in 'Project','Script','Direction','Availability','DataFile','DataPath','Resolution','Reference','FileID','Line','Literal','Evidence','ScriptPath','FilePath') {
         if ($column -eq 'Line') { [void]$table.Columns.Add($column, [int]) }
         else { [void]$table.Columns.Add($column) }
     }
@@ -169,8 +107,7 @@ function Update-View {
     $filters = [ordered]@{}
     foreach ($column in $script:ColumnFilters.Keys) { $filters[$column] = $script:ColumnFilters[$column].Text }
     foreach ($row in $script:Rows) {
-        if (-not $comments.Checked -and $row.Reference -eq 'Comment only') { continue }
-        if ($missing.Checked -and $row.FilePath) { continue }
+        if ($missing.Checked -and $row.Availability -eq 'Present') { continue }
         if ($query -and (($row.PSObject.Properties.Value -join ' ').IndexOf($query, [System.StringComparison]::OrdinalIgnoreCase) -lt 0)) { continue }
         if (-not (Test-ColumnFilters -Row $row -Filters $filters)) { continue }
         $values = foreach ($column in $table.Columns) { [string]$row.($column.ColumnName) }
@@ -197,7 +134,6 @@ Add-Action 'Reset filters' {
         $search.Clear()
         foreach ($box in $script:ColumnFilters.Values) { $box.Clear() }
         $missing.Checked = $false
-        $comments.Checked = $false
     } finally { $script:ResettingFilters = $false }
     Update-View
 }
@@ -205,7 +141,12 @@ Add-Action 'Open data file(s)'  { Open-Selection 'FilePath' }
 Add-Action 'Open script(s)' { Open-Selection 'ScriptPath' }
 Add-Action 'Locate data' { Open-Selection 'FilePath' -Folder }
 Add-Action 'Locate script' { Open-Selection 'ScriptPath' -Folder }
-Add-Action 'Refresh scan' {
+Add-Action 'Scan notes' {
+    $notes = 'Python paths are read from syntax without executing project code. Relative paths with an unknown working directory remain unresolved. Runtime parameter overrides, dynamic filenames, and imported settings may not resolve.'
+    if ($script:ScanWarnings.Count) { $notes += "`r`n`r`n" + ($script:ScanWarnings -join "`r`n") }
+    [void][System.Windows.Forms.MessageBox]::Show($notes, 'Path analysis notes')
+}
+Add-Action 'Refresh scan'  {
     $form.UseWaitCursor = $true
     try { $script:Rows = @(Get-Crosswalk -Root $Repository); Update-View }
     finally { $form.UseWaitCursor = $false }
@@ -223,7 +164,7 @@ Add-Action 'Export shown CSV' {
     }
 }
 $missing.Add_CheckedChanged({ Update-View })
-$search.Add_TextChanged({ Update-View }); $comments.Add_CheckedChanged({ Update-View })
+$search.Add_TextChanged({ Update-View })
 $grid.Add_CellDoubleClick({ Open-Selection 'FilePath' })
 Update-View
 [void]$form.ShowDialog()
