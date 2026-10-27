@@ -37,3 +37,21 @@ For a scan without opening the window:
 The launcher uses Windows PowerShell in STA mode and unblocks only its own PS1.
 It does not change machine execution policy. A policy imposed by your organization
 may still prevent it from launching.
+
+## Missing inputs and outputs
+
+The **Availability** column distinguishes:
+
+- **Input not found in scanned repo**: an inferred input with no filename match.
+- **Output not found - may not be generated**: an inferred output with no filename match;
+  this alone is not an error.
+- **Not found - direction unknown**: inspect the source line to determine its role.
+- **Found by name - verify path**: a candidate exists, but its actual use is not proven.
+- **Ambiguous - multiple copies**: several candidates exist; inspect their paths.
+- **Comment only - not a requirement**: a commented reference, hidden by default.
+
+Check **Only files not found** to focus on absent candidates, or search an
+Availability label to narrow further. Availability is included in CSV exports.
+A match elsewhere in the repository does not prove that the expected input path
+exists. Files outside the repository, or in excluded directories, are not checked.
+Read/write uses of simple path variables are also considered when inferring direction.

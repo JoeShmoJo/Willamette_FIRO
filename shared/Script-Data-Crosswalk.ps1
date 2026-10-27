@@ -21,6 +21,7 @@ function Get-Crosswalk {
     }
     foreach ($scriptFile in $scripts) {
         $lines = @(Get-Content -LiteralPath $scriptFile.FullName)
+        $scriptText = $lines -join "`n"
         for ($i = 0; $i -lt $lines.Count; $i++) {
             $code = [string]$lines[$i]
             # Quoted literal paths only. Dynamic names are explicitly outside this scan.
@@ -36,7 +37,18 @@ function Get-Crosswalk {
                 elseif ($code -match '(?i)read_|load\(|INPUT|SOURCE|SETTINGS') { $flow = 'Input (inferred)' }
                 elseif ($literal -match '(?i)(^|[\\/])outputs?([\\/]|$)') { $flow = 'Output (inferred)' }
                 elseif ($literal -match '(?i)(^|[\\/])(data|common_data|config)([\\/]|$)') { $flow = 'Input (inferred)' }
-                $state = 'Code'
+                # Recover a multiline path assignment, then look for direct read/write use.
+                $context = ($lines[[Math]::Max(0, $i - 5)..$i] -join "`n")
+                $assignments = [regex]::Matches($context, '(?m)^\s*([A-Za-z_]\w*)\s*=')
+                if ($assignments.Count -gt 0) {
+                    $variable = [regex]::Escape($assignments[$assignments.Count - 1].Groups[1].Value)
+                    if ($scriptText -match ('(?i)(read_csv|read_excel|read_pickle|require_input)\(\s*' + $variable + '\b')) {
+                        $flow = 'Input (inferred)'
+                    } elseif ($scriptText -match ('(?i)(to_csv|to_excel|to_pickle)\(\s*' + $variable + '\b')) {
+                        $flow = 'Output (inferred)'
+                    }
+                }
+                $state = 'Code' 
                 if ($code.TrimStart() -match '^#') { $state = 'Comment only' }
                 if ($candidates.Count -eq 0) { $candidates = @($null) }
                 foreach ($candidate in $candidates) {
@@ -47,10 +59,21 @@ function Get-Crosswalk {
                         $resolution = 'Filename match; verify path'
                         if ($candidates.Count -gt 1) { $resolution = 'Multiple copies; verify path' }
                     }
+                    $availability = 'Not found - direction unknown'
+                    if ($null -ne $candidate) {
+                        $availability = 'Found by name - verify path'
+                        if ($candidates.Count -gt 1) { $availability = 'Ambiguous - multiple copies' }
+                    } elseif ($flow -eq 'Input (inferred)') {
+                        $availability = 'Input not found in scanned repo'
+                    } elseif ($flow -eq 'Output (inferred)') {
+                        $availability = 'Output not found - may not be generated'
+                    }
+                    if ($state -eq 'Comment only') { $availability = 'Comment only - not a requirement' }
                     [pscustomobject]@{
                         Project = ($scriptFile.FullName.Substring($Root.Length).TrimStart('\','/') -split '[\\/]')[0]
                         Script = $scriptFile.FullName.Substring($Root.Length).TrimStart('\','/')
                         Direction = $flow
+                        Availability = $availability
                         DataFile = $name
                         CandidatePath = $relative
                         Resolution = $resolution
@@ -87,6 +110,8 @@ $search = New-Object System.Windows.Forms.TextBox
 $search.Width = 300; $panel.Controls.Add($search)
 $comments = New-Object System.Windows.Forms.CheckBox
 $comments.Text = 'Include commented references'; $comments.AutoSize = $true; $panel.Controls.Add($comments)
+$missing = New-Object System.Windows.Forms.CheckBox
+$missing.Text = 'Only files not found'; $missing.AutoSize = $true; $panel.Controls.Add($missing)
 function Add-Action([string]$Text, [scriptblock]$Action) {
     $button = New-Object System.Windows.Forms.Button
     $button.Text = $Text; $button.AutoSize = $true; $button.Add_Click($Action)
@@ -104,13 +129,14 @@ $form.Controls.Add($status)
 
 function Update-View {
     $table = New-Object System.Data.DataTable
-    foreach ($column in 'Project','Script','Direction','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence','ScriptPath','FilePath') {
+    foreach ($column in 'Project','Script','Direction','Availability','DataFile','CandidatePath','Resolution','Reference','Line','Literal','Evidence','ScriptPath','FilePath') {
         if ($column -eq 'Line') { [void]$table.Columns.Add($column, [int]) }
         else { [void]$table.Columns.Add($column) }
     }
     $query = $search.Text.Trim()
     foreach ($row in $script:Rows) {
         if (-not $comments.Checked -and $row.Reference -eq 'Comment only') { continue }
+        if ($missing.Checked -and $row.FilePath) { continue }
         if ($query -and (($row.PSObject.Properties.Value -join ' ').IndexOf($query, [System.StringComparison]::OrdinalIgnoreCase) -lt 0)) { continue }
         $values = foreach ($column in $table.Columns) { [string]$row.($column.ColumnName) }
         [void]$table.Rows.Add([object[]]$values)
@@ -151,6 +177,7 @@ Add-Action 'Export shown CSV' {
         $visible | Export-Csv -LiteralPath $dialog.FileName -NoTypeInformation -Encoding UTF8
     }
 }
+$missing.Add_CheckedChanged({ Update-View })
 $search.Add_TextChanged({ Update-View }); $comments.Add_CheckedChanged({ Update-View })
 $grid.Add_CellDoubleClick({ Open-Selection 'FilePath' })
 Update-View
