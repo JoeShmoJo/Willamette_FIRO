@@ -1,68 +1,28 @@
-# MAX FIRO Space — current source wiring
+# MAX FIRO Space
 
-MAX calculates storage/evacuation capacities and statistical downstream limits.
-FIRO_COMPONENTS performs alternative allocation, redistribution and component
-geometry. The earlier overlapping code remains commented in Sam's scripts.
+This workflow uses two Python scripts to estimate available Forecast-Informed Reservoir Operations (FIRO) space at downstream control points and identify reservoir-level constraints. The analysis combines unregulated flow data, NOAA rating curves, selected flood events, reservoir storage-elevation relationships, evacuation assumptions, and reservoir-to-control-point routing alternatives.
 
-## Active input sources
+config: 
 
-| Information | Source now used |
-| --- | --- |
-| Elevation-storage ratings | shared/common_data/ElevStor.csv |
-| Minimum/maximum conservation elevations | shared/common_data/Reservoirs.xlsx, Reservoirs sheet, header row 6 |
-| Evacuation times and remaining project settings | MAX_FIRO_SPACE/data/project_data.csv (uploaded snapshot) |
-| Event-volume samples for statistical control-point limits | MAX_FIRO_SPACE/data/available_volume.pkl — still missing |
+	space_limits_config.xlsx : configuration workbook. Contains control point information, selected flood events, reservoir information, and reservoir-to-control-point routing alternatives
 
-Paths are resolved from space_limits.py, so the working directory does not
-matter. The shared CSV is adapted to the column names used by the original
-capacity functions; storage stays in acre-feet until the existing KAF conversion.
-The functions themselves have not been rewritten.
+data: contains required input datasets
 
-The old config.xlsx/control_points read and weighted-lag-file read are commented
-because their loaded results were unused by the remaining calculations. Their
-original lines and the weighted-lag helper remain available for review. A missing
-config.xlsx or lag CSV no longer blocks this capacity script solely for unused
-reads. Shared reservoir metadata supplies the conservation elevations; the local
-project snapshot still supplies DaysToEvac, defined as the time to evacuate 20%
-of conservation storage. No new evacuation-time calculation is implied.
+	ResvLagTimes_Median.csv — Lag times from each reservoir to downstream control points
+	storage_elevation.xlsx — Storage-elevation rating tables for each reservoir
+	OutputLocalUnreg.dss — HEC-DSS file containing unregulated flow data. This file is not included in the repository because of its size.
 
-## Source change versus saved results
+out: contains analysis outputs
 
-The uploaded files in data/ are historical snapshots. They have not been
-recomputed or overwritten by the source-path update. In particular:
+	BankfullValues.csv — Bankfull stages and calculated bankfull flows for each control point
+	EventVolume.pkl — Event-level available FIRO space and event-magnitude results by control point
+	ControlPointsSpace.csv — Estimated available FIRO space limit at each downstream control point for the selected probability of exceedance
+	ReservoirEvacLimits.csv — Estimated seven-day evacuation volume for each reservoir
+	ReservoirLimitingFactors.csv — Summary of limiting factors for each reservoir, including normal evacuation capability and downstream control-point space constraints
+	
 
-- Existing project/control-point limits and legacy summaries are not certified
-  as results of the selected shared rating source.
-- Cached ConStorageKAF and SevenDayEvacuationVolumeKAF columns are ignored on
-  input and recomputed in memory from selected ratings and supplied DaysToEvac.
-- The unused local storage_elevation.xlsx is the earlier rating source, not the
-  active one. Local DSS/pickle rule curves are not read by active capacity work.
-- This change does not yet reconnect FIRO to new MAX output tables. FIRO still
-  uses its supplied capacity parameters and existing shared control-point limits.
+src: contains the python scripts
 
-The source difference is measurable. Holding the supplied DaysToEvac fixed,
-Green Peter calculates to 249.900 KAF conservation storage and about 85.721 KAF
-seven-day evacuation volume, versus 258.774 and 88.765 KAF in the uploaded
-snapshot. Treat source selection as a real data change, not just a file rename.
+	find_events.py — Reads hourly unregulated flow data from an HEC-DSS file and retrieves NOAA rating tables for each configured control point. It converts configured bankfull stages to bankfull flows, identifies times when flows exceed bankfull, and calculates the available volume during the lead time preceding each selected event. Available FIRO space is calculated as the difference between channel volume at bankfull flow and actual flow volume during the lead-time window. The script produces bankfull-flow tables and an event-volume dataset containing available FIRO space and event-magnitude values for each control point.
 
-## Current execution status
-
-```sh
-python MAX_FIRO_SPACE/space_limits.py
-```
-
-The script stops with a named missing-input error until data/available_volume.pkl
-is supplied. It expects a dictionary keyed by control point, with each table
-containing available_volume_kaf samples. The upstream sampling process and its
-settings still need to be identified. No source data, snapshots or FIRO results
-are overwritten by the current script; the old export statements remain disabled.
-
-One unresolved calculation detail remains: the original 90% exceedance setting
-is selected by positional indexing of a table indexed 1–99, which currently
-selects its 91% row. That code was preserved in this source-only change and
-needs resolution before publishing newly calculated control-point limits.
-
-Next steps are to establish explicit output tables/provenance and reconnect the
-FIRO consumers, then remove redundant source/result copies from the wider tree.
-The src/data/outputs folder reorganization is also deferred here so Sam's script
-locations and original calculation structure remain recognizable.
+	size_space_components.py — Uses the event-volume dataset to fit a Pearson Type III distribution of available FIRO space at each control point. A user-defined probability-of-exceedance value is used to establish a downstream space limit. The script also calculates conservation storage from reservoir storage-elevation curves and estimates the volume that can be evacuated in seven days based on the configured time required to evacuate 20 percent of conservation storage. It then distributes downstream space among upstream reservoirs in proportion to conservation storage for each configured routing alternative. The final output identifies the factors that most constrain available space for each reservoir.
