@@ -128,10 +128,8 @@ dmypy.json
 # Generated results and caches for the separated analysis workflows
 /RULE_CURVE_WORKSHOP/outputs/*
 /DELAYED_DRAWDOWN_SCREENING/outputs/*
-/ROUTING_RAMP_EVACUATION/outputs/*
 !/RULE_CURVE_WORKSHOP/outputs/README.md
 !/DELAYED_DRAWDOWN_SCREENING/outputs/README.md
-!/ROUTING_RAMP_EVACUATION/outputs/README.md
 
 # Keep directory documentation when external datasets are ignored
 !/shared/temp_data/README.txt
