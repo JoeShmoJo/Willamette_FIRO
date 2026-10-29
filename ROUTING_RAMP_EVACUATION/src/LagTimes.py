@@ -48,6 +48,8 @@ from scipy.optimize import brentq
 from joblib import Parallel, delayed
 import HydrologicRouting
 
+from Output_Conventions import PROJECT_COLOR
+
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
@@ -531,7 +533,7 @@ def plotExampleRouting():
 
 def getRampPerHour(dfRamp, curRel, normMaxRel):
     '''
-    Returns the maximum ramp rate in cfs per hour
+    Returns the maximum ramp rate (can be cfs per hour or cfs per day depending on input)
 
     Parameters
     ----------
@@ -539,7 +541,8 @@ def getRampPerHour(dfRamp, curRel, normMaxRel):
         dataframe with ramp rates for one project, regime, and up/down.
     curRel : float
         The current release (cfs) to use when interpolating what the ramp rate can be for this hour.
-
+    normMaxRel: float
+        The normal evacuation rate for the project. Used when we are doing a % of flow
     '''
     if len(dfRamp) == 1:
         if dfRamp["Ramp_Pct"].isna().any():
@@ -558,48 +561,97 @@ def getRampPerHour(dfRamp, curRel, normMaxRel):
             raise AssertionError("Input flow outside the bounds of the table")
     return rampCFS
 
-def calcRampTimes(dfRampRates, dfResvMaxRel):
+def calcRampTimes(dfRampRates, dictLowRel, dictHighRel, dictCritFishFlows):
     """
-    Returns a dataframe with the time it takes for each reservoir to ramp up/down from min flow to max evacuation release
-
+    Returns a dataframe with the time it takes for each reservoir to ramp up/down 
+    from a given flow to another
+    dictLowRel is a dictionary with keys as reservoirs, and values are the low releases to start from
+    dictLowRel is a dictionary with keys as reservoirs, and values are the high releases to end at
+    dictLowRel is a dictionary with keys as reservoirs, and values as critical fish flows 
+        where we transition from BiOp to High flow ramp ratesare the high releases to end at
+    Also returns a dataframe with an hourly time-series of the releases to go up/down
     """
     
+    # List to store temporary DataFrames
+    dfs = []
     rows = []
     for resvName in dfRampRates["Project"].unique():
-        rowResv = dfResvMaxRel.loc[dfResvMaxRel["Reservoir"]==resvName].iloc[0].to_dict()
-        normMaxRel = rowResv["NormMaxRel"]
-        minRel = rowResv["MinRel"]
+        highRel = dictHighRel[resvName] #e.g. normal evac release
+        lowRel = dictLowRel[resvName] #e.g. minimum flow
+        normMaxRel = dfResvMaxRel.loc[dfResvMaxRel["Reservoir"]==resvName]["NormMaxRel"].iloc[0]
+        critFishFlow = dictCritFishFlows[resvName]
         
-        for regimeType in ["High Flow"]: #, "BiOp"]:
-            #Do the increasing ramp
-            dfRamp = dfRampRates.loc[(dfRampRates["Project"]==resvName) & 
-                                     (dfRampRates["Regime"]==regimeType) & 
-                                     (dfRampRates["UpOrDown"]=="Up")]
-            curRel = minRel
-            rampHours = 99
-            for i in range(99): #shouldn't go more than 99 hours
-                rampCFS = getRampPerHour(dfRamp, curRel, normMaxRel)
-                curRel = curRel + rampCFS
-                if curRel >= normMaxRel:
+        for rampType in ["Up", "Down"]:
+            prevRel = lowRel
+            nextRel = 999999 #will get clipped
+            if rampType == "Down": 
+                prevRel = highRel
+                nextRel = 0 #will get clipped
+            rampHours = 299
+            rels = [prevRel]
+            for i in range(299): #shouldn't go more than 99 hours  
+                regimeType = "High Flow"   
+                #Use BiOp if below critical fish flow and looking to ramp up
+                #Assume if we really need to ramp down for FRM, we will use high flow rates
+                if rels[i] < critFishFlow and rampType == "Up":
+                    regimeType = "BiOp"
+                hitLimit = False
+                #Test both hourly and daily rates
+                for rampTimestep in ["Hourly", "Daily"]:
+                    dfRamp = dfRampRates.loc[(dfRampRates["Project"]==resvName) & 
+                                             (dfRampRates["Regime"]==regimeType) & 
+                                             (dfRampRates["Timestep"]==rampTimestep) &
+                                             (dfRampRates["UpOrDown"]==rampType)]
+                    if len(dfRamp) == 0: continue #Some don't have daily ramp rates
+                    #Hourly limits use previous release
+                    #Daily limits use average flow from previous 24 hours
+                    if rampTimestep=="Hourly":
+                        prevRel = rels[i]
+                    else:
+                        if len(rels) >= 24:
+                            prevRel = np.array(rels[-24:]).mean()
+                        else:
+                            #Fill in the previous days with min flows
+                            tempRels = rels[-len(rels):]
+                            for jjj in range(24-len(rels)):
+                                tempRels.append(rels[0])
+                            prevRel = np.array(tempRels).mean()
+                    
+                    rampCFS = getRampPerHour(dfRamp, prevRel, normMaxRel)
+                    if rampTimestep =="Daily":
+                        #The rampCFS is daily, need to convert it to hourly.
+                        #The idea is to find the release at the end of the next 24 hours,
+                        #Such that if we straight-line from the current release to that future release,
+                        #We will exactly hit the ramp rate on a daily average basis.
+                        #Do a simple algebra with trapezoids to figure it out
+                        flow24FromNow = 2*(prevRel+rampCFS) - rels[i]
+                        #Get rampCFS in hourly
+                        rampCFS = (flow24FromNow - rels[i])/24
+                    
+                    if rampType == "Up":
+                        nextRel = min(nextRel, rels[i] + rampCFS) #Take the most constraining of daily or hourly
+                    else:
+                        nextRel = max(nextRel, rels[i] - rampCFS) #Take the most constraining of daily or hourly
+                rels.append(nextRel)
+                if rampType == "Up" and nextRel >= highRel:
+                    hitLimit = True
+                if rampType == "Down" and nextRel <= lowRel:
+                    hitLimit = True
+                if hitLimit:
                     rampHours = i+1
                     break
-            rows.append([resvName, regimeType, "Up", rampHours])
-            
-            #Do the decreasing ramp
-            dfRamp = dfRampRates.loc[(dfRampRates["Project"]==resvName) & 
-                                     (dfRampRates["Regime"]==regimeType) & 
-                                     (dfRampRates["UpOrDown"]=="Down")]
-            curRel = normMaxRel
-            rampHours = 99
-            for i in range(99): #shouldn't go more than 99 hours
-                rampCFS = getRampPerHour(dfRamp, curRel, normMaxRel)
-                curRel = curRel - rampCFS
-                if curRel <= minRel:
-                    rampHours = i+1
-                    break
-            rows.append([resvName, regimeType, "Down", rampHours])
-    dfRampTimes = pd.DataFrame(columns=["Reservoir","Regime","UpOrDown","RampHours"], data=rows)
-    return dfRampTimes
+                prevRel = nextRel
+                nextRel = 9999999 if rampType =="Up" else 0
+            rows.append([resvName, rampType, rampHours])
+            df_temp = pd.DataFrame({"Reservoir": resvName, 
+                                    "UpOrDown": rampType, 
+                                    "Hours": np.arange(len(rels)),
+                                    "Release": rels})
+            df_temp["Release"] = df_temp["Release"].clip(lower=lowRel, upper=highRel)
+            dfs.append(df_temp)
+    dfRampTimes = pd.DataFrame(columns=["Reservoir","UpOrDown","RampHours"], data=rows)
+    dfRampTS = pd.concat(dfs, ignore_index=True) #dataframe with time-series of ramps
+    return dfRampTimes, dfRampTS
 
 def getTypicalWinterUnreg(resvNames, dictLocalFlows, percentile = 0.75):
     """
@@ -614,11 +666,12 @@ def getTypicalWinterUnreg(resvNames, dictLocalFlows, percentile = 0.75):
                                           (dfUnreg.index.month <= 3)].quantile(percentile)
     return dictTypicalWinterInflow
 
-def getTimeToEvacuate(evacStorKAF, inflow, minRel, normMaxRel, rampHours):
+def getTimeToEvacuate(evacStorKAF, inflow, startRel, normMaxRel, hourlyUpRamp, hourlyDownRamp):
     """
     Calc time to evacuate a given FIRO space above rule curve, given parameters
-    Assumes a trapezoidal shape for releases, where they ramp up from min flow to max flow,
-    Then back down to min release at the end
+    Uses the correct ramping time series for increasing and decreasing ramps,
+    where they ramp from a starting release to normal max and then down to min release,
+    with some sustained time at normal max release to get rid of the desired volume
 
     Parameters
     ----------
@@ -626,12 +679,14 @@ def getTimeToEvacuate(evacStorKAF, inflow, minRel, normMaxRel, rampHours):
         amount of storage to evacuate.
     inflow : float
         Assumed constant inflow
-    minRel : float
-        Minimum release for the project.
+    startRel : float
+        Starting release for the project.
     normMaxRel : float
         Max evacuation release for the project.
-    rampHours : float
-        Total of ramp up and ramp down time from min and max releases.
+    hourlyUpRamp : list
+        list of hourly releases to ramp up from min flow to normal evac rate
+    hourlyDownRamp : list
+        list of hourly releases to ramp down from normal evac rate to min flow
 
     Returns
     -------
@@ -641,15 +696,51 @@ def getTimeToEvacuate(evacStorKAF, inflow, minRel, normMaxRel, rampHours):
     """
     
     cfsHoursToKAF = (60*60)/43560/1000
-    
-    #Do some algebra to figure out how long it takes, assuming a trapezoidal shape of release, flat inflows
     volCfsHours = evacStorKAF / cfsHoursToKAF
-    trapHeight = normMaxRel - minRel
-    evacTimeHrs = (volCfsHours + rampHours*trapHeight/2)/(minRel - inflow + trapHeight)
+    
+    #Adjust the ramp up to start from the proper spot
+    hourlyUpRamp = [x for x in hourlyUpRamp if x >= startRel]
+    
+    #Find the ramp times to go up and down (t0 = ramp up time, t1 = time at max rel, t2=ramp down time)
+    t0 = len(hourlyUpRamp)
+    t2 = len(hourlyDownRamp)
+    #Find the corresponding release volumes for the up and down legs
+    v0 = sum(hourlyUpRamp)
+    v2 = sum(hourlyDownRamp)
+    #Find the inflow volume for the up and down legs
+    #Kind of unfair to have the inflow be larger than the release at the very beginning,
+    #Since we can kind of dig a deeper hole that we need to climb out of
+    #And in real-time, I think it's safe to say that they wouldn't overshoot the FIRO space
+    #So for the up leg, limit inflows to be no greater than the release
+    v0In = sum(np.array(hourlyUpRamp).clip(max=inflow))
+    v2In = inflow*t2
+    #Get amount of time needed at the flat part of the release hydrograph at normal max evac
+    t1 = (volCfsHours - v0 - v2 + v0In + v2In)/(normMaxRel - inflow)
+    evacTimeHrs = t0+t1+t2
+    if t1 < 0:
+        #The volume to release is pretty small, such that we don't need to ramp all the way to normal evac rate
+        flowsRampUp = list(hourlyUpRamp)
+        flowsRampDown = list(hourlyDownRamp)
+        
+        for i in range(len(hourlyUpRamp)):
+            #Shorten the ramp up by one hour
+            flowsRampUp[:-1]
+            #Check to see if we need to shorten the ramp down by an hour
+            if flowsRampUp[-1] < flowsRampDown[0]:
+                flowsRampDown = flowsRampDown[1:]
+            t0 = len(hourlyUpRamp)
+            t2 = len(hourlyDownRamp)
+            v0 = sum(hourlyUpRamp)
+            v2 = sum(hourlyDownRamp)
+            v0In = sum(np.array(flowsRampUp).clip(max=inflow))
+            v2In = inflow*t2
+            if volCfsHours <= v0 + v2 - (v0In + v2In):
+                break
+        evacTimeHrs = t0 + t2
     
     return evacTimeHrs
 
-def getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.20):
+def getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.20, startAtCFF=False):
     """
     Returns dictionary showing how long it would take to evacuate a given amount
     of storage, expressed as a percent of total conservation storage.
@@ -662,48 +753,46 @@ def getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.20):
     for i, rowResv in dfResvMaxRel.iterrows():
         resvName = rowResv["Reservoir"]
         normMaxRel = rowResv["NormMaxRel"]
-        minRel = rowResv["MinRel"]
+        startRel = rowResv["MinRel"]
+        if startAtCFF:
+            startRel = dictCritFishFlows[resvName]
         conStorKAF = rowResv["ConStorKAF"]
         inflow = dictTypicalWinterInflow[resvName]
         rampUpHours = dfRampTimesSummary["Up"].loc[resvName]
         rampDownHours = dfRampTimesSummary["Down"].loc[resvName]
         rampHours = rampUpHours + rampDownHours
         evacStorKAF = conStorKAF*pctOfConStor
-        evacTimeHrs = getTimeToEvacuate(evacStorKAF, inflow, minRel, normMaxRel, rampHours)
+        hourlyUpRamp = dfRampTS.loc[(dfRampTS["Reservoir"]==resvName) & (dfRampTS["UpOrDown"]=="Up")]["Release"]
+        hourlyDownRamp = dfRampTS.loc[(dfRampTS["Reservoir"]==resvName) & (dfRampTS["UpOrDown"]=="Down")]["Release"]
+        evacTimeHrs = getTimeToEvacuate(evacStorKAF, inflow, startRel, normMaxRel, hourlyUpRamp, hourlyDownRamp)
         dictEvacTime[resvName] = evacTimeHrs/24 #convert to days
         if resvName == "Lookout Point": 
             #Do combined Hills Creek/Lookout Point also
             #Bump up the space to include both, but stick with LOP's max release
             conStorKAF = conStorKAF + dfResvMaxRel.loc[dfResvMaxRel["Reservoir"]=="Hills Creek"]["ConStorKAF"].iloc[0]
             evacStorKAF = conStorKAF*pctOfConStor
-            evacTimeHrs = getTimeToEvacuate(evacStorKAF, inflow, minRel, normMaxRel, rampHours)
+            evacTimeHrs = getTimeToEvacuate(evacStorKAF, inflow, startRel, normMaxRel, hourlyUpRamp, hourlyDownRamp)
             dictEvacTime["Lookout Point+Hills Creek"] = evacTimeHrs/24 #convert to days
     return dictEvacTime
 
-def plotEvacTimes(dictEvacTime, pctOfConStor=0.20):
+def plotEvacTimes(dfEvacTimeCSV):
     """
-    Simple plot showing evac times as a bunch of straight lines, one for each project
+    Simple plot showing evac times as a bunch of lines, one for each project
     """
     
-    dfPlot = pd.DataFrame()
-    dfPlot["Reservoir"] = dictEvacTime.keys()
-    dfPlot["Value"] = dictEvacTime.values()
-    dfPlot = dfPlot.sort_values("Value", ascending=False)
-    
-    resvNames = dfPlot["Reservoir"].to_list()
+    resvNames = dfEvacTimeCSV["Reservoir"].unique()
     fig, ax = plt.subplots(figsize = (9, 6.5))
+    #for resvName in ["Detroit"]:
     for resvName in resvNames:
         if resvName == "Foster": continue
-        if resvName == "Lookout Point+Hills Creek":
-            ax.plot([0,pctOfConStor],[0,dictEvacTime[resvName]], label=resvName, color="black")
-        else:
-            ax.plot([0,pctOfConStor],[0,dictEvacTime[resvName]], label=resvName)
+        dfPlot = dfEvacTimeCSV.loc[dfEvacTimeCSV["Reservoir"]==resvName]
+        ax.plot(dfPlot["PctConStorEvacuated"],dfPlot["EvacTimeDays"], label=resvName, color=PROJECT_COLOR[resvName])
         
     ax.set_ylabel("Time (days)")
     ax.set_xlabel("Percent of total conservation storage to evacuate")
     ax.xaxis.set_major_formatter(PercentFormatter(xmax=1, decimals=None))
-    ax.set_xlim([0,pctOfConStor])
-    ax.set_ylim([0,dfPlot["Value"].max()])
+    ax.set_xlim([0,0.2])
+    ax.set_ylim([0,dfPlot["EvacTimeDays"].max()])
     ax.legend()
  
 def plotEvacTimeByPercentile():
@@ -713,6 +802,7 @@ def plotEvacTimeByPercentile():
     Produces a simple graph
     """
     dfPlot = pd.DataFrame(columns=["WinterUnregPercentile","Evacuation_Time"])
+    resvNames = dfResvMaxRel["Reservoir"].to_list()
     for winterUnregPercentile in np.arange(0.10,0.91, 0.01):
         dictTypicalWinterInflow = getTypicalWinterUnreg(resvNames, dictLocalFlows, percentile=winterUnregPercentile)
         dictEvacTime = getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.10)
@@ -724,6 +814,90 @@ def plotEvacTimeByPercentile():
     ax.set_xlabel("Inflow percentile during winter")
     ax.xaxis.set_major_formatter(PercentFormatter(xmax=1))
     
+def plotDetroitRamp():
+    """
+    Simple plot showing Detroit ramping up from min release to max release and then back down
+
+    """
+    resvName = "Detroit"
+    hoursAtMax = int(dfEvacTimeCSV.loc[(dfEvacTimeCSV["Reservoir"]==resvName) &
+                                  (dfEvacTimeCSV["PctConStorEvacuated"]==0.10)].iloc[0]["EvacTimeDays"]*24)
+    rowResv = dfResvMaxRel.loc[dfResvMaxRel["Reservoir"]==resvName].iloc[0].to_dict()
+    normMaxRel = rowResv["NormMaxRel"]
+    minRel = rowResv["MinRel"]
+    inflow = dictTypicalWinterInflow[resvName]
+    hourlyUpRamp = dfRampTS.loc[(dfRampTS["Reservoir"]==resvName) & (dfRampTS["UpOrDown"]=="Up")]["Release"]
+    hourlyDownRamp = dfRampTS.loc[(dfRampTS["Reservoir"]==resvName) & (dfRampTS["UpOrDown"]=="Down")]["Release"]
+    
+    releases = np.concatenate([hourlyUpRamp,np.full(hoursAtMax,normMaxRel),hourlyDownRamp])
+    hoursPlot = np.arange(0, len(releases))
+    
+    fig, ax = plt.subplots()
+    ax.plot(hoursPlot, releases)
+    ax.axhline(inflow, ls='dashed', color="gray")
+    ax.fill_between(
+        hoursPlot, releases, inflow,
+        where=(releases > inflow),
+        interpolate=True,
+        color="tab:green",
+        alpha=0.3
+        )
+
+    ax.fill_between(
+        hoursPlot, releases, inflow,
+        where=(releases < inflow),
+        interpolate=True,
+        color="tab:red",
+        alpha=0.3
+        )
+    
+    ax.set_ylabel("Flow (cfs)")
+    ax.set_xlabel("Time (hours)")
+    ax.set_xlim([0, ax.get_xlim()[-1]])
+    ax.set_ylim([0, ax.get_ylim()[-1]])
+    ax.text(1, inflow, "Constant Inflow", ha='left', va='bottom')
+    ax.text(15, 1000, "Release", ha='left', va='bottom', rotation=20)
+    ax.text(80,7000, "Total Shaded area=10% \nof conservation storage", ha='center')
+    return fig, ax
+
+def smoothBeginning(dfEvacTimeCSV):
+    """
+    Applies a parabolic fit on the evac time plot for all reservoirs
+    so that it hits the 0,0 point and feathers in nicely to the straight part of the curve with a matching slope.
+
+    """
+    for resvName in dfEvacTimeCSV["Reservoir"].unique():
+        df = dfEvacTimeCSV.loc[(dfEvacTimeCSV["Reservoir"]==resvName)]
+        #Find kink point where it transitions to a straight line
+        slopes = df["EvacTimeDays"].diff().values
+        for idx in np.arange(len(slopes)-1,0,-1):
+            if round(slopes[idx],3) != round(slopes[-1],3):
+                break
+        x1 = df["PctConStorEvacuated"].iloc[idx]
+        #x1 = 0.02
+        dictObj = dict(zip(df["PctConStorEvacuated"], df["EvacTimeDays"]))
+        y1 = dictObj[x1]
+        m1 = (dictObj[x1+.01] - dictObj[x1])/.01         # target slope at x1
+        
+        # Generate transition x-points from 0% to x1
+        x_trans = np.linspace(0, x1, 10)
+        
+        # ==========================================
+        # Parabolic Transition (y = a*x^2 + b*x)
+        # ==========================================
+        b_para = 2 * y1 / x1 - m1
+        a_para = (m1 * x1 - y1) / (x1**2)
+        y_trans_para = a_para * x_trans**2 + b_para * x_trans
+        
+        #Drop the data points from the original and replace them with the smoothed one
+        dfEvacTimeCSV = dfEvacTimeCSV.loc[~((dfEvacTimeCSV["Reservoir"]==resvName) &
+                                          (dfEvacTimeCSV["PctConStorEvacuated"]<=x1))].copy()
+        dfNew = pd.DataFrame({"Reservoir":resvName,
+                              "EvacTimeDays":y_trans_para,
+                              "PctConStorEvacuated":x_trans})
+        dfEvacTimeCSV = pd.concat([dfEvacTimeCSV, dfNew], ignore_index=True)
+    dfEvacTimeCSV = dfEvacTimeCSV.sort_values(["Reservoir", "PctConStorEvacuated"])
+    return dfEvacTimeCSV
 
 #####  Main  ###################################################################
 # MAIN CODE
@@ -742,6 +916,7 @@ if __name__ == "main" or __name__ == "__main__":
     dfLocalFlowMapping = dfLocalFlowMapping.loc[dfLocalFlowMapping["JunctionName_HMS"] != "Nowhere"]
     dfResvMaxRel = pd.read_excel(CONFIG_FILE, sheet_name="ResvMaxRel", header = 5)
     dfRampRates = pd.read_excel(RAMP_RATE_FILE, sheet_name="RampRates", header = 5)
+    dfCritFishFlows = pd.read_excel(RAMP_RATE_FILE, sheet_name="CriticalFishFlows", header = 5)
     dfReaches = pd.read_excel(ROUTING_PARAM_FILE, sheet_name="Reaches", header = 5, true_values=["Yes"], false_values=["No"]) 
     dfMuskingum = pd.read_excel(ROUTING_PARAM_FILE, sheet_name="Muskingum", header = 5)
     dfModPuls = pd.read_excel(ROUTING_PARAM_FILE, sheet_name="ModPuls", header = 5)
@@ -789,20 +964,60 @@ if __name__ == "main" or __name__ == "__main__":
     plotExampleRouting()
 
     #Calculate the time it takes to ramp up/down from min release to max release
-    dfRampTimes = calcRampTimes(dfRampRates, dfResvMaxRel)
+    dictMaxRel = dict(zip(dfResvMaxRel["Reservoir"], dfResvMaxRel["NormMaxRel"]))
+    dictMinRel = dict(zip(dfResvMaxRel["Reservoir"], dfResvMaxRel["MinRel"]))
+    dictCritFishFlows = dict(zip(dfCritFishFlows["Project"], dfCritFishFlows["Critical Fish Flow"]))
+    dfRampTimes, dfRampTS = calcRampTimes(dfRampRates, dictMinRel, dictMaxRel, dictCritFishFlows)
     dfRampTimesSummary = dfRampTimes.pivot(index="Reservoir",columns="UpOrDown",values="RampHours")
+    
+    #Repeat, but the time it takes to ramp up from min release to critical fish flows
+    dfRampTimesToCFF, junk = calcRampTimes(dfRampRates, dictMinRel, dictCritFishFlows, dictCritFishFlows)
+    dfToCFF = dfRampTimesToCFF.pivot(index="Reservoir",columns="UpOrDown",values="RampHours")
+    #Repeat, but the time it takes to ramp up from critical fish flows to max release
+    dfRampTimesToMax, junk = calcRampTimes(dfRampRates, dictCritFishFlows, dictMaxRel, dictCritFishFlows)
+    dfToMax = dfRampTimesToMax.pivot(index="Reservoir",columns="UpOrDown",values="RampHours")
+    
+    dfRampTimesCSV = dfRampTimesSummary
+    dfRampTimesCSV["Up_MinFlow_to_CFF"] = dfToCFF["Up"]
+    dfRampTimesCSV["Up_CFF_to_MaxFlow"] = dfToMax["Up"]
+    dfRampTimesCSV.to_csv(OUTPUT_DIRECTORY / "RampTimes.csv",index=True)
     
     #Calculate the time it takes a reservoir to evacuate FIRO space
     resvNames = dfResvMaxRel["Reservoir"].to_list()
     dictTypicalWinterInflow = getTypicalWinterUnreg(resvNames, dictLocalFlows, percentile=0.75)
-    dictEvacTime = getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=0.20)
-    dfEvacTimeCSV = pd.DataFrame(list(dictEvacTime.items()), columns=['Reservoir', 'EvacTimeDays'])
-    dfEvacTimeCSV["PctConStorEvacuated"] = 0.20
+    dfs = []
+    for pctOfConStor in np.arange(0, 0.201, 0.01):
+        dictEvacTime = getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=pctOfConStor)
+        dfEvacTimeCSV = pd.DataFrame(list(dictEvacTime.items()), columns=['Reservoir', 'EvacTimeDays'])
+        dfEvacTimeCSV["PctConStorEvacuated"] = pctOfConStor
+        dfs.append(dfEvacTimeCSV)
+    dfEvacTimeCSV = pd.concat(dfs, ignore_index=True)
+    #Correct the beginning of the plot so it smoothly intersects the origin
+    dfEvacTimeCSV = smoothBeginning(dfEvacTimeCSV)
+    
     dfEvacTimeCSV.to_csv(OUTPUT_DIRECTORY / "ResvEvacTimes_75thPctInflow.csv",index=False)
     
     #Plot up the evacuation times for all reservoirs
-    plotEvacTimes(dictEvacTime, pctOfConStor=0.20)
+    plotEvacTimes(dfEvacTimeCSV)
     
     #Calc evac times for various winter flow percentiles
     plotEvacTimeByPercentile()
+    
+    #Show an example ramping plot ast Detroit
+    fig, ax = plotDetroitRamp()
+    plt.savefig(OUTPUT_DIRECTORY / "Detroit_Ramp_Example.png")
+    
+    
+    #Repeat the evac time plot, but start from critical fish flow instead of min flow
+    #Poor practice to copy/paste here, but oh well
+    dfs = []
+    for pctOfConStor in np.arange(0, 0.201, 0.01):
+        dictEvacTime1 = getEvacTimeDict(dictTypicalWinterInflow, pctOfConStor=pctOfConStor, startAtCFF=True)
+        dfEvacTimeCSV1 = pd.DataFrame(list(dictEvacTime1.items()), columns=['Reservoir', 'EvacTimeDays'])
+        dfEvacTimeCSV1["PctConStorEvacuated"] = pctOfConStor
+        dfs.append(dfEvacTimeCSV1)
+    dfEvacTimeCSV1 = pd.concat(dfs, ignore_index=True)
+    #Correct the beginning of the plot so it smoothly intersects the origin
+    dfEvacTimeCSV1 = smoothBeginning(dfEvacTimeCSV1)
+    plotEvacTimes(dfEvacTimeCSV1)
     
