@@ -1,0 +1,6 @@
+OutputLocalUnreg.dss source:
+
+This file was taken directly from the Willamette flow-frequency ResSim watershed here:
+
+\\nwd\nwp-etds\Misc_Resources\Flood_Plain\Gen Hyd Studies\2021_WillametteBasinFlowFreq\Tasks\Task_1.3-1.15_2023-01-11.7z\1.10_Locals_Unregs_Partial\out\OutputLocalUnreg.dss
+

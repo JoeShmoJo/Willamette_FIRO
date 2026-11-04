@@ -18,11 +18,11 @@ import matplotlib.dates as mdates
 ### config
 CONFIG = r'../config/space_limits_config.xlsx'
 
-FLOW_DATA = r"../data/OutputLocalUnreg.dss"
+FLOW_DATA = r"../../shared/datasets_sharepoint/OutputLocalUnreg.dss"
 FLOW_PICKLE = r'../data/localUnreg.pkl'
 
-BANKFULL_CSV = r'../out/BankfullValues.csv'
-DSS_OUT = r"../out/spaceComponents.dss"
+BANKFULL_CSV = r'../../shared/common_data/BankfullValues.csv'
+# DSS_OUT = r"../out/spaceComponents.dss"
 EVENT_VOLUME_PICKLE = r"../out/EventVolume.pkl"
 REDOWNLOAD_DATA = False
 ######### Funtions 
@@ -300,7 +300,7 @@ if __name__ == "main" or __name__ == "__main__":
     # write out the data for ssp purposes
     # write_to_dss(DSS_OUT, event_volumes)
     # write out to pickle 
-    with open(EVENT_VOLUME_PICKLE, "wb") as file:
-        pickle.dump(event_volumes, file)
+    # with open(EVENT_VOLUME_PICKLE, "wb") as file:
+    #     pickle.dump(event_volumes, file)
     
 
