@@ -9,15 +9,18 @@ import pandas as pd
 import numpy as np
 import pickle
 from scipy.stats import skew, pearson3
-
+from scipy.interpolate import interp1d
 
 ### config
 CONFIG = r'../config/space_limits_config.xlsx'
-STOR_ELEV = r"../data/storage_elevation.xlsx"
-DATA_DICT = r"../out/available_volume.pkl"
-LAG_TIMES = r"../data/ResvLagTimes_Median.csv"
-PERCENT_CHANCE_EXCEEDED = 90
 
+STOR_ELEV = r"../../shared/common_data/ElevStor.csv"
+EVACUATION_RATES = r"../../ROUTING_RAMP_EVACUATION/outputs/ResvEvacTimes_75thPctInflow.csv"
+LAG_TIMES = r"../../ROUTING_RAMP_EVACUATION/outputs/ResvLagTimes_Median.csv" 
+DATA_DICT = r"../out/available_volume.pkl"
+
+PERCENT_CHANCE_EXCEEDED = 90
+# outputs
 CONTROL_POINT_SPACE =r'../out/ControlPointsSpace.csv'
 RESERVOIR_EVAC_LIMITS = r'../out/ReservoirEvacLimits.csv'
 LIMITING_FACTORS = r'../out/ReservoirLimitingFactors.csv'
@@ -59,13 +62,13 @@ def find_conservation_storage(project_data, stor_elev):
         max_con = row.MaxCon
         min_con = row.MinCon
         # Filter and sort rating curve for this project
-        stor_elev_project = stor_elev[stor_elev['Project'] == project].sort_values('Elevation (ft)')
+        stor_elev_project = stor_elev[stor_elev['Reservoir'] == project].sort_values('Elev')
         if stor_elev_project.empty:
             print(f'No rating curve found for {project}')
             conservation_storage[project] = np.nan
             continue
-        elevations = stor_elev_project['Elevation (ft)'].to_numpy()
-        storages = stor_elev_project['Storage (ac-ft)'].to_numpy()
+        elevations = stor_elev_project['Elev'].to_numpy()
+        storages = stor_elev_project['Stor'].to_numpy()
 
         # Interpolate storage at conservation elevations
         max_storage = np.interp(max_con, elevations, storages)
@@ -84,36 +87,30 @@ def find_conservation_storage(project_data, stor_elev):
     project_data['ConStorageKAF'] = project_data['Reservoir'].map(conservation_storage)
     return project_data
 
-def calculate_7_day_evacuation_volume(project_data):
+def calculate_7_day_evacuation_volume(project_data, evac_rates_raw_data):
     '''
-    Calculate the seven-day evacuation volume for each project based on its
-    conservation storage and specified evacuation period.
 
-    Parameters
-    ----------
-    project_data : pandas.DataFrame
-        DataFrame containing project-level storage and evacuation information.
-        Must include the following columns:
-        - 'ConStorageKAF': Project conservation storage (KAF)
-        - 'DaysToEvac20Percent': Number of days to evacuate 20% of conservation 
-        storage
-
-    Returns
-    -------
-    pandas.DataFrame
-        A copy of `project_data` with an additional column:
-        - 'SevenDayEvacuationVolumeKAF': Estimated volume that can be
-          evacuated over seven days (KAF)
     '''
     project_data = project_data.copy()
     seven_day_evacuation_volumes = []
+
+    evac_rates_raw_data = evac_rates_raw_data.copy()
+
     for row in project_data.itertuples():
+        reservoir = row.Reservoir
         conservation_storage_kaf = row.ConStorageKAF
-        target_evacuation_volume_kaf = conservation_storage_kaf * 0.20
-        days_to_evacuate = row.DaysToEvac20Percent
-        daily_evacuation_rate_kaf = (target_evacuation_volume_kaf / days_to_evacuate)
-        seven_day_evacuation_volume_kaf = (7 * daily_evacuation_rate_kaf)
+        # filter df to specific project
+        evac_rate = evac_rates_raw_data.loc[evac_rates_raw_data["Reservoir"] == reservoir].copy()
+        if evac_rate.empty:
+            seven_day_evacuation_volumes.append(np.nan)
+            continue
+        
+        evac_rate["StorageEvac"] = (evac_rate["PctConStorEvacuated"] * conservation_storage_kaf)
+        evac_rate = evac_rate.sort_values("EvacTimeDays")
+        interpolator = interp1d(evac_rate["EvacTimeDays"], evac_rate["StorageEvac"], kind="linear", bounds_error=False, fill_value="extrapolate")
+        seven_day_evacuation_volume_kaf = float(interpolator(7))
         seven_day_evacuation_volumes.append(seven_day_evacuation_volume_kaf)
+      
     project_data["SevenDayEvacuationVolumeKAF"] = (seven_day_evacuation_volumes)
     return project_data
 
@@ -172,9 +169,11 @@ def distribute_downstream_space(project_data, alternatives, control_point_space)
         results[col] = alternative
     return results
 
-def caclulate_lag_times(lag_times):
-    lag_times = lag_times.copy()
-    lag_times = lag_times.set_index("Reservoir")
+def caclulate_lag_times(lag_times, project_data):
+    lag_times = lag_times.copy().set_index("Reservoir")
+    project_data = project_data.copy().set_index("Reservoir")
+    # add conservation storage
+    lag_times = lag_times.join(project_data[["ConStorageKAF"]], how="left")
     results = []
     for col in lag_times.columns:
         if col == "ConStorageKAF":
@@ -194,7 +193,6 @@ def space_limits_at_control_points(fitted_data, project_data, CONTROL_POINT_SPAC
         rows.append((key, space_limit))
     control_points_space_limits = pd.DataFrame(rows, columns=["ControlPoint", "SpaceLimit"])
     return control_points_space_limits.set_index('ControlPoint')
- 
 
 def summary_of_alternatives(alternative_dict, project_data):
     """
@@ -285,12 +283,9 @@ if __name__ == "main" or __name__ == "__main__":
         data_dict = pickle.load(file)
     
     # Bring in data
-    stor_elev = pd.read_excel(STOR_ELEV)
-    # cp_data = pd.read_excel(CONFIG, sheet_name="control_points", skiprows=5)
+    stor_elev = pd.read_csv(STOR_ELEV)
     alternatives = pd.read_excel(CONFIG, sheet_name="alternatives", skiprows=5).set_index('Project')
-    # Find lag times
-    lag_times = pd.read_csv(LAG_TIMES)
-    lag_times_df = caclulate_lag_times(lag_times)
+    evac_rates_raw_data = pd.read_csv(EVACUATION_RATES)
 
     # fit the data to a Person III distribution 
     fitted_data = fit_distribution(data_dict)
@@ -298,10 +293,14 @@ if __name__ == "main" or __name__ == "__main__":
     # Find conservation storage and the volume that can be evacualted in seven days
     project_data = pd.read_excel(CONFIG, sheet_name="reservoirs", skiprows=5)
     project_data = find_conservation_storage(project_data, stor_elev)
-    project_data = calculate_7_day_evacuation_volume(project_data)
+    project_data = calculate_7_day_evacuation_volume(project_data, evac_rates_raw_data)
+    
+    # Find lag times
+    lag_times = pd.read_csv(LAG_TIMES)
+    lag_times_df = caclulate_lag_times(lag_times, project_data)
     
     # output evac rates: 
-    evac_rates = project_data[['Reservoir','DaysToEvac20Percent','SevenDayEvacuationVolumeKAF']]
+    evac_rates = project_data[['Reservoir','SevenDayEvacuationVolumeKAF']]
     evac_rates.to_csv(RESERVOIR_EVAC_LIMITS, index=False)
     
     # Find available space at each control point 
