@@ -3,6 +3,8 @@ Contains code to estimate routing times between points in the Willamette
 As well as the time it takes reservoirs to ramp up/down releases
 For FIRO. 
 
+Not the cleanest script, but it works
+
 Ryan Cahill
 July 2026
 
@@ -999,9 +1001,11 @@ if __name__ == "main" or __name__ == "__main__":
     
     #Plot up the evacuation times for all reservoirs
     plotEvacTimes(dfEvacTimeCSV)
+    plt.savefig(OUTPUT_DIRECTORY / "EvacTimesAllResvsFromMinFlow.png")
     
     #Calc evac times for various winter flow percentiles
     plotEvacTimeByPercentile()
+    plt.savefig(OUTPUT_DIRECTORY / "EvacTimesLOP+HCR_byInflow.png")
     
     #Show an example ramping plot ast Detroit
     fig, ax = plotDetroitRamp()
@@ -1020,4 +1024,5 @@ if __name__ == "main" or __name__ == "__main__":
     #Correct the beginning of the plot so it smoothly intersects the origin
     dfEvacTimeCSV1 = smoothBeginning(dfEvacTimeCSV1)
     plotEvacTimes(dfEvacTimeCSV1)
+    plt.savefig(OUTPUT_DIRECTORY / "EvacTimesAllResvsFromCFF.png")
     
