@@ -26,14 +26,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator, FixedLocator, LinearLocator, FormatStrFormatter, PercentFormatter, FuncFormatter, NullFormatter
 import datetime
+from datetime import timedelta
 
 from Utils_Plots import xAxisSeasonal
 from ProbabilityDistributions import LP3Dist, ppfLP3, cdfLP3
 from Utils_Datetime import getDate2001, getWillYr
 
-
-startDT = datetime.datetime(2000,8,1)
-endDT = datetime.datetime(2001,7,31)
+#default
+START_DT = datetime.datetime(2000,8,1)
+END_DT = datetime.datetime(2001,7,31)
 
 RULECURVE_CSV_FILE = SHARED_DATA / "common_data/Willamette_Rule_Curves.csv"
 DRAWDOWNCURVE_CSV_FILE = SHARED_DATA / "common_data/Drawdown_Target_Curves.csv"
@@ -105,7 +106,7 @@ def addSecondaryYLabelsElev(ax, resvName):
     ax2.set_yticklabels(yRightLabels)
     ax2.set_ylabel("Elevation (ft, project datum)")
 
-def cartoonWCD(resvName):
+def cartoonWCD(resvName, startDT=START_DT, endDT=END_DT):
     '''
     Creates a cartoon-ish version of the water control diagram
     with the pools shaded different colors
@@ -113,16 +114,17 @@ def cartoonWCD(resvName):
     fig, ax = plt.subplots(figsize=[8, 4.5])
     ax.plot(dfRCStor[resvName], color='black')
     ax = xAxisSeasonal(ax)
-    ax.set_xlim([dfRCStor.index[0], dfRCStor.index[-1]])
+    ax.set_xlim([startDT, endDT])
     ax.set_ylabel("Storage (kaf)")
     fig.suptitle(resvName)
     #Add a bunch of markers
+    dateOnRight = endDT - timedelta(days=2)
     
     if resvName != "Foster":
         spillCrestElev = resv_info_dict[resvName]["SpillwayCrest"]
         spillCrestStor = elevToStor(spillCrestElev, resvName)
         ax.axhline(spillCrestStor, ls="dashed", color="gray", alpha=0.3, zorder=2)
-        ax.text(dfRCStor.index[-2], elevToStor(spillCrestElev-0.5, resvName), "Spillway Crest", ha="right",va="top")
+        ax.text(dateOnRight, elevToStor(spillCrestElev-0.5, resvName), "Spillway Crest", ha="right",va="top")
     
     #Shade the various pools
     
@@ -156,7 +158,7 @@ def cartoonWCD(resvName):
             zorder=1                     # Places the fill behind the boundary lines
         )
         seriesRCClipped = seriesRCClipped.clip(upper=irrmStor)
-        ax.text(dfRCStor.index[-2], (dfRCStor[resvName].max()+irrmStor)/2, "Seismic IRRM Pool", ha="right",va="center")
+        ax.text(datetime.datetime(2001,7,31), (dfRCStor[resvName].max()+irrmStor)/2, "Seismic IRRM Pool", ha="right",va="center")
     
     #Conservation Pool
     lowStor = 0
@@ -253,12 +255,13 @@ dfElevStor = pd.read_csv(ELEV_STOR_CSV)
 dfReservoirs = pd.read_excel(RESERVOIR_ELEV_XLSX, sheet_name="Reservoirs", header = 5)
 resv_info_dict = dfReservoirs.set_index('ReservoirName').to_dict(orient='index') #can call resv_info_dict["Detroit"]["SpillwayCrest"]
 
-dfOneYear = dfRuleCurves.loc[(dfRuleCurves.index >= startDT) & 
-                             (dfRuleCurves.index <= endDT)]
+#Get the data plus or minus a year from the default year in case we want to change the start/end date of the plot later
+dfShort = dfRuleCurves.loc[(dfRuleCurves.index >= START_DT - timedelta(days=365)) & 
+                             (dfRuleCurves.index <= END_DT + timedelta(days=365))]
 #Convert elevation to storage in kaf above min con
-dfRCStor = dfOneYear.copy()
-for resvName in dfOneYear.columns:
-    dfRCStor[resvName] = elevToStor(dfOneYear[resvName], resvName)
+dfRCStor = dfShort.copy()
+for resvName in dfShort.columns:
+    dfRCStor[resvName] = elevToStor(dfShort[resvName], resvName)
 
 if __name__ == "main" or __name__ == "__main__":
-    cartoonWCD("Detroit")
+    cartoonWCD("Detroit", endDT=datetime.datetime(2001,10,31))
