@@ -1,0 +1,14 @@
+#If any changes to the default are desired, you can put the values here
+
+#Unlimited fall firo at FRN/FAL to test delayed drawdown benefits
+
+#FIRO_SPACE rule curve
+#Generic-year daily elevation curve read by scripts/externalRules/FIRO_SPACE.py
+firoActive: true
+firoSpaceConfigCSV: "scripts/externalRules/FIRO_SPACEConfigUnlimitedFallFIROFALFRN.csv"
+
+
+#Turn off extra withdrawal demands (just operate to BiOp mins)
+withdrawalConfigCSV: "scripts/externalRules/WithdrawalConfigNone.csv"
+
+

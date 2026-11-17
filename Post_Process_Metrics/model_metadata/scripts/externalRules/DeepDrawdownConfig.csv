@@ -1,0 +1,11 @@
+#First 5 lines are comments,,,,,,,,,,,
+#This config is for a script that sets a drawdown period and max duration. ,,,,,,,,,,,
+#Updated Oct 2026 to align with CWMS drawdown pathnames from ResReg supplied by Sammy Cataldi,,,,,,,,,,,
+#Blank,,,,,,,,,,,
+#BlankResSim reservoir name,Start trying to drawdown on this month,and this day,The date we hope to achieve the drawdown target,,Stop trying to drawdown no matter what in this month,and this day,"Once drawdown is successful for this many total days, stop trying to drawdown.",Drawdown target elevation,,The max release when doing drawdowns (cfs),
+RESERVOIR,START_MONTH,START_DAY,TARGET_MONTH,TARGET_DAY,END_MONTH,END_DAY,DURATION_DAYS,TARGET_ELEV,ACTIVE,MAX_REL,NOTES
+Green Peter,10,1,12,1,12,31,15,780,TRUE,4000,Confirmed with Sammy Cataldi on 10-30-2026. SOR #1197
+Detroit,10,1,12,1,12,31,15,1395,TRUE,6000,Confirmed with Sammy Cataldi on 10-30-2026. To accommodate the screw trap downstream
+Lookout Point,10,1,12,1,12,31,15,750,TRUE,4500,Confirmed with Sammy Cataldi on 10-30-2026. SOR #1196
+Fall Creek,11,1,11,10,12,31,10,690,TRUE,2900,Confirmed with Sammy Cataldi on 10-30-2026. One RO at max opening (roughly).
+Cougar,10,1,11,1,12,31,45,1505,TRUE,950,Confirmed with Sammy Cataldi on 10-30-2026. 800 cfs out of RO to mitigate TDG + powerhouse

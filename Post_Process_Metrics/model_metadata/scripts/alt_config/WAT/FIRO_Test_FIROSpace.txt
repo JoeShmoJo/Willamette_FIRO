@@ -1,0 +1,9 @@
+#If any changes to the default are desired, you can put the values here
+
+#FIRO_SPACE rule curve
+#Generic-year daily elevation curve read by scripts/externalRules/FIRO_SPACE.py
+firoActive: true
+firoSpaceConfigCSV: "scripts/externalRules/FIRO_SPACEConfig.csv"
+
+
+

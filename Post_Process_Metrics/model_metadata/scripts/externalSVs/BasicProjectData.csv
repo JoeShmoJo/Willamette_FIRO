@@ -1,0 +1,17 @@
+﻿#Basic reservoir data,,,,,,,,,,,
+#Sourced from WillametteReservoirStatistics excel file maintained by ResReg,,,,,,,,,,,
+#Intended to be the only place these parameters are defined (other scripts should call the state variable that reads these in),,,,,,,,,,,
+#Reregs not included,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+Variable,Hills Creek,Lookout Point,Fall Creek,Cottage Grove,Dorena,Fern Ridge,Cougar,Blue River,Green Peter,Foster,Detroit
+MinElev,1408.75,724,670,719,739,340,1290,1132,745,596.8,1335
+FullPoolElev,1543,929,834,791,835,375.1,1699,1357,1015,641,1569
+MinConElev,1448,825,728,750,770.5,353,1532,1180,922,613,1450
+MaxConElev,1541,926,830,790,832,373.5,1690,1350,1010,637,1563.5
+MinPowerPoolElev,1414,819,,,,,1516,,887,609,1425
+InactivePoolElev,,,673,719,739,347,1505,,,596.8,
+SpillwayCrestElev,1495.5,887.5,791.6,791,835,358.5,1656.75,1321,968.7,596.8,1541
+NormalEvacRate,6000,12000,3800,2500,4000,3000,3000,5000,10000,15000,10000
+MaxEvacRate,8000,15000,4500,3000,5000,3700,4000,6500,13000,18000,17000
+MinFlowFlood,400,1200,50,50,100,50,300,50,50,50,1000

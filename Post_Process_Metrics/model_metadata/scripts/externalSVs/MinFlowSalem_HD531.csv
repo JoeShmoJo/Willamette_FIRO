@@ -1,0 +1,7 @@
+﻿#Min flow target at Salem (cfs) to be read in by ResSim scripted rule,,,
+#From House Doc 531,,,
+#Identical to ResSim DS control rule conventions with the minimum flow at 01Apr applying starting 01Apr,,,
+#Sometimes when opening in CSV the dates will get all messed up. The columns should be formatted as text like 01Jun,,,
+WY_type,01Jan,01Jun,01Dec
+0,0,6500,0
+2,0,6500,0

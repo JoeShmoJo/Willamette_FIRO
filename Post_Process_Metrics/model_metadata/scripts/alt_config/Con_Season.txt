@@ -1,0 +1,4 @@
+#If any changes to the default are desired, you can put the values here
+# Standalone default: legacy one-step Salem/Albany augmentation.
+# Two-step augmentation must be selected explicitly in an override package.
+mainstemFlowAugMethod: AllocationBasedOnConservationStorage

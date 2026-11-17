@@ -1,0 +1,11 @@
+#If any changes to the default are desired, you can put the values here
+#All operations, daily timestep
+
+#Mainstem flow augmentation
+#Just do the one-step method to keep it simple
+mainstemFlowAugMethod: AllocationBasedOnConservationStorage
+#Config file with reservoirs to perform flow-aug, reservoir-specific limits
+mainstemFlowAugReservoirConfigCSV: "scripts/externalSVs/MinFlowSalemAlbanyConfig.csv"
+#Min flow targets:
+minFlowTargetCSV_Salem: "scripts/externalSVs/MinFlowSalem_HD531.csv"
+minFlowTargetCSV_Albany: "scripts/externalSVs/MinFlowAlbany_HD531.csv"

@@ -1,0 +1,18 @@
+#If any changes to the default are desired, you can put the values here
+#This is the FRM-only alternative, no BiOp or dam safety IRRMs
+
+#Mainstem flow augmentation just from house doc 531 in this formulation
+#Just do the one-step method
+#mainstemFlowAugMethod: NoFlowAug
+mainstemFlowAugMethod: AllocationBasedOnConservationStorage
+minFlowTargetCSV_Salem: "scripts/externalSVs/MinFlowSalem_HD531.csv"
+minFlowTargetCSV_Albany: "scripts/externalSVs/MinFlowAlbany_HD531.csv"
+
+#No dam safety IRRM for FRM-only
+irrmActive: {"Detroit":false, "Hills Creek":false, "Lookout Point":false, "Cougar":false}
+
+#No deep drawdowns or spring spill for FRM-only
+
+DeepDrawdownConfigCSV: "scripts/externalRules/DeepDrawdownConfigNone.csv"
+
+SpringSpillConfigCSV: "scripts/externalRules/SpringSpillConfigNone.csv"

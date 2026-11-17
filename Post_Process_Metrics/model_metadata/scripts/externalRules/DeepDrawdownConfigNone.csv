@@ -1,0 +1,11 @@
+#First 5 lines are comments,,,,,,,,,,,
+#This config is for a script that sets a drawdown period and max duration. ,,,,,,,,,,,
+#This version turns off deep drawdowns at all reservoirs,,,,,,,,,,,
+#Blank,,,,,,,,,,,
+#BlankResSim reservoir name,Start trying to drawdown on this month,and this day,The date we hope to achieve the drawdown target,,Stop trying to drawdown no matter what in this month,and this day,"Once drawdown is successful for this many total days, stop trying to drawdown.",Drawdown target elevation,,The max release when doing drawdowns (cfs),
+RESERVOIR,START_MONTH,START_DAY,TARGET_MONTH,TARGET_DAY,END_MONTH,END_DAY,DURATION_DAYS,TARGET_ELEV,ACTIVE,MAX_REL,NOTES
+Green Peter,0,0,0,0,0,0,0,0,FALSE,0,
+Detroit,0,0,0,0,0,0,0,0,FALSE,0,
+Lookout Point,0,0,0,0,0,0,0,0,FALSE,0,
+Fall Creek,0,0,0,0,0,0,0,0,FALSE,0,
+Cougar,0,0,0,0,0,0,0,0,FALSE,0,
