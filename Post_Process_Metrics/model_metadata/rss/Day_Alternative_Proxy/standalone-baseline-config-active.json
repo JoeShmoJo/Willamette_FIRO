@@ -1,0 +1,17 @@
+{
+  "id": "86e0823250624215950165b46ccead6d",
+  "directory": "baseline-configurations\\sets\\86e0823250624215950165b46ccead6d",
+  "resolved_sha256": "0c61f4b2927406a3bd90b007da3619cecaa28fc7c20697f4c29986fa222e700d",
+  "name": "ALL_D imported settings",
+  "context": {
+    "run_type": "por",
+    "mode": "standalone",
+    "watershed": "C:\\Projects\\A_Recent_Projects\\JYTHON\\NWP_Willamette_Master_2026_11_17_ReloadFix",
+    "model_alternative": "ALL_D",
+    "run_name": "Day_Alternative_Proxy",
+    "forecast_name": "Standalone ResSim",
+    "dss_path": "C:\\Projects\\A_Recent_Projects\\JYTHON\\NWP_Willamette_Master_2026_11_17_ReloadFix\\rss\\Day_Alternative_Proxy\\simulation.dss"
+  },
+  "status": "applied-awaiting-manual-compute",
+  "model_alternative": "ALL_D"
+}
