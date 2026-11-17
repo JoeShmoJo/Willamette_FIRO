@@ -1,0 +1,26 @@
+{
+  "season": {"type": "memorial_to_labor"},
+  "first_year": 1991,
+  "last_year": 2000,
+  "ramps": "data/boat_ramp_elevations.csv",
+  "cases": [
+    {
+      "name": "Baseline",
+      "dss": "data/Baseline.dss",
+      "f_part": "ALL_D-----0",
+      "firo_activation_csv": null,
+      "run_marker": "model_metadata/rss/Day_Baseline_Proxy/standalone-baseline-config-active.json",
+      "model_report": "model_metadata/rss/Day_Baseline_Proxy/modelReport_ALL_D.json",
+      "firo_table": "model_metadata/scripts/externalRules/FIRO_SPACEConfig.csv"
+    },
+    {
+      "name": "Alternative",
+      "dss": "data/Alternative.dss",
+      "f_part": "ALL_D-----0",
+      "firo_activation_csv": null,
+      "run_marker": "model_metadata/rss/Day_Alternative_Proxy/standalone-baseline-config-active.json",
+      "model_report": "model_metadata/rss/Day_Alternative_Proxy/modelReport_ALL_D.json",
+      "firo_table": "model_metadata/scripts/externalRules/FIRO_SPACEConfig.csv"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "reservoir": "Dexter",
+    "label": "Maximum Conservation Pool",
+    "count": 2,
+    "message": "Retained as supplied; confirm workbook label."
+  },
+  {
+    "reservoir": "Dexter",
+    "label": "Minimum Conservation Pool",
+    "count": 0,
+    "message": "Retained as supplied; confirm workbook label."
+  }
+]

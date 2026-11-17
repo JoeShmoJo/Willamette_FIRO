@@ -1,0 +1,37 @@
+basin,reservoir,ramp_name,elevation_ft,source_sheet,source_row
+Middle Fork Willamette River Basin,Hills Creek,Bingham Landing,1520.0,Sheet1,6
+Middle Fork Willamette River Basin,Hills Creek,CT Beach Park,1507.0,Sheet1,7
+Middle Fork Willamette River Basin,Hills Creek,Packard Creek,1441.0,Sheet1,8
+Middle Fork Willamette River Basin,Lookout Point,Black Canyon,900.0,Sheet1,13
+Middle Fork Willamette River Basin,Lookout Point,Meridian Park,911.0,Sheet1,14
+Middle Fork Willamette River Basin,Lookout Point,Hampton Landing,911.0,Sheet1,15
+Middle Fork Willamette River Basin,Lookout Point,Signal Point,821.0,Sheet1,16
+Middle Fork Willamette River Basin,Dexter,Lowell Park,684.0,Sheet1,21
+Middle Fork Willamette River Basin,Dexter,Dexter Park,684.0,Sheet1,22
+Middle Fork Willamette River Basin,Fall Creek,Cascara Campground,815.0,Sheet1,27
+Middle Fork Willamette River Basin,Fall Creek,Winberry Creek Park,803.0,Sheet1,28
+Middle Fork Willamette River Basin,Fall Creek,North Shore Ramp,729.0,Sheet1,29
+Long Tom River Basin,Fern Ridge,Perkins Peninsula,368.0,Sheet1,35
+Long Tom River Basin,Fern Ridge,French Ridge Shores,367.0,Sheet1,36
+Long Tom River Basin,Fern Ridge,Richardson Park,365.0,Sheet1,37
+Long Tom River Basin,Fern Ridge,Orchard Point Park,364.0,Sheet1,38
+McKenzie River Basin,Cougar,Slide Creek,1635.0,Sheet1,44
+McKenzie River Basin,Cougar,Echo Park,1635.0,Sheet1,45
+McKenzie River Basin,Blue River,Lookout Boat Launch,1330.0,Sheet1,51
+McKenzie River Basin,Blue River,Saddle Dam,1295.0,Sheet1,52
+Coast Fork Willamette River Basin,Dorena,Harms Park,820.0,Sheet1,58
+Coast Fork Willamette River Basin,Dorena,Baker Bay,765.0,Sheet1,59
+Coast Fork Willamette River Basin,Cottage Grove,Wilson Creek,779.0,Sheet1,64
+Coast Fork Willamette River Basin,Cottage Grove,Lakeside Park,745.0,Sheet1,65
+South Fork Santiam River Basin,Green Peter,Whitcomb Creek,970.0,Sheet1,71
+South Fork Santiam River Basin,Green Peter,Thistle Creek,919.0,Sheet1,72
+South Fork Santiam River Basin,Foster,Calkins Park,631.0,Sheet1,77
+South Fork Santiam River Basin,Foster,Gedney,619.0,Sheet1,78
+South Fork Santiam River Basin,Foster,Sunnyside,613.0,Sheet1,79
+North Fork Santiam River Basin,Detroit,State Park Boat Ramp D,1556.0,Sheet1,86
+North Fork Santiam River Basin,Detroit,Kane’s Marina,1546.0,Sheet1,87
+North Fork Santiam River Basin,Detroit,Hoover,1543.0,Sheet1,88
+North Fork Santiam River Basin,Detroit,South Shore,1542.0,Sheet1,89
+North Fork Santiam River Basin,Detroit,Cove Creek,1541.0,Sheet1,90
+North Fork Santiam River Basin,Detroit,State Park Boat Ramp G,1530.0,Sheet1,91
+North Fork Santiam River Basin,Detroit,Mongold,1450.0,Sheet1,92

@@ -1,0 +1,25 @@
+basin,reservoir,pool_label,elevation_ft,source_sheet,source_row
+Middle Fork Willamette River Basin,Hills Creek,Maximum Conservation Pool,1541.0,Sheet1,5
+Middle Fork Willamette River Basin,Hills Creek,Minimum Conservation Pool,1448.0,Sheet1,9
+Middle Fork Willamette River Basin,Lookout Point,Maximum Conservation Pool,926.0,Sheet1,12
+Middle Fork Willamette River Basin,Lookout Point,Minimum Conservation Pool,825.0,Sheet1,17
+Middle Fork Willamette River Basin,Dexter,Maximum Conservation Pool,695.0,Sheet1,20
+Middle Fork Willamette River Basin,Dexter,Maximum Conservation Pool,690.0,Sheet1,23
+Middle Fork Willamette River Basin,Fall Creek,Maximum Conservation Pool,830.0,Sheet1,26
+Middle Fork Willamette River Basin,Fall Creek,Minimum Conservation Pool,728.0,Sheet1,30
+Long Tom River Basin,Fern Ridge,Maximum Conservation Pool,373.5,Sheet1,34
+Long Tom River Basin,Fern Ridge,Minimum Conservation Pool,353.0,Sheet1,39
+McKenzie River Basin,Cougar,Maximum Conservation Pool,1690.0,Sheet1,43
+McKenzie River Basin,Cougar,Minimum Conservation Pool,1532.0,Sheet1,46
+McKenzie River Basin,Blue River,Maximum Conservation Pool,1350.0,Sheet1,50
+McKenzie River Basin,Blue River,Minimum Conservation Pool,1180.0,Sheet1,53
+Coast Fork Willamette River Basin,Dorena,Maximum Conservation Pool,832.0,Sheet1,57
+Coast Fork Willamette River Basin,Dorena,Minimum Conservation Pool,770.5,Sheet1,60
+Coast Fork Willamette River Basin,Cottage Grove,Maximum Conservation Pool,790.0,Sheet1,63
+Coast Fork Willamette River Basin,Cottage Grove,Minimum Conservation Pool,750.0,Sheet1,66
+South Fork Santiam River Basin,Green Peter,Maximum Conservation Pool,1010.0,Sheet1,70
+South Fork Santiam River Basin,Green Peter,Minimum Conservation Pool,922.0,Sheet1,73
+South Fork Santiam River Basin,Foster,Maximum Conservation Pool,637.0,Sheet1,76
+South Fork Santiam River Basin,Foster,Minimum Conservation Pool,613.0,Sheet1,80
+North Fork Santiam River Basin,Detroit,Maximum Conservation Pool,1563.5,Sheet1,85
+North Fork Santiam River Basin,Detroit,Minimum Conservation Pool,1450.0,Sheet1,93
