@@ -6,7 +6,9 @@ import argparse
 import csv
 import json
 import shutil
+import sys
 import tempfile
+import time
 import warnings
 from collections import defaultdict
 from pathlib import Path
@@ -79,19 +81,37 @@ def case_catalog(fid):
     return groups
 
 
-def inspect(path, cases, output):
+def copy_snapshot(source, destination):
+    for delay in (2, 5, None):
+        try:
+            shutil.copyfile(source, destination)
+            return
+        except PermissionError as error:
+            if delay is None:
+                raise PermissionError(
+                    f'Access denied while copying DSS after 3 attempts. Source: {source}. '
+                    f'Temporary destination: {destination}. '
+                    'If ResSim is computing, wait for it to finish. Close DSSVue or other tools '
+                    'using the file, then rerun. If the error persists, check read access to the '
+                    'source and write access to the temporary directory.'
+                ) from error
+            print(f'DSS copy access denied; retrying in {delay} seconds: {source}', file=sys.stderr)
+            time.sleep(delay)
+
+
+def inspect(path, cases, output, include_rule_curves=False):
     # HEC-DSS may update bookkeeping even with mode='r'. Share one copy across cases.
     with tempfile.TemporaryDirectory(prefix='por-dss-') as directory:
         local = Path(directory) / path.name
-        shutil.copyfile(path, local)
+        copy_snapshot(path, local)
         with HecDss.Open(local, mode='r') as fid:
             groups = case_catalog(fid)
             cases = simulation_cases(groups) if cases is None else cases
-            return {label: (fpart, *inspect_case(fid, groups, label, fpart, output))
+            return {label: (fpart, *inspect_case(fid, groups, label, fpart, output, include_rule_curves))
                     for label, fpart in cases}
 
 
-def inspect_case(fid, groups, label, fpart, output):
+def inspect_case(fid, groups, label, fpart, output, include_rule_curves=False):
     with (output / f'{label}_catalog.csv').open('w', newline='') as stream:
         writer = csv.writer(stream)
         writer.writerow(['A', 'B', 'C', 'E', 'F', 'blocks', 'example_path'])
@@ -113,6 +133,12 @@ def inspect_case(fid, groups, label, fpart, output):
                          missing_days=expected-len(valid),
                          mean=valid.mean(), minimum=valid.min(), maximum=valid.max()))
         results[key[:3]] = (series, units)
+    if include_rule_curves:
+        for key, paths in groups.items():
+            _, location, parameter, interval, part = key
+            if (part == fpart and interval.casefold() == '1day' and parameter.casefold() == 'elev-zone'
+                    and location.casefold().endswith('-rule curve')):
+                results[key[:3]] = read_series(fid, paths)
     return results, rows
 
 
@@ -147,6 +173,16 @@ def main():
     inputs.add_argument('--case', action='append', nargs=3, metavar=('LABEL', 'DSS', 'F_PART'),
                         help='Repeat for each case; the first case is baseline.')
     parser.add_argument('--output', type=Path, default=ROOT / 'outputs/por_inventory')
+    parser.add_argument('--annual-overlays', action='store_true',
+                        help='Also plot stacked annual elevation and flow traces with reference lines.')
+    parser.add_argument('--firo-targets', type=Path,
+                        default=ROOT/'model_metadata/scripts/externalRules/FIRO_SPACEConfig.csv',
+                        help='Reference FIRO target schedule for the annual overlays.')
+    parser.add_argument('--firo-marker', action='append', nargs=2, default=[], metavar=('CASE', 'JSON'),
+                        help='Use a case-specific FIRO configuration marker and initialization receipts.')
+    parser.add_argument('--project-data', type=Path,
+                        default=ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv',
+                        help='BasicProjectData CSV with spillway crest elevations for the annual overlays.')
     args = parser.parse_args()
     cases = args.case or [('Baseline', str(ROOT/'data/Baseline.dss'), 'ALL_D-----0'),
                           ('Alternative', str(ROOT/'data/Alternative.dss'), 'ALL_D-----0')]
@@ -158,7 +194,7 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     if args.simulation_dss:
         path = args.simulation_dss.resolve()
-        loaded = inspect(path, None, args.output)
+        loaded = inspect(path, None, args.output, args.annual_overlays)
         cases = [(label, str(path), entry[0]) for label, entry in loaded.items()]
         labels = list(loaded)
     else:
@@ -167,7 +203,7 @@ def main():
         for label, path, fpart in cases:
             by_path[Path(path).resolve()].append((label, fpart))
         for path, file_cases in by_path.items():
-            loaded.update(inspect(path, file_cases, args.output))
+            loaded.update(inspect(path, file_cases, args.output, args.annual_overlays))
     all_results = {label: loaded[label][1] for label in labels}
     rows = [row for label in labels for row in loaded[label][2]]
     pd.DataFrame(rows).to_csv(args.output/'coverage.csv', index=False)
@@ -175,6 +211,8 @@ def main():
     comparisons, figures, elevation_figures = [], [], []
     baseline = labels[0]
     for key in sorted(keys):
+        if not key[1].casefold().endswith('-pool'):
+            continue
         fig = go.Figure()
         curve_units = set()
         for label, result in all_results.items():
@@ -238,6 +276,16 @@ def main():
     print(pd.DataFrame(rows)[['case', 'first_day', 'last_day', 'valid_days', 'missing_days']]
           .drop_duplicates().to_string(index=False))
     print(f'Wrote catalogs, coverage, paired comparisons and duration plots to {args.output}')
+    if args.annual_overlays:
+        from annual_overlays import write_annual_overlays
+
+        report = args.output/'annual_reservoir_overlays.html'
+        markers = {label: Path(path) for label, path in args.firo_marker}
+        if len(markers) != len(args.firo_marker) or markers.keys() - all_results.keys():
+            parser.error('--firo-marker requires unique case labels that match the DSS cases.')
+        write_annual_overlays(report, all_results, ramps, args.firo_targets, args.project_data,
+                              markers, {label: fpart for label, _, fpart in cases})
+        print(f'Wrote stacked annual reservoir plots to {report}')
 
 
 if __name__ == '__main__':

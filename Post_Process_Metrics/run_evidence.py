@@ -16,7 +16,7 @@ def verified_digest(path, expected):
     raise ValueError(f'Configuration checksum mismatch: {path}')
 
 
-def read_run_evidence(marker, fpart):
+def read_run_evidence(marker, fpart, *, allow_disabled_without_receipts=False):
     marker = marker.resolve()
     pointer = json.loads(marker.read_text(encoding='utf-8-sig'))
     root = marker.parent
@@ -53,11 +53,13 @@ def read_run_evidence(marker, fpart):
             raise ValueError(f'Conflicting activation receipts for {reservoir}')
         activation[reservoir] = enabled
         receipts.append(str(path))
+    evidence = dict(marker=str(marker), configuration_id=pointer['id'],
+                    resolved_sha256=pointer['resolved_sha256'], verification=verification, receipts=receipts)
+    if not receipts and allow_disabled_without_receipts and settings.get('active') is False:
+        return None, activation, evidence
     if not receipts:
         raise ValueError('No matching POR FIRO initialization receipts')
     target = (folder/data['table_paths']['firoSpaceConfigCSV'].replace('\\', '/')).resolve()
     if str(target) not in verification:
         raise ValueError('FIRO table is not covered by the recorded table checksums')
-    return target, activation, dict(marker=str(marker), configuration_id=pointer['id'],
-                                     resolved_sha256=pointer['resolved_sha256'],
-                                     verification=verification, receipts=receipts)
+    return target, activation, evidence

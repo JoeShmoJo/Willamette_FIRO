@@ -5,13 +5,14 @@ import numpy as np
 import pandas as pd
 
 from compare_purposes import (MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
-                              annual_rows, copy_snapshot, relative_system_storage, special_release)
+                              annual_rows, relative_system_storage, special_release)
+from inspect_por import copy_snapshot
 
 
 class PurposeComparisonTests(unittest.TestCase):
-    @patch('compare_purposes.sys.stderr')
-    @patch('compare_purposes.time.sleep')
-    @patch('compare_purposes.shutil.copyfile')
+    @patch('inspect_por.sys.stderr')
+    @patch('inspect_por.time.sleep')
+    @patch('inspect_por.shutil.copyfile')
     def test_dss_copy_retries_temporary_access_denial(self, copy, sleep, stderr):
         copy.side_effect = [PermissionError('busy'), None]
         copy_snapshot('simulation.dss', 'temporary.dss')

@@ -32,6 +32,23 @@ arguments with the full F-parts and the same DSS path. Both cases share one
 temporary copy, so the Windows temporary directory needs room for one copy of
 the DSS file.
 
+Add `--annual-overlays` to produce `annual_reservoir_overlays.html`. It stacks
+an elevation pane over a flow pane at every reservoir, with daily traces from
+all available water years aligned by month and day. Click a legend item to
+toggle a case's pool elevations, inflows, outflows or rule curves, or to toggle
+individual reference lines. Inflow starts hidden. Rule curves come from the
+DSS, spillway crests from `BasicProjectData.csv`, and ramp elevations from
+`boat_ramp_elevations.csv`. Big Cliff and Dexter have no crest elevation in the
+bundled project data. `--project-data` accepts the same format from another run.
+
+Supply `--firo-marker Baseline <marker.json>` and
+`--firo-marker Alternative <marker.json>` with the matching active configuration
+markers to plot case-specific target schedules. A configuration or receipt that
+explicitly disables FIRO suppresses that case's line. Blank target days stay
+blank. The schedule can still be gated by the daily operating zone. Without
+markers the report labels the bundled schedule as a reference. Use
+`--firo-targets <FIRO_SPACEConfig.csv>` to set a different reference.
+
 Without arguments the script compares `data/Baseline.dss` and `data/Alternative.dss`, selecting the
 `ALL_D-----0` F part explicitly in both files. File labels distinguish the cases;
 the shared F part does not identify which operating alternative each represents.
