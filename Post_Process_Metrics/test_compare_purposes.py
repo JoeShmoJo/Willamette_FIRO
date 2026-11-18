@@ -3,10 +3,27 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from compare_purposes import annual_rows, special_release
+from compare_purposes import add_system_metrics, annual_rows, special_release
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    def test_system_storage_sums_daily_before_taking_minimum_and_requires_all_members(self):
+        dates = pd.date_range('1991-10-01', periods=2)
+        expected = pd.Series(True, index=dates)
+        missing = pd.Series(np.nan, index=dates)
+        keys = [('Water Supply', site, 'Minimum total pool storage', 'acre-ft', 'proxy', 'min')
+                for site in ('First', 'Second')]
+        base = {keys[0]: pd.Series([1., 10.], index=dates), keys[1]: pd.Series([10., 1.], index=dates)}
+        alt = base.copy()
+        members = add_system_metrics([base, alt], missing)
+        self.assertEqual(members, {'Minimum combined pool storage': ['First', 'Second']})
+        system = ('Water Supply', 'SYSTEM', 'Minimum combined pool storage', 'acre-ft', 'proxy', 'min')
+        self.assertEqual(next(annual_rows(system, base[system], alt[system], expected))['baseline'], 11)
+
+        alt.pop(keys[1])
+        add_system_metrics([base, alt], missing)
+        self.assertTrue(alt[system].isna().all())
+
     def test_special_release_requires_applicable_rule_and_strict_exceedance(self):
         zones = pd.Series(['Rule Curve', 'Rule Curve', 'Inactive', 'Rule Curve', pd.NA, 'Rule Curve'])
         rules = pd.Series(['Max Evacuation Release'] * 2 + [pd.NA]

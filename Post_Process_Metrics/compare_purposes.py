@@ -13,6 +13,7 @@ import pandas as pd
 from pydsstools.heclib.dss import HecDss
 
 from inspect_por import read_series
+from purpose_plots import distribution_plot
 from recreation import run as run_recreation, zone_membership
 
 ROOT = Path(__file__).resolve().parent
@@ -38,6 +39,27 @@ PURPOSES = {
     'ESA compliance is unavailable pending verified applicable, water-year-specific ESA targets '
     'and compliance criteria. The supplied Baseline lacks a usable saved minimum target.',
 }
+
+SYSTEM_METRICS = {
+    'Special-release days': ('Special-release reservoir-days', 'reservoir-days'),
+    'Powerplant discharge volume': ('Total powerplant throughput', 'acre-ft'),
+    'Minimum total pool storage': ('Minimum combined pool storage', 'acre-ft'),
+}
+
+
+def add_system_metrics(metrics, missing):
+    # Use the same members in both cases. A missing member makes the daily total unknown.
+    groups = defaultdict(list)
+    for key in sorted(metrics[0].keys() | metrics[1].keys()):
+        purpose, _, metric, _, status, reducer = key
+        if metric in SYSTEM_METRICS:
+            name, units = SYSTEM_METRICS[metric]
+            groups[purpose, 'SYSTEM', name, units, status, reducer].append(key)
+    for key, members in groups.items():
+        for case in metrics:
+            daily = pd.concat([case.get(member, missing) for member in members], axis=1)
+            case[key] = daily.sum(axis=1, min_count=len(members))
+    return {key[2]: [member[1] for member in members] for key, members in groups.items()}
 
 
 def load_case(path, fpart, report, dates, reference=False):
@@ -175,6 +197,7 @@ def main():
 
     rows = []
     missing = pd.Series(np.nan, index=dates)
+    system_members = add_system_metrics(metrics, missing)
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         rows.extend(annual_rows(key, metrics[0].get(key, missing), metrics[1].get(key, missing), expected))
 
@@ -208,13 +231,15 @@ def main():
     pd.concat(daily).rename_axis('date').to_csv(args.output/'daily_threshold_checks.csv')
     (args.output/'provenance.json').write_text(
         json.dumps(dict(config=config, start=str(dates[0].date()), end=str(dates[-1].date()),
-                        baseline=labels[0], alternative=labels[1], sources=provenance, methods=PURPOSES),
+                        baseline=labels[0], alternative=labels[1], sources=provenance, methods=PURPOSES,
+                        system_members=system_members),
                    indent=2), encoding='utf-8')
     sections = []
     for purpose, note in PURPOSES.items():
         table = summary[summary.purpose == purpose].drop(columns='purpose')
-        sections.append(f'<h2>{purpose}</h2><p>{note}</p>'
-                        + table.to_html(index=False, na_rep='—', float_format=lambda x: f'{x:,.2f}'))
+        sections.append(f'<details><summary>{purpose} data table</summary><p>{note}</p>'
+                        + table.to_html(index=False, na_rep='—', float_format=lambda x: f'{x:,.2f}')
+                        + '</details>')
     (args.output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>ResSim purpose comparison</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}table{border-collapse:collapse}'
@@ -227,6 +252,12 @@ def main():
         '<p><a href="annual_comparison.csv">Annual CSV</a> · '
         '<a href="daily_threshold_checks.csv">Daily threshold checks</a> · '
         '<a href="recreation/box_plots.html">Recreation plots</a></p>'
+        '<p>Choose a metric and location below. Each dot in the box plot is a complete year or season. '
+        'The duration plot ranks those annual or seasonal values. The bars show the change in the same year.</p>'
+        '<p>System results cover special-release reservoir-days, powerplant throughput, combined pool '
+        'storage and ramp-days. Throughput can include the same water at successive plants. '
+        'Routed flow and minimum-flow results stay at their control points.</p>'
+        + distribution_plot(summary, labels).to_html(full_html=False, include_plotlyjs=True)
         + ''.join(sections), encoding='utf-8')
     print(f'Wrote six-purpose comparison to {args.output / "index.html"}')
 

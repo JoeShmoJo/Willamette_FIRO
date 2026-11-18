@@ -115,6 +115,20 @@ Outputs under `outputs/purpose_comparison/` include an offline HTML report,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
 reports in `recreation/`. Source DSS files are opened through temporary copies.
 
+In the HTML report, choose a metric and location to see Baseline and Alternative
+box plots, ranked duration curves, and a bar chart of Alternative minus Baseline
+by year. The distributions use complete paired water years or recreation
+seasons. For daily pool elevation duration curves, use the separate elevation
+report described above.
+
+`SYSTEM` includes special-release reservoir-days across applicable projects,
+total throughput across modeled powerplants, the minimum of the daily combined
+pool storage, and total seasonal ramp-days. The sum of plant throughput can
+include the same water at successive plants. System storage is the minimum of
+the daily sum, which preserves the timing of reservoir storage. Missing member
+data make the system result incomplete. Routed flow and minimum-flow screening
+stay separate at Albany and Salem because the sites share upstream flows.
+
 ## Optional model metadata
 
 Run `copy_model_metadata.ps1` in PowerShell. It copies configuration TXT/CSV
