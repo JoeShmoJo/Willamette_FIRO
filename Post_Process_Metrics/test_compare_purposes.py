@@ -3,10 +3,24 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from compare_purposes import add_system_metrics, annual_rows, special_release
+from compare_purposes import (MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
+                              annual_rows, relative_system_storage, special_release)
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    def test_relative_storage_uses_one_reference_and_excludes_partial_seasons_from_zero(self):
+        dates = pd.date_range('1991-02-01', periods=5)
+        cases = [{SYSTEM_STORAGE: pd.Series(values, index=dates)}
+                 for values in ([20, 30, 5, 50, 3], [10, 40, np.nan, 35, 2])]
+        storage, zero = relative_system_storage(cases, [dates[:2], dates[2:4]], dates)
+        self.assertEqual(zero, dict(zero_acre_ft=20, baseline_date='1991-02-01',
+                                    complete_paired_seasons=1))
+        self.assertEqual(storage.alternative.iloc[0], -10)
+        self.assertEqual(storage.baseline.iloc[-1], -17)
+        row = next(annual_rows(MAX_RELATIVE_STORAGE, storage.baseline, storage.alternative,
+                               pd.Series([True, True, False, True, True], index=dates)))
+        self.assertEqual((row['baseline'], row['alternative'], row['change']), (30, 20, -10))
+
     def test_system_storage_sums_daily_before_taking_minimum_and_requires_all_members(self):
         dates = pd.date_range('1991-10-01', periods=2)
         expected = pd.Series(True, index=dates)

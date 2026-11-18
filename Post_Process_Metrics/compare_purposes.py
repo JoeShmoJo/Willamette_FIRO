@@ -14,7 +14,7 @@ import pandas as pd
 from pydsstools.heclib.dss import HecDss
 
 from inspect_por import case_catalog, read_series, simulation_cases
-from purpose_plots import distribution_plot
+from purpose_plots import distribution_plot, storage_duration_plot
 from recreation import run as run_recreation, season_dates, zone_membership
 
 ROOT = Path(__file__).resolve().parent
@@ -47,6 +47,24 @@ SYSTEM_METRICS = {
     'Minimum total pool storage': ('Minimum combined pool storage', 'acre-ft'),
     'Pool elevation above ramp': ('System pool elevation above ramp', 'ramp-days'),
 }
+
+SYSTEM_STORAGE = ('Water Supply', 'SYSTEM', 'Minimum combined pool storage', 'acre-ft', 'proxy', 'min')
+MAX_RELATIVE_STORAGE = ('Water Supply', 'SYSTEM', 'Maximum combined storage relative to seasonal minimum',
+                        'acre-ft', 'relative to observed Baseline seasonal minimum', 'max')
+
+
+def relative_system_storage(metrics, season_windows, water_dates):
+    daily = pd.concat([case[SYSTEM_STORAGE] for case in metrics], axis=1, keys=['baseline', 'alternative'])
+    complete = [dates for dates in season_windows if daily.reindex(dates).notna().to_numpy().all()]
+    if not complete:
+        return None, None
+    reference_days = complete[0].append(complete[1:])
+    reference_date = daily.loc[reference_days, 'baseline'].idxmin()
+    zero = daily.at[reference_date, 'baseline']
+    return daily.reindex(water_dates) - zero, {
+        'zero_acre_ft': float(zero), 'baseline_date': str(reference_date.date()),
+        'complete_paired_seasons': len(complete),
+    }
 
 
 def add_system_metrics(metrics, missing):
@@ -198,6 +216,8 @@ def main():
     sources.add_argument('--simulation-dss', type=Path, help='One DSS with Baseline (-0) and Alternative (-1).')
     parser.add_argument('--first-year', type=int)
     parser.add_argument('--last-year', type=int)
+    parser.add_argument('--storage-season', nargs=2, metavar=('START_MM-DD', 'END_MM-DD'),
+                        help='Season used to find the shared storage zero. Defaults to the configured season.')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     local_mode = args.simulation_dss is not None
@@ -217,15 +237,20 @@ def main():
         parser.error('first_year must be no later than last_year.')
     water_dates = pd.date_range(f'{first-1}-10-01', f'{last}-09-30')
     expected = pd.Series(True, index=water_dates)
+    storage_season = config['season']
+    if args.storage_season:
+        start, end = args.storage_season
+        storage_season = dict(type='fixed', start=start, end=end)
+    storage_windows = [season_dates(year, storage_season) for year in range(first, last+1)]
     ramps = season_expected = None
-    dates = water_dates
+    dates = water_dates.union(storage_windows[0].append(storage_windows[1:]))
     if local_mode:
         ramps = pd.read_csv(base/config['ramps'])
         season_dates_all = pd.DatetimeIndex([
             date for year in range(first, last+1) for date in season_dates(year, config['season'])
         ])
         season_expected = pd.Series(True, index=season_dates_all)
-        dates = water_dates.union(season_dates_all)
+        dates = dates.union(season_dates_all)
 
     metrics, provenance, daily = [], [], []
     with ExitStack() as stack:
@@ -273,6 +298,13 @@ def main():
         else:
             rows.extend(annual_rows(key, base_series, alt_series, expected))
 
+    storage = storage_reference = None
+    if SYSTEM_STORAGE[2] in system_members:
+        storage, storage_reference = relative_system_storage(metrics, storage_windows, water_dates)
+    if storage_reference is not None:
+        storage_reference['season'] = storage_season
+        rows.extend(annual_rows(MAX_RELATIVE_STORAGE, storage.baseline, storage.alternative, expected))
+
     for site in SITES:
         reference = targets[site].reindex(water_dates)
         reference = reference.where(reference.ge(0))
@@ -303,6 +335,9 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     summary.to_csv(output/'annual_comparison.csv', index=False)
     pd.concat(daily).rename_axis('date').to_csv(output/'daily_threshold_checks.csv')
+    # Always overwrite the CSV so a rerun with incomplete coverage cannot leave stale values.
+    storage_csv = storage if storage is not None else pd.DataFrame(columns=['baseline', 'alternative'])
+    storage_csv.rename_axis('date').to_csv(output/'daily_relative_system_storage.csv')
     methods = PURPOSES.copy()
     if local_mode:
         methods['Recreation'] = (
@@ -313,7 +348,7 @@ def main():
         json.dumps(dict(config=config, start=str(water_dates[0].date()), end=str(water_dates[-1].date()),
                         mode='DSS-only' if local_mode else 'configured run evidence',
                         baseline=labels[0], alternative=labels[1], sources=provenance, methods=methods,
-                        system_members=system_members),
+                        system_members=system_members, storage_reference=storage_reference),
                    indent=2), encoding='utf-8')
     sections = []
     for purpose, note in methods.items():
@@ -327,6 +362,24 @@ def main():
         if local_mode else 'See the <a href="recreation/box_plots.html">recreation plots</a> for seasonal coverage.'
     )
     source_note = f'<p>Local DSS: {escape(str(args.simulation_dss.resolve()))}</p>' if local_mode else ''
+    storage_section = '<h2>System storage duration</h2><p>No complete paired conservation season was available to set zero.</p>'
+    if storage_reference is not None:
+        zero = storage_reference['zero_acre_ft']
+        date = storage_reference['baseline_date']
+        start, end = storage_windows[0][[0, -1]]
+        window_label = (f'{start:%B} {start.day}–{end:%B} {end.day}'
+                        if storage_season['type'] == 'fixed' else 'Memorial Day–Labor Day')
+        storage_section = (
+            '<h2>System storage duration</h2>'
+            f'<p>Zero is the lowest Baseline daily total in the complete paired conservation seasons '
+            f'({window_label}, inclusive). That minimum was {zero:,.0f} acre-ft on {date}. '
+            'Both cases use that same reference. '
+            'The daily curve uses all paired days in the requested water years. '
+            'For annual peaks, choose <strong>Maximum combined storage relative to seasonal minimum</strong> '
+            'in the dropdown above. Each peak is the maximum of the daily system totals in a complete water year.</p>'
+            '<p><a href="daily_relative_system_storage.csv">Daily relative storage CSV</a></p>'
+            + storage_duration_plot(storage, labels).to_html(full_html=False, include_plotlyjs=False)
+        )
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>ResSim purpose comparison</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}table{border-collapse:collapse}'
@@ -344,6 +397,7 @@ def main():
         '<p>System throughput can include the same water at successive plants. '
         'Routed flow and minimum-flow results stay at their control points.</p>'
         + distribution_plot(summary, labels).to_html(full_html=False, include_plotlyjs=True)
+        + storage_section
         + ''.join(sections), encoding='utf-8')
     print(f'Wrote six-purpose comparison to {output / "index.html"}')
 

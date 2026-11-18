@@ -6,6 +6,24 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
+def storage_duration_plot(storage, labels):
+    fig = go.Figure()
+    paired = storage.dropna()
+    for column, label, color in zip(paired, labels, ('#17638a', '#a44721')):
+        ranked = paired[column].sort_values(ascending=False, kind='stable')
+        exceedance = 100 * np.arange(1, len(ranked) + 1) / (len(ranked) + 1)
+        fig.add_trace(go.Scatter(x=exceedance, y=ranked, customdata=ranked.index.strftime('%Y-%m-%d'),
+                                 name=label, mode='lines', line_color=color,
+                                 hovertemplate='%{customdata}: %{y:,.0f} acre-ft at %{x:.2f}%'
+                                               '<extra>%{fullData.name}</extra>'))
+    fig.add_hline(y=0, line_dash='dash', line_color='#64748b')
+    fig.update_layout(template='plotly_white', height=460,
+                      title=f'Daily system storage relative to seasonal minimum · {len(paired):,} paired days',
+                      xaxis=dict(title='Exceedance plotting position (%)', range=[0, 100], ticksuffix='%'),
+                      yaxis_title='Storage relative to zero (acre-ft)')
+    return fig
+
+
 def distribution_plot(summary, labels):
     fig = make_subplots(rows=2, cols=2, specs=[[{}, {}], [{'colspan': 2}, None]],
                         subplot_titles=('Distribution', 'Duration', 'Paired change by year'),

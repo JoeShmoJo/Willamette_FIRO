@@ -154,6 +154,17 @@ the daily sum, which preserves the timing of reservoir storage. Missing member
 data make the system result incomplete. Routed flow and minimum-flow screening
 stay separate at Albany and Salem because the sites share upstream flows.
 
+The system storage section plots the duration of daily combined storage relative
+to a common zero. Zero is the lowest observed Baseline daily system total in
+the complete paired conservation seasons. The default reference window is
+February 1–December 1, inclusive. Override it with `--storage-season MM-DD MM-DD`
+if the conservation season differs from the configured recreation season.
+Both cases subtract the same value, including on days when the result is negative.
+The daily duration curve uses paired days across the requested water years. The
+dropdown option **Maximum combined storage relative to seasonal minimum** uses
+one peak daily system total per complete water year. The reference is an
+observed storage level. Approved usable-storage bounds are a separate input.
+
 ## Optional model metadata
 
 Run `copy_model_metadata.ps1` in PowerShell. It copies configuration TXT/CSV
