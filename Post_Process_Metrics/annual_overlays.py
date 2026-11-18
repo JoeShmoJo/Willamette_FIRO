@@ -12,6 +12,7 @@ from run_evidence import read_run_evidence
 
 CALENDAR = pd.date_range('1999-10-01', '2000-09-30')
 CALENDAR_DAYS = {(day.month, day.day): i for i, day in enumerate(CALENDAR)}
+CALENDAR_MS = CALENDAR.to_numpy(dtype='datetime64[ms]').astype(np.float64)
 CASE_COLORS = ['#17638a', '#a44721', '#5e4890', '#247455']
 
 
@@ -56,7 +57,8 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
                     y = daily.first().reindex(x).to_numpy()
                     years = None
             date_label = '%{x|%b %d}' if years is None else 'WY %{text}, %{x|%b %d}'
-            fig.add_trace(go.Scattergl(x=CALENDAR[0].value // 10**6 + x * 86400000,
+            # Keep the whole figure on SVG so offline reports work without WebGL.
+            fig.add_trace(go.Scatter(x=CALENDAR_MS[0] + x * 86400000,
                                       y=y, text=years, name=f'{label} {title}', mode='lines',
                                       line=dict(color=color, dash=dash, width=1.6 if row == 1 else 1),
                                       opacity=opacity, visible=visible,
@@ -65,10 +67,10 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
                           row=row, col=1)
 
     for label, target, color in firo_curves:
-        fig.add_trace(go.Scatter(x=CALENDAR, y=target, name=label, mode='lines',
+        fig.add_trace(go.Scatter(x=CALENDAR_MS, y=target, name=label, mode='lines',
                                  line=dict(color=color, width=2, dash='dashdot')), row=1, col=1)
     if pd.notna(crest):
-        fig.add_trace(go.Scatter(x=CALENDAR[[0, -1]], y=[crest, crest], mode='lines',
+        fig.add_trace(go.Scatter(x=CALENDAR_MS[[0, -1]], y=[crest, crest], mode='lines',
                                  name=f'Spillway crest ({crest:g} ft)',
                                  line=dict(color='#ae3c2b', width=2, dash='dot')), row=1, col=1)
     else:
@@ -77,10 +79,14 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
         missing.append('boat-ramp elevations')
     for elevation, group in ramps.groupby('elevation_ft'):
         name = ', '.join(group.ramp_name)
-        fig.add_trace(go.Scatter(x=CALENDAR[[0, -1]], y=[elevation, elevation], mode='lines',
+        fig.add_trace(go.Scatter(x=CALENDAR_MS[[0, -1]], y=[elevation, elevation], mode='lines',
                                  name=f'{name} ({elevation:g} ft)',
                                  line=dict(color='#667684', dash='dot')), row=1, col=1)
-    fig.update_xaxes(type='date', tickformat='%b', dtick='M1', range=list(CALENDAR[[0, -1]]))
+    # Plot on an explicit numeric calendar so the browser never has to parse axis dates.
+    month_starts = CALENDAR.day == 1
+    fig.update_xaxes(type='linear', range=CALENDAR_MS[[0, -1]].tolist(), tickmode='array',
+                     tickvals=CALENDAR_MS[month_starts].tolist(),
+                     ticktext=CALENDAR[month_starts].strftime('%b').tolist())
     fig.update_xaxes(title_text='Water year (October–September)', row=2, col=1)
     fig.update_yaxes(title_text='Elevation (ft)', row=1, col=1)
     fig.update_yaxes(title_text='Flow (cfs)', row=2, col=1)
