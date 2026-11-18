@@ -4,13 +4,29 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from compare_purposes import (FLOOD_LEVELS, MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
+from compare_purposes import (COMBINED_MINIMUM, FLOOD_LEVELS, MAX_RELATIVE_STORAGE, RESERVOIR_MINIMUM,
+                              SYSTEM_STORAGE, add_system_metrics,
                               annual_rows, days_above, relative_system_storage, release_shortfall,
                               special_release)
 from inspect_por import copy_snapshot
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    def test_system_release_counts_once_and_excludes_projects_without_targets(self):
+        for metric in (RESERVOIR_MINIMUM, COMBINED_MINIMUM):
+            def key(location, name=metric):
+                return ('ESA flow compliance', location, name, 'days', 'screen', 'sum')
+
+            missing = pd.Series(np.nan, index=range(4))
+            case = {key('First'): pd.Series([1., 0., 1., 1.]),
+                    key('Second'): pd.Series([1., 0., 0., np.nan]),
+                    key('No target'): missing}
+            name = f'{metric} at any assessed project'
+            members = add_system_metrics([case, case.copy()], missing,
+                                         {(metric, 'First'), (metric, 'Second')})
+            self.assertEqual(members, {name: ['First', 'Second']})
+            np.testing.assert_equal(case[key('SYSTEM', name)].to_numpy(), [1., 0., 1., np.nan])
+
     def test_system_flood_counts_overlapping_exceedances_once_and_requires_all_sites(self):
         metric = FLOOD_LEVELS['flood_cfs']
         first = ('Flood Control', 'First', metric, 'days', 'daily routed flow threshold', 'sum')

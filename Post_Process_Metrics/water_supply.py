@@ -1,11 +1,11 @@
-"""Dedicated page for daily and annual water supply storage comparisons."""
+"""Daily water supply storage charts for the purpose report."""
 from html import escape
 
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from purpose_plots import distribution_report, storage_duration_plot
+from purpose_plots import storage_duration_plot
 
 
 def daily_storage_grid(daily, labels):
@@ -35,30 +35,15 @@ def daily_storage_grid(daily, labels):
     return fig
 
 
-def write_water_supply(output, annual, daily, relative, reference, labels, system_metrics, first, last):
-    content = (
-        '<!doctype html><html lang="en"><meta charset="utf-8"><title>Water Supply | ResSim</title>'
-        '<style>body{font:15px system-ui;margin:2rem;color:#182534}select{font:inherit;max-width:100%;padding:.35rem}</style>'
-        '<h1>Water Supply storage comparison</h1>'
-        f'<p>Water years {first}–{last}. Baseline: {escape(labels[0])}. Alternative: {escape(labels[1])}.</p>'
-        '<p><a href="index.html">Purpose comparison</a> · <a href="#daily-storage">Daily duration plots</a> · '
-        '<a href="annual_comparison.csv">Annual and holiday CSV</a></p>'
+def water_supply_panel(daily, relative, reference, labels):
+    content = '<h2>Daily storage duration plots</h2>'
+    if not daily:
+        return content + '<p>The selected runs have no daily pool storage records.</p>'
+    content += (
+        '<p>Each curve ranks daily modeled storage on dates available in both cases. '
+        'The system panel sums the same reservoirs on each day and requires every member.</p>'
+        + daily_storage_grid(daily, labels).to_html(full_html=False, include_plotlyjs=False)
     )
-    if annual.empty:
-        content += '<p>The selected runs have no daily pool storage records.</p>'
-    else:
-        content += (
-            '<h2>Annual and holiday storage</h2>'
-            '<p>Choose an annual or holiday metric for box plots and duration curves. Annual system peaks '
-            'use the highest daily sum across all reservoirs within each complete water year. Memorial Day '
-            'and Labor Day each contribute one daily value per year. The system holiday value sums the '
-            'reservoirs on that holiday.</p>'
-            + distribution_report(annual, labels, system_metrics)
-            + '<h2 id="daily-storage">Daily storage duration plots</h2>'
-            '<p>Each curve ranks daily modeled storage on dates available in both cases. '
-            'The system panel sums the same reservoirs on each day and requires every member.</p>'
-            + daily_storage_grid(daily, labels).to_html(full_html=False, include_plotlyjs=False)
-        )
     if reference is not None:
         zero, date = reference['zero_acre_ft'], reference['baseline_date']
         season = reference['season']
@@ -72,4 +57,4 @@ def write_water_supply(output, annual, daily, relative, reference, labels, syste
             '<p><a href="daily_relative_system_storage.csv">Daily relative storage CSV</a></p>'
             + storage_duration_plot(relative, labels).to_html(full_html=False, include_plotlyjs=False)
         )
-    (output/'water_supply.html').write_text(content, encoding='utf-8')
+    return content

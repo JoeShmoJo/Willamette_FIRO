@@ -14,7 +14,7 @@ from pydsstools.heclib.dss import HecDss
 
 from inspect_por import case_catalog, copy_snapshot, read_series, simulation_cases
 from purpose_plots import distribution_report
-from water_supply import write_water_supply
+from water_supply import water_supply_panel
 from recreation import firo_schedule as recurring_schedule
 from recreation import run as run_recreation, season_dates, zone_membership
 
@@ -25,6 +25,9 @@ FLOOD_LEVELS = {
     'flood_cfs': 'Days above flood flow',
     'major_flood_cfs': 'Days above major flood flow',
 }
+RESERVOIR_MINIMUM = 'Days below reservoir ESA minimum reference'
+COMBINED_MINIMUM = 'Days below combined minimum release'
+RELEASE_METRICS = (RESERVOIR_MINIMUM, COMBINED_MINIMUM)
 EVACUATION_RULES = {'max evacuation release', 'max evacuation rate'}
 
 PURPOSES = {
@@ -54,6 +57,7 @@ SYSTEM_METRICS = {
     'Minimum total pool storage': ('Minimum combined pool storage', 'acre-ft'),
     'Pool elevation above ramp': ('System pool elevation above ramp', 'ramp-days'),
     **{metric: (f'{metric} at any control point', 'days') for metric in FLOOD_LEVELS.values()},
+    **{metric: (f'{metric} at any assessed project', 'days') for metric in RELEASE_METRICS},
 }
 
 SYSTEM_STORAGE = ('Water Supply', 'SYSTEM', 'Minimum combined pool storage', 'acre-ft', 'proxy', 'min')
@@ -75,11 +79,13 @@ def relative_system_storage(metrics, season_windows, water_dates):
     }
 
 
-def add_system_metrics(metrics, missing):
+def add_system_metrics(metrics, missing, release_sites=None):
     # Use the same members in both cases. A missing member makes the daily total unknown.
     groups = defaultdict(list)
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
-        purpose, _, metric, _, status, reducer = key
+        purpose, location, metric, _, status, reducer = key
+        if metric in RELEASE_METRICS and (metric, location) not in (release_sites or ()):
+            continue
         if metric in SYSTEM_METRICS:
             name, units = SYSTEM_METRICS[metric]
             groups[purpose, 'SYSTEM', name, units, status, reducer].append(key)
@@ -87,8 +93,8 @@ def add_system_metrics(metrics, missing):
         for case in metrics:
             daily = pd.concat([case.get(member, missing) for member in members], axis=1)
             total = daily.sum(axis=1, min_count=len(members))
-            # Count overlapping station exceedances once on a system day.
-            if members[0][2] in FLOOD_LEVELS.values():
+            # Count overlapping threshold events once on a system day.
+            if members[0][2] in (*FLOOD_LEVELS.values(), *RELEASE_METRICS):
                 total = total.gt(0).astype(float).where(total.notna())
             case[key] = total
     return {key[2]: [member[1] for member in members] for key, members in groups.items()}
@@ -213,9 +219,9 @@ def load_case(fid, catalog, path, fpart, report, dates, flood_thresholds, esa_mi
             esa_target = pd.Series(np.nan, index=dates)
         esa_outflow = series(f'{release_at}-Pool', 'Flow-OUT', {'cfs'}, optional=True).reindex(dates)
         for name, target, release, point, status in [
-            ('Days below reservoir ESA minimum reference', esa_target, esa_outflow, release_at,
+            (RESERVOIR_MINIMUM, esa_target, esa_outflow, release_at,
              'BiOp schedule screen'),
-            ('Days below combined minimum release', combined, outflow, reservoir, 'saved Combined Min Trib rule'),
+            (COMBINED_MINIMUM, combined, outflow, reservoir, 'saved Combined Min Trib rule'),
         ]:
             short = release_shortfall(release, target)
             values['ESA flow compliance', reservoir, name, 'days', status, 'sum'] = short
@@ -345,6 +351,7 @@ def main():
         dates = dates.union(season_dates_all)
 
     metrics, provenance, daily = [], [], []
+    release_sites = set()
     with ExitStack() as stack:
         opened = {}
         if local_mode:
@@ -377,13 +384,15 @@ def main():
                                                                 reference=i == 1, ramps=ramps)
             metrics.append(values)
             for (check, location), table in checks.items():
+                if check in RELEASE_METRICS and table.reference_cfs.ge(0).any():
+                    release_sites.add((check, location))
                 daily.append(table.assign(check=check, location=location, case=case['name']))
             provenance.append(dict(case=case['name'], f_part=case['f_part'], series=series_sources,
                                    sha256=hashes))
 
     rows = []
     missing = pd.Series(np.nan, index=dates)
-    system_members = add_system_metrics(metrics, missing)
+    system_members = add_system_metrics(metrics, missing, release_sites)
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         base_series, alt_series = (case.get(key, missing) for case in metrics)
         if key[0] == 'Recreation':
@@ -449,8 +458,6 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     summary.to_csv(output/'annual_comparison.csv', index=False)
     flood_thresholds.to_csv(output/'flood_flow_thresholds_used.csv', index=False)
-    write_water_supply(output, pd.DataFrame(storage_rows), storage_daily, storage, storage_reference,
-                       labels, SYSTEM_METRICS, first, last)
     pd.concat(daily).rename_axis('date').to_csv(output/'daily_threshold_checks.csv')
     # Always overwrite the CSV so a rerun with incomplete coverage cannot leave stale values.
     storage_csv = storage if storage is not None else pd.DataFrame(columns=['baseline', 'alternative'])
@@ -471,8 +478,6 @@ def main():
                    indent=2), encoding='utf-8')
     sections = []
     for purpose, note in methods.items():
-        if purpose == 'Water Supply':
-            continue
         table = summary[summary.purpose == purpose].drop(columns='purpose')
         thresholds_html = ''
         if purpose == 'Flood Control':
@@ -498,16 +503,20 @@ def main():
         'Change is alternative minus baseline. Annual results require all expected paired dates. '
         f'{recreation_note}</p>'
         f'{source_note}'
-        '<p><a href="water_supply.html">Water Supply storage plots</a> · '
-        '<a href="annual_comparison.csv">Annual CSV</a> · '
+        '<p><a href="annual_comparison.csv">Annual CSV</a> · '
         '<a href="daily_threshold_checks.csv">Daily threshold checks</a> · '
         '<a href="flood_flow_thresholds_used.csv">Flood flow thresholds used (cfs)</a></p>'
         '<p>Choose a metric to see box plots first and duration plots below. Each location has its own y-axis. The system appears last where available. '
         'The duration plot ranks those annual or seasonal values. The bars show the change in the same year.</p>'
         '<p>System throughput can include the same water at successive plants. '
         'System flood counts record a day once when any control point exceeds the selected threshold. '
-        'The system result requires data at every configured control point.</p>'
-        + distribution_report(summary[summary.purpose != 'Water Supply'], labels, SYSTEM_METRICS, FLOOD_LEVELS)
+        'System release counts record a day once when any assessed project falls below its target. '
+        'System results require data from all included locations.</p>'
+        + distribution_report(
+            summary, labels, SYSTEM_METRICS, FLOOD_LEVELS,
+            extra_panels=[('Water Supply / Daily storage duration',
+                           water_supply_panel(storage_daily, storage, storage_reference, labels))],
+        )
         + ''.join(sections), encoding='utf-8')
     print(f'Wrote six-purpose comparison to {output / "index.html"}')
 

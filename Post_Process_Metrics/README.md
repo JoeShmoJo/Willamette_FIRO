@@ -144,7 +144,7 @@ date is missing. Recreation completeness is reported in the recreation tables.
 | Hydropower | Annual discharge volume through each of eight modeled powerplants, in acre-feet, is a throughput proxy. | Net head, efficiency, operating limits and generation or pricing data. |
 | Recreation | Verified FIRO activation and reconstructed daily zone membership feed February 1–December 1 boat-ramp days by reservoir and system. | Confirm workbook/DSS vertical datum. |
 | Water Quality | The 10th percentile of daily routed flow at Albany and Salem gives low-flow context. | Water temperature, dissolved oxygen, or a calibrated constituent model and applicable criteria. |
-| Water Supply | Daily duration plots, water-year minimum and maximum, and Memorial Day and Labor Day storage in a dedicated page. | Approved usable-storage bounds, accounting, demand, and delivery. |
+| Water Supply | Daily duration plots, water-year minimum and maximum, and Memorial Day and Labor Day storage in the main report's metric selector. | Approved usable-storage bounds, accounting, demand, and delivery. |
 | ESA flow compliance | Reservoir outflow against a tributary BiOp schedule and against the saved Combined Min Trib request. Albany and Salem have a separate mainstem reference screen. | Verified run-specific ESA targets and compliance criteria. |
 
 The flood test compares daily total pool outflow strictly above the named
@@ -168,10 +168,13 @@ the model checker. The separate combined-minimum metric uses each case's
 `<reservoir>-Combined Min Trib/Flow-SPEC` request and that reservoir's
 `Pool/Flow-OUT`. Days below target use the model-checker tolerance of 5 cfs
 or 2% of target, whichever is larger. Missing targets and releases remain
-unscored. These are modeled adherence screens.
+unscored. Each reservoir metric has its own System panel. It counts a day once
+when any assessed project has a shortfall and requires data for every assessed
+project. Projects with no target data in either case are outside the system
+count. The member list for each metric is in `provenance.json`. These are
+modeled adherence screens.
 
-Outputs under `outputs/purpose_comparison/` include an offline HTML report, a linked
-`water_supply.html` page,
+Outputs under `outputs/purpose_comparison/` include an offline HTML report,
 `annual_comparison.csv` with coverage and paired changes,
 `daily_threshold_checks.csv` with rule or target inputs and event flags,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
@@ -203,7 +206,7 @@ is the highest daily sum for the water year. Memorial Day and Labor Day each
 use one daily snapshot per year, summed across reservoirs for the system. Missing
 member data make the system result incomplete.
 
-The Water Supply page also plots the duration of daily combined storage relative
+The **Water Supply / Daily storage duration** view also plots daily combined storage relative
 to a common zero. Zero is the lowest observed Baseline daily system total in
 the complete paired conservation seasons. The default reference window is
 February 1–December 1, inclusive. Override it with `--storage-season MM-DD MM-DD`

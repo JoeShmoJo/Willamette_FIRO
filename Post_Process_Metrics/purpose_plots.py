@@ -89,7 +89,7 @@ def grouped_box_plot(tables, labels):
     return fig
 
 
-def distribution_report(summary, labels, system_metrics, flood_levels=None):
+def distribution_report(summary, labels, system_metrics, flood_levels=None, extra_panels=()):
     # A system aggregate may have a different name from its reservoir-level metric.
     site_metric = {system_name: name for name, (system_name, _) in system_metrics.items()}
     tables = summary.assign(plot_metric=summary.metric.replace(site_metric))
@@ -118,6 +118,9 @@ def distribution_report(summary, labels, system_metrics, flood_levels=None):
                       + '<h2>Duration plots</h2>' + plots['duration']
                       + '<details class="plot-details"><summary>Year-by-year change</summary>'
                       + plots['change'] + '</details></section>')
+    for index, (title, content) in enumerate(extra_panels):
+        options.append(f'<option value="extra-{index}">{escape(title)}</option>')
+        panels.append(f'<section id="metric-extra-{index}" class="metric-panel" hidden>{content}</section>')
     return ('<label for="metric">Metric</label> <select id="metric">'
             + ''.join(options)
             + '</select>' + ''.join(panels)
