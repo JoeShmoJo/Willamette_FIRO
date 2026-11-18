@@ -90,6 +90,11 @@ September 30. Recreation windows run February 1 through December 1 of the
 labeled calendar year. If the DSS begins in January 1935, water year 1935 is
 incomplete. The 2019 ramp season requires data through December 1, 2019.
 
+If Windows denies access during the temporary DSS copy, the report generator
+retries briefly. If access remains denied, wait for any ResSim compute to
+finish and close any DSS viewer using the file before rerunning. Check source
+read access and temporary-directory write access if the error persists.
+
 Local DSS mode provides an elevation-only ramp screen, counting a ramp-day when
 pool elevation is strictly above the ramp. Verified recreation ramp-days and
 special-release counts require run-specific evidence. For those metrics, use

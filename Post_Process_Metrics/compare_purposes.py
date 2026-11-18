@@ -3,7 +3,9 @@ import argparse
 import hashlib
 import json
 import shutil
+import sys
 import tempfile
+import time
 from contextlib import ExitStack
 from html import escape
 from collections import defaultdict
@@ -85,11 +87,29 @@ def add_system_metrics(metrics, missing):
 def open_snapshot(stack, path):
     directory = Path(stack.enter_context(tempfile.TemporaryDirectory(prefix='purposes-dss-')))
     local = directory / path.name
-    shutil.copyfile(path, local)
+    copy_snapshot(path, local)
     with local.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     fid = stack.enter_context(HecDss.Open(local, mode='r'))
     return fid, case_catalog(fid), digest
+
+
+def copy_snapshot(source, destination):
+    for delay in (2, 5, None):
+        try:
+            shutil.copyfile(source, destination)
+            return
+        except PermissionError as error:
+            if delay is None:
+                raise PermissionError(
+                    f'Access denied while copying DSS after 3 attempts. Source: {source}. '
+                    f'Temporary destination: {destination}. '
+                    'If ResSim is computing, wait for it to finish. Close DSSVue or other tools '
+                    'using the file, then rerun. If the error persists, check read access to the '
+                    'source and write access to the temporary directory.'
+                ) from error
+            print(f'DSS copy access denied; retrying in {delay} seconds: {source}', file=sys.stderr)
+            time.sleep(delay)
 
 
 def load_case(fid, catalog, path, fpart, report, dates, reference=False, ramps=None):

@@ -1,13 +1,29 @@
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 
 from compare_purposes import (MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
-                              annual_rows, relative_system_storage, special_release)
+                              annual_rows, copy_snapshot, relative_system_storage, special_release)
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    @patch('compare_purposes.sys.stderr')
+    @patch('compare_purposes.time.sleep')
+    @patch('compare_purposes.shutil.copyfile')
+    def test_dss_copy_retries_temporary_access_denial(self, copy, sleep, stderr):
+        copy.side_effect = [PermissionError('busy'), None]
+        copy_snapshot('simulation.dss', 'temporary.dss')
+        self.assertEqual(copy.call_count, 2)
+        sleep.assert_called_once_with(2)
+
+        copy.reset_mock(side_effect=True)
+        copy.side_effect = PermissionError('busy')
+        with self.assertRaisesRegex(PermissionError, 'after 3 attempts.*simulation.dss'):
+            copy_snapshot('simulation.dss', 'temporary.dss')
+        self.assertEqual(copy.call_count, 3)
+
     def test_relative_storage_uses_one_reference_and_excludes_partial_seasons_from_zero(self):
         dates = pd.date_range('1991-02-01', periods=5)
         cases = [{SYSTEM_STORAGE: pd.Series(values, index=dates)}
