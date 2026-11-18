@@ -167,10 +167,10 @@ Outputs under `outputs/purpose_comparison/` include an offline HTML report,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
 reports in `recreation/`. Source DSS files are opened through temporary copies.
 
-In the HTML report, choose a metric to compare locations in grouped Baseline
-and Alternative box plots. Expand **System and individual location plots** for
-stacked box plots, duration curves, and year-by-year changes, with the system
-first where it is available.
+In the HTML report, choose a metric to see Baseline and Alternative box plots
+first, followed by duration plots in the same location order. Each location
+has its own y-axis. The system panel appears last where a system result is
+available. Expand **Year-by-year change** to see paired differences.
 The distributions use complete paired water years or recreation
 seasons. For daily pool elevation duration curves, use the separate elevation
 report described above.

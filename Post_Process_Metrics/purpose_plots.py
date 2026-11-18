@@ -24,49 +24,47 @@ def storage_duration_plot(storage, labels):
     return fig
 
 
-def stacked_distribution_plot(table, labels):
-    locations = sorted(table.location.unique(), key=lambda location: (location != 'SYSTEM', location))
-    titles = []
-    for location in locations:
-        rows = table[table.location == location]
-        complete = rows[['baseline', 'alternative']].notna().all(axis=1).sum()
-        name = 'System' if location == 'SYSTEM' else escape(location)
-        titles.extend((f'{name}: box plot<br><sup>{complete} of {len(rows)} paired periods</sup>',
-                       'Duration', 'Paired change by year'))
-    fig = make_subplots(rows=len(locations), cols=3, subplot_titles=titles,
-                        vertical_spacing=.32 / len(locations), horizontal_spacing=.09,
-                        column_widths=[.27, .36, .37])
+def location_plot(table, labels, kind):
+    locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
+    samples = [table[table.location == location].sort_values('year') for location in locations]
+    paired = [rows.dropna(subset=['baseline', 'alternative']) for rows in samples]
+    columns = min(3, len(locations))
+    rows = (len(locations) + columns - 1) // columns
+    titles = [f'{escape("System" if location == "SYSTEM" else location)}<br>'
+              f'<sup>{len(valid)} of {len(all_years)} paired periods</sup>'
+              for location, valid, all_years in zip(locations, paired, samples)]
+    fig = make_subplots(rows=rows, cols=columns, subplot_titles=titles,
+                        vertical_spacing=.29 / rows, horizontal_spacing=.1)
     colors = ('#17638a', '#a44721')
-    for row, location in enumerate(locations, start=1):
-        samples = table[table.location == location].sort_values('year')
-        paired = samples.dropna(subset=['baseline', 'alternative'])
-        units = samples['units'].iloc[0]
-        for column, label, color in zip(('baseline', 'alternative'), labels, colors):
-            fig.add_trace(go.Box(name=label, y=paired[column], text=paired.year, boxpoints='all',
-                                 jitter=.25, marker_color=color, legendgroup=column,
-                                 showlegend=row == 1,
-                                 hovertemplate='%{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'),
-                          row=row, col=1)
-            ranked = paired.sort_values(column, ascending=False, kind='stable')
-            exceedance = 100 * np.arange(1, len(ranked) + 1) / (len(ranked) + 1)
-            fig.add_trace(go.Scatter(name=label, x=exceedance, y=ranked[column], text=ranked.year,
-                                     mode='lines+markers', line_color=color, legendgroup=column,
-                                     showlegend=False,
-                                     hovertemplate='%{text}: %{y:,.2f} at %{x:.1f}%<extra>%{fullData.name}</extra>'),
-                          row=row, col=2)
-        fig.add_trace(go.Bar(x=samples.year, y=samples.change, name='Change', showlegend=False,
-                             marker_color='#526779',
-                             hovertemplate='%{x}: %{y:+,.2f}<extra>Change</extra>'),
-                      row=row, col=3)
-        fig.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%', row=row, col=2)
-        fig.update_xaxes(title_text='Year', tickformat='d', row=row, col=3)
-        fig.update_yaxes(title_text=units, row=row, col=1)
-        fig.update_yaxes(title_text=units, matches=f'y{3*row-2}' if row > 1 else 'y', row=row, col=2)
-        fig.update_yaxes(title_text=f'Change ({units})', zeroline=True, zerolinewidth=1,
-                         zerolinecolor='#364754', row=row, col=3)
-    fig.update_annotations(font_size=13)
-    fig.update_layout(template='plotly_white', height=300 * len(locations) + 55,
-                      margin=dict(t=76, b=65, l=72, r=24),
+    for i, (valid, all_years) in enumerate(zip(paired, samples)):
+        row, col = i // columns + 1, i % columns + 1
+        units = all_years.units.iloc[0]
+        if kind == 'change':
+            fig.add_trace(go.Bar(x=all_years.year, y=all_years.change, name='Change',
+                                 marker_color='#526779', showlegend=False,
+                                 hovertemplate='%{x}: %{y:+,.2f}<extra>Change</extra>'), row=row, col=col)
+            fig.update_xaxes(title_text='Year', tickformat='d', row=row, col=col)
+            fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='#364754', row=row, col=col)
+        else:
+            for column, label, color in zip(('baseline', 'alternative'), labels, colors):
+                style = dict(name=label, marker_color=color, legendgroup=column, showlegend=i == 0)
+                if kind == 'box':
+                    trace = go.Box(y=valid[column], text=valid.year, boxpoints='all', jitter=.25,
+                                   hovertemplate='%{text}: %{y:,.2f}<extra>%{fullData.name}</extra>', **style)
+                else:
+                    ranked = valid.sort_values(column, ascending=False, kind='stable')
+                    exceedance = 100 * np.arange(1, len(ranked) + 1) / (len(ranked) + 1)
+                    trace = go.Scatter(x=exceedance, y=ranked[column], text=ranked.year,
+                                       mode='lines+markers', line_color=color,
+                                       hovertemplate='%{text}: %{y:,.2f} at %{x:.1f}%<extra>%{fullData.name}</extra>',
+                                       **style)
+                fig.add_trace(trace, row=row, col=col)
+            if kind == 'duration':
+                fig.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%', row=row, col=col)
+        fig.update_yaxes(title_text=units, automargin=True, row=row, col=col)
+    fig.update_annotations(font_size=14)
+    fig.update_layout(template='plotly_white', height=255 * rows + 80,
+                      margin=dict(t=74, b=55, l=70, r=24),
                       legend=dict(orientation='h', y=1, yanchor='bottom', x=1, xanchor='right'))
     return fig
 
@@ -107,16 +105,14 @@ def distribution_report(summary, labels, system_metrics, flood_levels):
         statuses = ' · '.join(table.status.unique())
         system = table.loc[table.location == 'SYSTEM', 'metric']
         system_note = f' <strong>System:</strong> {escape(system.iloc[0])}.' if not system.empty else ''
-        sites = table[table.location != 'SYSTEM']
-        details = stacked_distribution_plot(table, labels).to_html(full_html=False, include_plotlyjs=False)
-        overview = ''
-        if sites.location.nunique() > 1:
-            overview = grouped_box_plot([('Location comparison', sites)], labels).to_html(
-                full_html=False, include_plotlyjs=False)
-            details = '<details class="plot-details"><summary>System and individual location plots</summary>' + details + '</details>'
+        plots = {kind: location_plot(table, labels, kind).to_html(full_html=False, include_plotlyjs=False)
+                 for kind in ('box', 'duration', 'change')}
         panels.append(f'<section id="metric-{index}" class="metric-panel" hidden>'
                       f'<p>{escape(statuses)}.{system_note}</p>'
-                      + overview + details + '</section>')
+                      '<h2>Box plots</h2>' + plots['box']
+                      + '<h2>Duration plots</h2>' + plots['duration']
+                      + '<details class="plot-details"><summary>Year-by-year change</summary>'
+                      + plots['change'] + '</details></section>')
     return ('<label for="metric">Metric</label> <select id="metric">'
             + ''.join(options)
             + '</select>' + ''.join(panels)

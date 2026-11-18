@@ -440,7 +440,7 @@ def main():
         '<p><a href="annual_comparison.csv">Annual CSV</a> · '
         '<a href="daily_threshold_checks.csv">Daily threshold checks</a> · '
         '<a href="flood_flow_thresholds_used.csv">Flood flow thresholds used (cfs)</a></p>'
-        '<p>Choose a metric to compare locations in grouped box plots and expand the individual plots. '
+        '<p>Choose a metric to see box plots first and duration plots below. Each location has its own y-axis. The system appears last where available. '
         'The duration plot ranks those annual or seasonal values. The bars show the change in the same year.</p>'
         '<p>System throughput can include the same water at successive plants. '
         'Routed flow and minimum-flow results stay at their control points.</p>'
