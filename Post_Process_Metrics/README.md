@@ -140,9 +140,10 @@ Outputs under `outputs/purpose_comparison/` include an offline HTML report,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
 reports in `recreation/`. Source DSS files are opened through temporary copies.
 
-In the HTML report, choose a metric and location to see Baseline and Alternative
-box plots, ranked duration curves, and a bar chart of Alternative minus Baseline
-by year. The distributions use complete paired water years or recreation
+In the HTML report, choose a metric to see the system and applicable locations
+stacked on one page. Each row has Baseline and Alternative box plots, ranked
+duration curves, and a bar chart of Alternative minus Baseline by year.
+The distributions use complete paired water years or recreation
 seasons. For daily pool elevation duration curves, use the separate elevation
 report described above.
 

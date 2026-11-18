@@ -14,7 +14,7 @@ import pandas as pd
 from pydsstools.heclib.dss import HecDss
 
 from inspect_por import case_catalog, read_series, simulation_cases
-from purpose_plots import distribution_plot, storage_duration_plot
+from purpose_plots import distribution_report, storage_duration_plot
 from recreation import run as run_recreation, season_dates, zone_membership
 
 ROOT = Path(__file__).resolve().parent
@@ -376,13 +376,14 @@ def main():
             'Both cases use that same reference. '
             'The daily curve uses all paired days in the requested water years. '
             'For annual peaks, choose <strong>Maximum combined storage relative to seasonal minimum</strong> '
-            'in the dropdown above. Each peak is the maximum of the daily system totals in a complete water year.</p>'
+            'in the metric selector above. Each peak is the maximum of the daily system totals in a complete water year.</p>'
             '<p><a href="daily_relative_system_storage.csv">Daily relative storage CSV</a></p>'
             + storage_duration_plot(storage, labels).to_html(full_html=False, include_plotlyjs=False)
         )
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>ResSim purpose comparison</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}table{border-collapse:collapse}'
+        'select{font:inherit;max-width:100%;padding:.35rem}'
         'th,td{border-bottom:1px solid #dbe3eb;padding:.3rem .65rem;text-align:left}'
         'th{background:#eef4f8}tr:nth-child(even){background:#f7f9fb}</style>'
         '<h1>ResSim period-of-record purpose comparison</h1>'
@@ -392,11 +393,11 @@ def main():
         f'{source_note}'
         '<p><a href="annual_comparison.csv">Annual CSV</a> · '
         '<a href="daily_threshold_checks.csv">Daily threshold checks</a></p>'
-        '<p>Choose a metric and location below. Each dot in the box plot is a complete year or season. '
+        '<p>Choose a metric to see the system and applicable locations stacked below. Each dot in the box plot is a complete year or season. '
         'The duration plot ranks those annual or seasonal values. The bars show the change in the same year.</p>'
         '<p>System throughput can include the same water at successive plants. '
         'Routed flow and minimum-flow results stay at their control points.</p>'
-        + distribution_plot(summary, labels).to_html(full_html=False, include_plotlyjs=True)
+        + distribution_report(summary, labels, SYSTEM_METRICS)
         + storage_section
         + ''.join(sections), encoding='utf-8')
     print(f'Wrote six-purpose comparison to {output / "index.html"}')
