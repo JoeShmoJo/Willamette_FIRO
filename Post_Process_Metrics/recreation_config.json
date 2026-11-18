@@ -1,5 +1,5 @@
 {
-  "season": {"type": "memorial_to_labor"},
+  "season": {"type": "fixed", "start": "02-01", "end": "12-01"},
   "first_year": 1991,
   "last_year": 2000,
   "ramps": "data/boat_ramp_elevations.csv",

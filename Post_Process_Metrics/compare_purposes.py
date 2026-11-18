@@ -26,7 +26,7 @@ PURPOSES = {
     'and impact information.',
     'Hydropower': 'Powerplant discharge volume is a throughput proxy. Energy and value require '
     'net head, efficiency, operating limits and generation or pricing data.',
-    'Recreation': 'Provisional Memorial Day–Labor Day ramp-days require actual pool elevation and '
+    'Recreation': 'Ramp-days within the configured season require actual pool elevation and '
     'max(rule curve, enabled FIRO target) strictly above the ramp. See the recreation report for '
     'season and activation evidence. Confirm ramp elevation datum before adopting results.',
     'Water Quality': 'The 10th percentile of daily routed flow is a low-flow context proxy. '
@@ -197,7 +197,7 @@ def main():
     recreation = run_recreation(args.config, args.output/'recreation')
     for row in recreation[recreation.case == labels[1]].itertuples():
         rows.append(dict(purpose='Recreation', location=row.reservoir, metric='Seasonal boat-ramp days',
-                         units='ramp-days', status='study definition; provisional season',
+                         units='ramp-days', status='study definition',
                          year=row.year, period='recreation season', expected=np.nan, paired=np.nan,
                          baseline=row.baseline_boat_ramp_days, alternative=row.boat_ramp_days,
                          change=row.change_from_baseline))

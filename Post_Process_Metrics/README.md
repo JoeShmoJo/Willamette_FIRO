@@ -90,7 +90,7 @@ date is missing. Recreation completeness is reported in the recreation tables.
 | --- | --- | --- |
 | Flood Control | Peak daily routed flow at Albany and Salem is an exposure proxy. Special-release days use the study's strict outflow test at the applicable projects. | Approved downstream thresholds and impact information for bankfull, flood impacts, or damages. |
 | Hydropower | Annual discharge volume through each of eight modeled powerplants, in acre-feet, is a throughput proxy. | Net head, efficiency, operating limits and generation or pricing data. |
-| Recreation | Verified FIRO activation and reconstructed daily zone membership feed seasonal boat-ramp days by reservoir and system. | Confirm the provisional Memorial Day–Labor Day season and workbook/DSS vertical datum. |
+| Recreation | Verified FIRO activation and reconstructed daily zone membership feed February 1–December 1 boat-ramp days by reservoir and system. | Confirm workbook/DSS vertical datum. |
 | Water Quality | The 10th percentile of daily routed flow at Albany and Salem gives low-flow context. | Water temperature, dissolved oxygen, or a calibrated constituent model and applicable criteria. |
 | Water Supply | Minimum daily total pool storage by reservoir is a storage proxy. | Approved usable-storage bounds, accounting, demand, delivery, and any snapshot dates. |
 | ESA flow compliance | Both cases' routed flow is screened against the same positive daily `Min_Flow_Target_*/Flow-Min` series saved in the Alternative DSS. | Verified water-year-specific ESA targets and compliance criteria. The Baseline lacks a usable target and the shared reference screen does not establish ESA compliance. |
@@ -189,13 +189,11 @@ preserving model-relative paths and refusing to overwrite differing copies.
 Confirm artifacts correspond to the supplied DSS snapshots before adoption.
 
 Run `python Post_Process_Metrics/recreation.py` from the repository root.
-The initial configurable season is Memorial Day through Labor Day inclusive for
-1991–2000; a fixed season can instead be specified as
-`{"type":"fixed","start":"05-01","end":"09-30"}`. No season has yet been
-confirmed by the study owner. Outputs include daily availability, ramp and
+The default season is February 1 through December 1 inclusive for 1991–2000.
+Set `season` in the configuration to change the dates. Outputs include daily availability, ramp and
 reservoir/system seasonal totals, paired changes, seasonal percentiles and box
-plots. Initial validation produced complete results for all 36 ramps in both
-cases across ten seasons, with no unknown ramp-days. FIRO receipts record enabled
+plots. The bundled DSS files end September 30, 2000, so 1991–1999 have complete
+seasons and 2000 appears as incomplete in the coverage tables. FIRO receipts record enabled
 at 11 reservoirs in both runs. Zone membership is reconstructed using previous-day
 pool elevation and saved zone tops, following the prior checker. Dexter has no
 FIRO rule in its stacks and uses its rule curve alone. The receipt/report linkage

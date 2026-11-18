@@ -297,9 +297,13 @@ def run(config_path, output):
             changes.update_layout(title=f'{reservoir}: paired change from {labels[0]}',
                                   yaxis_title='Change in boat-ramp days')
             figures.append(changes.to_html(full_html=False, include_plotlyjs=False))
+    first_season = years[config['first_year']]
+    season_label = (f'{first_season[0]:%B} {first_season[0].day}–'
+                    f'{first_season[-1]:%B} {first_season[-1].day}'
+                    if config['season']['type'] == 'fixed' else 'Memorial Day–Labor Day')
     (output/'box_plots.html').write_text('<!doctype html><meta charset="utf-8"><title>Recreation</title>'
         f'<h1>Seasonal boat-ramp days</h1><p>Years {config["first_year"]}–{config["last_year"]}; '
-        f'season: {config["season"]}. Each point is one complete season. System totals sum '
+        f'season: {season_label}, inclusive. Each point is one complete season. System totals sum '
         'ramps before calculating percentiles. Strictly above both thresholds; no flood-zone credit.</p>'
         + '\n'.join(figures), encoding='utf-8')
     (output/'provenance.json').write_text(json.dumps(dict(config=config, sha256=fingerprints, sources=provenance,
