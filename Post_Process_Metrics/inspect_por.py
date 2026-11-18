@@ -135,7 +135,7 @@ def main():
         rows.extend(case_rows)
     pd.DataFrame(rows).to_csv(args.output/'coverage.csv', index=False)
     keys = set.union(*(set(result) for result in all_results.values()))
-    comparisons, figures = [], []
+    comparisons, figures, elevation_figures = [], [], []
     baseline = labels[0]
     for key in sorted(keys):
         fig = go.Figure()
@@ -159,10 +159,22 @@ def main():
                                         mean_paired_change=(paired.alternative-paired.baseline).mean()))
         if fig.data:
             if key[2].casefold() == 'elev':
-                reservoir = key[1][:-len('-pool')].casefold()
-                add_ramp_lines(fig, ramps[ramp_reservoirs == reservoir], curve_units)
-            fig.update_layout(title=f'{key[1]}: {key[2]} — available daily values',
-                              xaxis_title='Exceedance probability (%)', yaxis_title=units)
+                reservoir = key[1][:-len('-pool')]
+                reservoir_ramps = ramps[ramp_reservoirs == reservoir.casefold()]
+                add_ramp_lines(fig, reservoir_ramps, curve_units)
+                elevation_units = next(iter(curve_units))
+                if elevation_units.casefold() == 'feet':
+                    elevation_units = 'ft'
+                title = reservoir if not reservoir_ramps.empty else f'{reservoir} (no ramp elevations supplied)'
+                fig.update_layout(title=title, template='plotly_white',
+                                  xaxis=dict(title='Percent of time elevation is equaled or exceeded',
+                                             range=[0, 100], ticksuffix='%'),
+                                  yaxis_title=f'Pool elevation ({elevation_units})',
+                                  legend=dict(orientation='h', y=-0.22))
+                elevation_figures.append(fig.to_html(full_html=False, include_plotlyjs=not elevation_figures))
+            else:
+                fig.update_layout(title=f'{key[1]}: {key[2]} — available daily values',
+                                  xaxis_title='Exceedance probability (%)', yaxis_title=units)
             figures.append(fig.to_html(full_html=False, include_plotlyjs=True if not figures else False))
     pd.DataFrame(comparisons).to_csv(args.output/'paired_daily_comparison.csv', index=False)
     (args.output/'duration_plots.html').write_text(
@@ -175,6 +187,15 @@ def main():
         'operating-rule criteria.</p>'
         + '\n'.join(figures), encoding='utf-8')
     (args.output/'inputs.json').write_text(json.dumps(cases, indent=2), encoding='utf-8')
+    (args.output/'elevation_duration_plots.html').write_text(
+        '<!doctype html><html lang="en"><meta charset="utf-8"><title>Pool elevation duration plots</title>'
+        '<style>body{font:16px system-ui;margin:2rem auto;max-width:1100px;padding:0 1rem}'
+        '.plotly-graph-div{margin-bottom:2rem}</style>'
+        '<h1>Pool elevation duration plots</h1>'
+        '<p>Each curve ranks daily simulated pool elevations from highest to lowest over the available period. '
+        'At 50%, the elevation is approximately the median. Dashed lines show boat-ramp elevations. '
+        'Hover over a ramp line to see how often each case was strictly above it.</p>'
+        + '\n'.join(elevation_figures), encoding='utf-8')
     print(pd.DataFrame(rows)[['case', 'first_day', 'last_day', 'valid_days', 'missing_days']]
           .drop_duplicates().to_string(index=False))
     print(f'Wrote catalogs, coverage, paired comparisons and duration plots to {args.output}')

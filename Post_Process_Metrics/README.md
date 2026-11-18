@@ -32,6 +32,10 @@ Outputs are ignored under `outputs/por_inventory/`:
   statistics for daily pool elevation, inflow and outflow.
 - `paired_daily_comparison.csv`: mean alternative-minus-baseline differences on
   dates valid in both cases, and paired day counts.
+- `elevation_duration_plots.html`: one offline plot per reservoir, with
+  Baseline and Alternative daily pool elevations in feet versus percent of
+  time equaled or exceeded. Dashed horizontal lines show supplied boat-ramp
+  elevations. Big Cliff has no ramp elevations in the supplied table.
 - `duration_plots.html`: self-contained, offline daily elevation and outflow
   exceedance curves for each reservoir. Dashed lines on the elevation plots mark
   boat ramps from `data/boat_ramp_elevations.csv`. Hover over a line for each
