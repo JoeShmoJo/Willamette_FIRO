@@ -7,6 +7,7 @@ import csv
 import json
 import shutil
 import tempfile
+import warnings
 from collections import defaultdict
 from pathlib import Path
 
@@ -91,6 +92,29 @@ def inspect_copy(label, path, fpart, output):
     return results, rows
 
 
+def add_ramp_lines(fig, ramps, units):
+    if ramps.empty:
+        return
+    if any(unit.casefold() not in {'ft', 'feet'} for unit in units):
+        warnings.warn(f'Boat-ramp elevations omitted for {ramps.iloc[0].reservoir}: '
+                      'DSS elevation units must be feet.', stacklevel=2)
+        return
+    case_curves = tuple(fig.data)
+    # A single line represents all ramps at the same elevation.
+    for elevation, same_level in ramps.groupby('elevation_ft', sort=False):
+        names = ', '.join(same_level.ramp_name)
+        details = [f'{names}<br>Ramp elevation: {elevation:g} ft']
+        for curve in case_curves:
+            if len(curve.y):
+                share = 100 * np.mean(curve.y > elevation)
+                details.append(f'{curve.name}: {share:.1f}% of valid days strictly above')
+        fig.add_trace(go.Scatter(
+            x=[0, 100], y=[elevation, elevation], mode='lines',
+            name=f'{names} ({elevation:g} ft)', line=dict(color='#64748b', dash='dash'),
+            hovertemplate='<br>'.join(details) + '<extra></extra>',
+        ))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--case', action='append', nargs=3, metavar=('LABEL', 'DSS', 'F_PART'),
@@ -102,6 +126,8 @@ def main():
     labels = [case[0] for case in cases]
     if len(set(labels)) != len(labels) or any(not s.replace('_', '').replace('-', '').isalnum() for s in labels):
         parser.error('Case labels must be unique and contain only letters, numbers, underscores or hyphens.')
+    ramps = pd.read_csv(ROOT / 'data/boat_ramp_elevations.csv')
+    ramp_reservoirs = ramps.reservoir.str.casefold()
     args.output.mkdir(parents=True, exist_ok=True)
     all_results, rows = {}, []
     for label, path, fpart in cases:
@@ -113,11 +139,13 @@ def main():
     baseline = labels[0]
     for key in sorted(keys):
         fig = go.Figure()
+        curve_units = set()
         for label, result in all_results.items():
             if key not in result:
                 continue
             series, units = result[key]
             if key[2].casefold() in {'elev', 'flow-out'}:
+                curve_units.add(units)
                 values = np.sort(series.dropna().to_numpy())[::-1]
                 fig.add_trace(go.Scatter(x=100*np.arange(1, len(values)+1)/(len(values)+1),
                                         y=values, name=label, mode='lines'))
@@ -130,6 +158,9 @@ def main():
                                         paired_days=len(paired),
                                         mean_paired_change=(paired.alternative-paired.baseline).mean()))
         if fig.data:
+            if key[2].casefold() == 'elev':
+                reservoir = key[1][:-len('-pool')].casefold()
+                add_ramp_lines(fig, ramps[ramp_reservoirs == reservoir], curve_units)
             fig.update_layout(title=f'{key[1]}: {key[2]} — available daily values',
                               xaxis_title='Exceedance probability (%)', yaxis_title=units)
             figures.append(fig.to_html(full_html=False, include_plotlyjs=True if not figures else False))
@@ -137,7 +168,11 @@ def main():
     (args.output/'duration_plots.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>POR duration plots</title>'
         '<h1>Daily duration plots</h1><p>Each curve uses its available daily values; '
-        'check coverage.csv before comparing unequal periods. These are not seasonal percentiles.</p>'
+        'check coverage.csv before comparing unequal periods.</p>'
+        '<p>Dashed lines mark boat-ramp elevations. Hover over a line to see the share '
+        'of valid days each case was strictly above it. This comparison uses actual '
+        'pool elevation across the full period and excludes recreation-season and '
+        'operating-rule criteria.</p>'
         + '\n'.join(figures), encoding='utf-8')
     (args.output/'inputs.json').write_text(json.dumps(cases, indent=2), encoding='utf-8')
     print(pd.DataFrame(rows)[['case', 'first_day', 'last_day', 'valid_days', 'missing_days']]

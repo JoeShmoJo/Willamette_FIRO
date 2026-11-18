@@ -33,8 +33,13 @@ Outputs are ignored under `outputs/por_inventory/`:
 - `paired_daily_comparison.csv`: mean alternative-minus-baseline differences on
   dates valid in both cases, and paired day counts.
 - `duration_plots.html`: self-contained, offline daily elevation and outflow
-  exceedance curves for each reservoir. Each curve uses its own available days;
-  check coverage before comparing different periods.
+  exceedance curves for each reservoir. Dashed lines on the elevation plots mark
+  boat ramps from `data/boat_ramp_elevations.csv`. Hover over a line for each
+  case's percentage of valid days strictly above that elevation. Ramps at the
+  same elevation share a line and are listed together. Each curve uses its own
+  available days. Check coverage before comparing different periods. The ramp
+  percentages use actual pool elevations for all available dates. The seasonal
+  recreation metrics apply additional operating-rule criteria.
 - `inputs.json`: labels, input paths and selected F parts.
 
 The input files are copied to temporary storage before opening: HEC-DSS can
