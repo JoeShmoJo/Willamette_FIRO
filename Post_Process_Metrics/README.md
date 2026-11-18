@@ -16,7 +16,23 @@ conda activate hydro13Nov2026
 python Post_Process_Metrics/inspect_por.py
 ```
 
-The default compares `data/Baseline.dss` and `data/Alternative.dss`, selecting the
+To plot both cases from a local `simulation.dss`, pass its path:
+
+```powershell
+$dss = 'C:\Projects\A_Recent_Projects\JYTHON\NWP_Willamette_Master_2026_11_17_ReloadFix\rss\DAY_POR_Baseline_Proxy\simulation.dss'
+python Post_Process_Metrics/inspect_por.py --simulation-dss $dss
+if ($LASTEXITCODE -eq 0) {
+    Invoke-Item Post_Process_Metrics/outputs/por_inventory/elevation_duration_plots.html
+}
+```
+
+This selects the unique daily pool elevation F-parts ending in `-0` (Baseline)
+and `-1` (Alternative). If there are multiple matches, use two explicit `--case`
+arguments with the full F-parts and the same DSS path. Both cases share one
+temporary copy, so the Windows temporary directory needs room for one copy of
+the DSS file.
+
+Without arguments the script compares `data/Baseline.dss` and `data/Alternative.dss`, selecting the
 `ALL_D-----0` F part explicitly in both files. File labels distinguish the cases;
 the shared F part does not identify which operating alternative each represents.
 Additional or different cases can be selected without editing the script:

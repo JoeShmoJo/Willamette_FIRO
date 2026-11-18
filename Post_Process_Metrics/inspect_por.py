@@ -50,45 +50,64 @@ def read_series(fid, paths):
     return series, next(iter(units), '')
 
 
-def inspect(label, path, fpart, output):
-    # HEC-DSS may update bookkeeping even with mode='r'. Never open the source.
+def daily_pool(key, parameters):
+    _, location, parameter, interval, _ = key
+    return (interval.casefold() == '1day' and location.casefold().endswith('-pool')
+            and parameter.casefold() in parameters)
+
+
+def simulation_cases(groups):
+    parts = {key[4] for key in groups if daily_pool(key, {'elev'})}
+    cases = []
+    for label, suffix in [('Baseline', '-0'), ('Alternative', '-1')]:
+        matches = sorted(part for part in parts if part.endswith(suffix))
+        if len(matches) != 1:
+            raise ValueError(f'Expected one daily pool elevation F-part ending in {suffix} for {label}; '
+                             f'found {matches}. Available F-parts: {sorted(parts)}. '
+                             'Use --case to specify the full F-parts explicitly.')
+        cases.append((label, matches[0]))
+    return cases
+
+
+def inspect(path, cases, output):
+    # HEC-DSS may update bookkeeping even with mode='r'. Share one copy across cases.
     with tempfile.TemporaryDirectory(prefix='por-dss-') as directory:
         local = Path(directory) / path.name
         shutil.copyfile(path, local)
-        return inspect_copy(label, local, fpart, output)
+        with HecDss.Open(local, mode='r') as fid:
+            groups = defaultdict(list)
+            for pathname in fid.search_path('/*/*/*/*/*/*/', sort=1):
+                parts = pathname.split('/')
+                if len(parts) == 8:
+                    a, b, c, d, e, f = parts[1:7]
+                    groups[a, b, c, e, f].append(pathname)
+            cases = simulation_cases(groups) if cases is None else cases
+            return {label: (fpart, *inspect_case(fid, groups, label, fpart, output))
+                    for label, fpart in cases}
 
 
-def inspect_copy(label, path, fpart, output):
-    groups = defaultdict(list)
-    with HecDss.Open(path, mode='r') as fid:
-        for pathname in fid.search_path('/*/*/*/*/*/*/', sort=1):
-            parts = pathname.split('/')
-            if len(parts) == 8:
-                a, b, c, d, e, f = parts[1:7]
-                groups[a, b, c, e, f].append(pathname)
-        with (output / f'{label}_catalog.csv').open('w', newline='') as stream:
-            writer = csv.writer(stream)
-            writer.writerow(['A', 'B', 'C', 'E', 'F', 'blocks', 'example_path'])
-            for key, paths in sorted(groups.items()):
-                writer.writerow([*key, len(paths), paths[0]])
-        selected = {key: paths for key, paths in groups.items()
-                    if key[4] == fpart and key[3].casefold() == '1day'
-                    and key[1].casefold().endswith('-pool')
-                    and key[2].casefold() in {'elev', 'flow-in', 'flow-out'}}
-        if not selected:
-            raise ValueError(f'No daily pool results for {label}, F={fpart}')
-        results, rows = {}, []
-        for key, paths in sorted(selected.items()):
-            series, units = read_series(fid, paths)
-            valid = series.dropna()
-            expected = (series.index.max() - series.index.min()).days + 1 if len(series) else 0
-            rows.append(dict(case=label, A=key[0], location=key[1], parameter=key[2],
-                             units=units, first_day=str(series.index.min()) if len(series) else '',
-                             last_day=str(series.index.max()) if len(series) else '',
-                             expected_days=expected, valid_days=len(valid),
-                             missing_days=expected-len(valid),
-                             mean=valid.mean(), minimum=valid.min(), maximum=valid.max()))
-            results[key[:3]] = (series, units)
+def inspect_case(fid, groups, label, fpart, output):
+    with (output / f'{label}_catalog.csv').open('w', newline='') as stream:
+        writer = csv.writer(stream)
+        writer.writerow(['A', 'B', 'C', 'E', 'F', 'blocks', 'example_path'])
+        for key, paths in sorted(groups.items()):
+            writer.writerow([*key, len(paths), paths[0]])
+    selected = {key: paths for key, paths in groups.items()
+                if key[4] == fpart and daily_pool(key, {'elev', 'flow-in', 'flow-out'})}
+    if not selected:
+        raise ValueError(f'No daily pool results for {label}, F={fpart}')
+    results, rows = {}, []
+    for key, paths in sorted(selected.items()):
+        series, units = read_series(fid, paths)
+        valid = series.dropna()
+        expected = (series.index.max() - series.index.min()).days + 1 if len(series) else 0
+        rows.append(dict(case=label, A=key[0], location=key[1], parameter=key[2],
+                         units=units, first_day=str(series.index.min()) if len(series) else '',
+                         last_day=str(series.index.max()) if len(series) else '',
+                         expected_days=expected, valid_days=len(valid),
+                         missing_days=expected-len(valid),
+                         mean=valid.mean(), minimum=valid.min(), maximum=valid.max()))
+        results[key[:3]] = (series, units)
     return results, rows
 
 
@@ -117,8 +136,11 @@ def add_ramp_lines(fig, ramps, units):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--case', action='append', nargs=3, metavar=('LABEL', 'DSS', 'F_PART'),
-                        help='Repeat for each case; first case is baseline.')
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument('--simulation-dss', type=Path,
+                        help='One DSS file with Baseline (-0) and Alternative (-1) F-parts.')
+    inputs.add_argument('--case', action='append', nargs=3, metavar=('LABEL', 'DSS', 'F_PART'),
+                        help='Repeat for each case; the first case is baseline.')
     parser.add_argument('--output', type=Path, default=ROOT / 'outputs/por_inventory')
     args = parser.parse_args()
     cases = args.case or [('Baseline', str(ROOT/'data/Baseline.dss'), 'ALL_D-----0'),
@@ -129,10 +151,20 @@ def main():
     ramps = pd.read_csv(ROOT / 'data/boat_ramp_elevations.csv')
     ramp_reservoirs = ramps.reservoir.str.casefold()
     args.output.mkdir(parents=True, exist_ok=True)
-    all_results, rows = {}, []
-    for label, path, fpart in cases:
-        all_results[label], case_rows = inspect(label, Path(path), fpart, args.output)
-        rows.extend(case_rows)
+    if args.simulation_dss:
+        path = args.simulation_dss.resolve()
+        loaded = inspect(path, None, args.output)
+        cases = [(label, str(path), entry[0]) for label, entry in loaded.items()]
+        labels = list(loaded)
+    else:
+        loaded = {}
+        by_path = defaultdict(list)
+        for label, path, fpart in cases:
+            by_path[Path(path).resolve()].append((label, fpart))
+        for path, file_cases in by_path.items():
+            loaded.update(inspect(path, file_cases, args.output))
+    all_results = {label: loaded[label][1] for label in labels}
+    rows = [row for label in labels for row in loaded[label][2]]
     pd.DataFrame(rows).to_csv(args.output/'coverage.csv', index=False)
     keys = set.union(*(set(result) for result in all_results.values()))
     comparisons, figures, elevation_figures = [], [], []
@@ -196,6 +228,8 @@ def main():
         'At 50%, the elevation is approximately the median. Dashed lines show boat-ramp elevations. '
         'Hover over a ramp line to see how often each case was strictly above it.</p>'
         + '\n'.join(elevation_figures), encoding='utf-8')
+    for label, path, fpart in cases:
+        print(f'{label}: F={fpart} in {path}')
     print(pd.DataFrame(rows)[['case', 'first_day', 'last_day', 'valid_days', 'missing_days']]
           .drop_duplicates().to_string(index=False))
     print(f'Wrote catalogs, coverage, paired comparisons and duration plots to {args.output}')
