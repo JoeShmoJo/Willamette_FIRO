@@ -4,12 +4,29 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from compare_purposes import (MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
-                              annual_rows, days_above, relative_system_storage, special_release)
+from compare_purposes import (FLOOD_LEVELS, MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
+                              annual_rows, days_above, relative_system_storage, release_shortfall,
+                              special_release)
 from inspect_por import copy_snapshot
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    def test_system_flood_counts_overlapping_exceedances_once_and_requires_all_sites(self):
+        metric = FLOOD_LEVELS['flood_cfs']
+        first = ('Flood Control', 'First', metric, 'days', 'daily routed flow threshold', 'sum')
+        second = ('Flood Control', 'Second', metric, 'days', 'daily routed flow threshold', 'sum')
+        case = {first: pd.Series([1., 1., 0., 1.]), second: pd.Series([1., 0., 0., np.nan])}
+        add_system_metrics([case, case.copy()], pd.Series(np.nan, index=range(4)))
+        system = ('Flood Control', 'SYSTEM', f'{metric} at any control point', 'days',
+                  'daily routed flow threshold', 'sum')
+        np.testing.assert_equal(case[system].to_numpy(), [1., 1., 0., np.nan])
+
+    def test_release_screen_uses_tolerance_without_inventing_missing_or_disabled_targets(self):
+        target = pd.Series([100., 100., 500., 500., 0., np.nan, 100.])
+        out = pd.Series([95., 94., 490., 489., 0., 0., np.nan])
+        np.testing.assert_equal(release_shortfall(out, target).to_numpy(),
+                                [0., 1., 0., 1., 0., np.nan, np.nan])
+
     def test_days_above_uses_strict_flow_threshold_and_preserves_missing_days(self):
         result = days_above(pd.Series([11999., 12100., 12101., np.nan]), 12100)
         np.testing.assert_equal(result.to_numpy(), [0., 0., 1., np.nan])

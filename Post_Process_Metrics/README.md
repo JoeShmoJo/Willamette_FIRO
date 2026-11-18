@@ -144,8 +144,8 @@ date is missing. Recreation completeness is reported in the recreation tables.
 | Hydropower | Annual discharge volume through each of eight modeled powerplants, in acre-feet, is a throughput proxy. | Net head, efficiency, operating limits and generation or pricing data. |
 | Recreation | Verified FIRO activation and reconstructed daily zone membership feed February 1–December 1 boat-ramp days by reservoir and system. | Confirm workbook/DSS vertical datum. |
 | Water Quality | The 10th percentile of daily routed flow at Albany and Salem gives low-flow context. | Water temperature, dissolved oxygen, or a calibrated constituent model and applicable criteria. |
-| Water Supply | Minimum daily total pool storage by reservoir is a storage proxy. | Approved usable-storage bounds, accounting, demand, delivery, and any snapshot dates. |
-| ESA flow compliance | Both cases' routed flow is screened against the same positive daily `Min_Flow_Target_*/Flow-Min` series saved in the Alternative DSS. | Verified water-year-specific ESA targets and compliance criteria. The Baseline lacks a usable target and the shared reference screen does not establish ESA compliance. |
+| Water Supply | Daily duration plots, water-year minimum and maximum, and Memorial Day and Labor Day storage in a dedicated page. | Approved usable-storage bounds, accounting, demand, and delivery. |
+| ESA flow compliance | Reservoir outflow against a tributary BiOp schedule and against the saved Combined Min Trib request. Albany and Salem have a separate mainstem reference screen. | Verified run-specific ESA targets and compliance criteria. |
 
 The flood test compares daily total pool outflow strictly above the named
 `Flow-MAX` rule value when that rule is in the reconstructed operating-zone
@@ -161,7 +161,17 @@ and missing target days make the year incomplete. Using one common reference
 keeps the paired comparison on the same dates. The saved model target has no
 verified ESA status for this analysis.
 
-Outputs under `outputs/purpose_comparison/` include an offline HTML report,
+For tributaries, `--esa-minimums` selects a recurring `Month,Day` plus
+reservoir-column BiOp minimum schedule in cfs. The bundled schedule covers
+10 projects. Green Peter's schedule is checked against Foster outflow, following
+the model checker. The separate combined-minimum metric uses each case's
+`<reservoir>-Combined Min Trib/Flow-SPEC` request and that reservoir's
+`Pool/Flow-OUT`. Days below target use the model-checker tolerance of 5 cfs
+or 2% of target, whichever is larger. Missing targets and releases remain
+unscored. These are modeled adherence screens.
+
+Outputs under `outputs/purpose_comparison/` include an offline HTML report, a linked
+`water_supply.html` page,
 `annual_comparison.csv` with coverage and paired changes,
 `daily_threshold_checks.csv` with rule or target inputs and event flags,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
@@ -181,17 +191,19 @@ DSS routed-flow location names. Use `--flood-thresholds` to supply a separate
 CSV with the same columns. **Flood Control / All threshold levels** shows
 three grouped box-plot panels. Annual counts use daily flow strictly above each
 threshold. The levels are cumulative, so a major-flood day can count in all
-three. The report includes a copy of the thresholds used.
+three. Each system count marks a calendar day once per threshold if any control
+point exceeded that threshold. Days with missing data at a control point make
+the system period incomplete. The report includes a copy of the thresholds used.
 
 `SYSTEM` includes special-release reservoir-days across applicable projects,
-total throughput across modeled powerplants, the minimum of the daily combined
-pool storage, and total seasonal ramp-days. The sum of plant throughput can
-include the same water at successive plants. System storage is the minimum of
-the daily sum, which preserves the timing of reservoir storage. Missing member
-data make the system result incomplete. Routed flow and minimum-flow screening
-stay separate at Albany and Salem because the sites share upstream flows.
+total throughput across modeled powerplants, daily combined pool storage,
+system threshold days and total seasonal ramp-days. The sum of plant throughput
+can include the same water at successive plants. The annual system storage peak
+is the highest daily sum for the water year. Memorial Day and Labor Day each
+use one daily snapshot per year, summed across reservoirs for the system. Missing
+member data make the system result incomplete.
 
-The system storage section plots the duration of daily combined storage relative
+The Water Supply page also plots the duration of daily combined storage relative
 to a common zero. Zero is the lowest observed Baseline daily system total in
 the complete paired conservation seasons. The default reference window is
 February 1–December 1, inclusive. Override it with `--storage-season MM-DD MM-DD`

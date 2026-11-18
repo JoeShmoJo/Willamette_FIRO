@@ -74,7 +74,7 @@ def grouped_box_plot(tables, labels):
                         subplot_titles=[title for title, _ in tables])
     for row, (_, table) in enumerate(tables, start=1):
         paired = table.dropna(subset=['baseline', 'alternative'])
-        locations = sorted(table.location.unique())
+        locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
         for column, label, color in zip(('baseline', 'alternative'), labels, ('#17638a', '#a44721')):
             fig.add_trace(go.Box(name=label, x=paired.location, y=paired[column],
                                  text=paired.year, boxpoints='outliers', marker_color=color,
@@ -89,25 +89,30 @@ def grouped_box_plot(tables, labels):
     return fig
 
 
-def distribution_report(summary, labels, system_metrics, flood_levels):
+def distribution_report(summary, labels, system_metrics, flood_levels=None):
     # A system aggregate may have a different name from its reservoir-level metric.
     site_metric = {system_name: name for name, (system_name, _) in system_metrics.items()}
     tables = summary.assign(plot_metric=summary.metric.replace(site_metric))
     options, panels = [], []
-    levels = [(metric, tables[tables.metric == metric]) for metric in flood_levels.values()]
-    options.append('<option value="flood-levels">Flood Control / All threshold levels</option>')
-    panels.append('<section id="metric-flood-levels" class="metric-panel">'
-                  '<p>Each panel compares annual days strictly above that threshold at every control point.</p>'
-                  + grouped_box_plot(levels, labels).to_html(full_html=False, include_plotlyjs=True)
-                  + '</section>')
+    if flood_levels:
+        levels = [(metric, tables[tables.plot_metric == metric]) for metric in flood_levels.values()]
+        options.append('<option value="flood-levels">Flood Control / All threshold levels</option>')
+        panels.append('<section id="metric-flood-levels" class="metric-panel">'
+                      '<p>Each panel compares annual days strictly above that threshold by control point '
+                      'and across the system.</p>'
+                      + grouped_box_plot(levels, labels).to_html(full_html=False, include_plotlyjs=True)
+                      + '</section>')
     for index, ((purpose, metric), table) in enumerate(tables.groupby(['purpose', 'plot_metric'])):
         options.append(f'<option value="{index}">{escape(f"{purpose} / {metric}")}</option>')
         statuses = ' · '.join(table.status.unique())
         system = table.loc[table.location == 'SYSTEM', 'metric']
         system_note = f' <strong>System:</strong> {escape(system.iloc[0])}.' if not system.empty else ''
-        plots = {kind: location_plot(table, labels, kind).to_html(full_html=False, include_plotlyjs=False)
+        first_panel = not panels
+        plots = {kind: location_plot(table, labels, kind).to_html(
+            full_html=False, include_plotlyjs=first_panel and kind == 'box')
                  for kind in ('box', 'duration', 'change')}
-        panels.append(f'<section id="metric-{index}" class="metric-panel" hidden>'
+        hidden = '' if first_panel else ' hidden'
+        panels.append(f'<section id="metric-{index}" class="metric-panel"{hidden}>'
                       f'<p>{escape(statuses)}.{system_note}</p>'
                       '<h2>Box plots</h2>' + plots['box']
                       + '<h2>Duration plots</h2>' + plots['duration']
