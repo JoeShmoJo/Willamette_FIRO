@@ -41,6 +41,11 @@ DSS, spillway crests from `BasicProjectData.csv`, and ramp elevations from
 `boat_ramp_elevations.csv`. Big Cliff and Dexter have no crest elevation in the
 bundled project data. `--project-data` accepts the same format from another run.
 
+The water-year selector highlights one Baseline/Alternative pair with thicker
+lines. Use the arrow buttons, or Up/Down with the selector focused, to step
+through available years. **Selected year** and **All years** are independent
+toggles and apply to all reservoirs on the page.
+
 Supply `--firo-marker Baseline <marker.json>` and
 `--firo-marker Alternative <marker.json>` with the matching active configuration
 markers to plot case-specific target schedules. A configuration or receipt that
@@ -135,7 +140,7 @@ date is missing. Recreation completeness is reported in the recreation tables.
 
 | Purpose | First-pass comparison | Inputs still needed |
 | --- | --- | --- |
-| Flood Control | Peak daily routed flow at Albany and Salem is an exposure proxy. Special-release days use the study's strict outflow test at the applicable projects. | Approved downstream thresholds and impact information for bankfull, flood impacts, or damages. |
+| Flood Control | Peak daily routed flow and days above the three supplied flow thresholds at each listed control point. Special-release days use the study's strict outflow test at the applicable projects. | Impact information for flood damages. |
 | Hydropower | Annual discharge volume through each of eight modeled powerplants, in acre-feet, is a throughput proxy. | Net head, efficiency, operating limits and generation or pricing data. |
 | Recreation | Verified FIRO activation and reconstructed daily zone membership feed February 1–December 1 boat-ramp days by reservoir and system. | Confirm workbook/DSS vertical datum. |
 | Water Quality | The 10th percentile of daily routed flow at Albany and Salem gives low-flow context. | Water temperature, dissolved oxygen, or a calibrated constituent model and applicable criteria. |
@@ -162,12 +167,21 @@ Outputs under `outputs/purpose_comparison/` include an offline HTML report,
 `provenance.json` with source hashes and DSS paths, and the existing recreation
 reports in `recreation/`. Source DSS files are opened through temporary copies.
 
-In the HTML report, choose a metric to see the system and applicable locations
-stacked on one page. Each row has Baseline and Alternative box plots, ranked
-duration curves, and a bar chart of Alternative minus Baseline by year.
+In the HTML report, choose a metric to compare locations in grouped Baseline
+and Alternative box plots. Expand **System and individual location plots** for
+stacked box plots, duration curves, and year-by-year changes, with the system
+first where it is available.
 The distributions use complete paired water years or recreation
 seasons. For daily pool elevation duration curves, use the separate elevation
 report described above.
+
+`data/flood_flow_thresholds.csv` holds editable action/bankfull, flood, and major
+flood thresholds in cfs for the 11 control points, along with the corresponding
+DSS routed-flow location names. Use `--flood-thresholds` to supply a separate
+CSV with the same columns. **Flood Control / All threshold levels** shows
+three grouped box-plot panels. Annual counts use daily flow strictly above each
+threshold. The levels are cumulative, so a major-flood day can count in all
+three. The report includes a copy of the thresholds used.
 
 `SYSTEM` includes special-release reservoir-days across applicable projects,
 total throughput across modeled powerplants, the minimum of the daily combined

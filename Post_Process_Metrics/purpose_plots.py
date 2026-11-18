@@ -71,22 +71,52 @@ def stacked_distribution_plot(table, labels):
     return fig
 
 
-def distribution_report(summary, labels, system_metrics):
+def grouped_box_plot(tables, labels):
+    fig = make_subplots(rows=len(tables), cols=1,
+                        subplot_titles=[title for title, _ in tables])
+    for row, (_, table) in enumerate(tables, start=1):
+        paired = table.dropna(subset=['baseline', 'alternative'])
+        locations = sorted(table.location.unique())
+        for column, label, color in zip(('baseline', 'alternative'), labels, ('#17638a', '#a44721')):
+            fig.add_trace(go.Box(name=label, x=paired.location, y=paired[column],
+                                 text=paired.year, boxpoints='outliers', marker_color=color,
+                                 legendgroup=column, showlegend=row == 1,
+                                 hovertemplate='%{x} · %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'),
+                          row=row, col=1)
+        fig.update_xaxes(categoryorder='array', categoryarray=locations, tickangle=-25, row=row, col=1)
+        fig.update_yaxes(title_text=table.units.iloc[0], row=row, col=1)
+    fig.update_layout(template='plotly_white', boxmode='group', height=360 * len(tables),
+                      margin=dict(t=60, b=76, l=72, r=24),
+                      legend=dict(orientation='h', y=1.025, x=1, xanchor='right'))
+    return fig
+
+
+def distribution_report(summary, labels, system_metrics, flood_levels):
     # A system aggregate may have a different name from its reservoir-level metric.
     site_metric = {system_name: name for name, (system_name, _) in system_metrics.items()}
     tables = summary.assign(plot_metric=summary.metric.replace(site_metric))
     options, panels = [], []
+    levels = [(metric, tables[tables.metric == metric]) for metric in flood_levels.values()]
+    options.append('<option value="flood-levels">Flood Control / All threshold levels</option>')
+    panels.append('<section id="metric-flood-levels" class="metric-panel">'
+                  '<p>Each panel compares annual days strictly above that threshold at every control point.</p>'
+                  + grouped_box_plot(levels, labels).to_html(full_html=False, include_plotlyjs=True)
+                  + '</section>')
     for index, ((purpose, metric), table) in enumerate(tables.groupby(['purpose', 'plot_metric'])):
         options.append(f'<option value="{index}">{escape(f"{purpose} / {metric}")}</option>')
-        hidden = ' hidden' if index else ''
         statuses = ' · '.join(table.status.unique())
         system = table.loc[table.location == 'SYSTEM', 'metric']
         system_note = f' <strong>System:</strong> {escape(system.iloc[0])}.' if not system.empty else ''
-        figure = stacked_distribution_plot(table, labels)
-        panels.append(f'<section id="metric-{index}" class="metric-panel"{hidden}>'
+        sites = table[table.location != 'SYSTEM']
+        details = stacked_distribution_plot(table, labels).to_html(full_html=False, include_plotlyjs=False)
+        overview = ''
+        if sites.location.nunique() > 1:
+            overview = grouped_box_plot([('Location comparison', sites)], labels).to_html(
+                full_html=False, include_plotlyjs=False)
+            details = '<details class="plot-details"><summary>System and individual location plots</summary>' + details + '</details>'
+        panels.append(f'<section id="metric-{index}" class="metric-panel" hidden>'
                       f'<p>{escape(statuses)}.{system_note}</p>'
-                      + figure.to_html(full_html=False, include_plotlyjs=index == 0)
-                      + '</section>')
+                      + overview + details + '</section>')
     return ('<label for="metric">Metric</label> <select id="metric">'
             + ''.join(options)
             + '</select>' + ''.join(panels)
@@ -94,5 +124,13 @@ def distribution_report(summary, labels, system_metrics):
               '  document.querySelector(".metric-panel:not([hidden])").hidden = true;'
               '  const panel = document.getElementById("metric-" + event.target.value);'
               '  panel.hidden = false;'
-              '  Plotly.Plots.resize(panel.querySelector(".js-plotly-plot"));'
+              '  resizePlots(panel);'
+              '});'
+              'function resizePlots(container) {'
+              '  container.querySelectorAll(".js-plotly-plot").forEach((plot) => {'
+              '    if (plot.offsetWidth) Plotly.Plots.resize(plot);'
+              '  });'
+              '}'
+              'document.querySelectorAll(".plot-details").forEach((details) => {'
+              '  details.addEventListener("toggle", () => { if (details.open) resizePlots(details); });'
               '});</script>')

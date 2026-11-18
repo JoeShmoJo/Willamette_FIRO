@@ -1,0 +1,12 @@
+station_id,location,dss_location,action_cfs,flood_cfs,major_flood_cfs
+GOSO,Goshen,CF WIllamette_nr Goshen,12100,14900,41000
+JASO,Jasper,MF Willamette_at Jasper,20000,23000,65200
+EUGO,Eugene,Willamette_at Eugene,39500,52600,94300
+VIDO,Vida,McKenzie_at Vida,22200,35000,49500
+HARO,Harrisburg,Willamette_at Harrisburg,39700,66500,100700
+MNRO,Monroe,Long Tom_at Monroe,5660,6780,16000
+ALBO,Albany,Willamette_at Albany,67300,84000,152600
+WTLO,Waterloo,So Santiam_at Waterloo,19000,25700,42700
+MEHO,Mehama,No Santiam_at Mehama,17000,30500,53600
+JFFO,Jefferson,Santiam_at Jefferson,43000,55900,213000
+SLMO,Salem,Willamette_at Salem,94000,154300,201700

@@ -5,11 +5,15 @@ import numpy as np
 import pandas as pd
 
 from compare_purposes import (MAX_RELATIVE_STORAGE, SYSTEM_STORAGE, add_system_metrics,
-                              annual_rows, relative_system_storage, special_release)
+                              annual_rows, days_above, relative_system_storage, special_release)
 from inspect_por import copy_snapshot
 
 
 class PurposeComparisonTests(unittest.TestCase):
+    def test_days_above_uses_strict_flow_threshold_and_preserves_missing_days(self):
+        result = days_above(pd.Series([11999., 12100., 12101., np.nan]), 12100)
+        np.testing.assert_equal(result.to_numpy(), [0., 0., 1., np.nan])
+
     @patch('inspect_por.sys.stderr')
     @patch('inspect_por.time.sleep')
     @patch('inspect_por.shutil.copyfile')

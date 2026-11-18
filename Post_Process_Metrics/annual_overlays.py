@@ -60,6 +60,7 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
                                       y=y, text=years, name=f'{label} {title}', mode='lines',
                                       line=dict(color=color, dash=dash, width=1.6 if row == 1 else 1),
                                       opacity=opacity, visible=visible,
+                                      meta='annual' if parameter != 'elev-zone' else None,
                                       hovertemplate=date_label + ': %{y:,.2f}<extra>%{fullData.name}</extra>'),
                           row=row, col=1)
 
@@ -148,10 +149,15 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
             case[parameter] = values
 
     links, sections = [], []
+    available_years = set()
     for i, (reservoir, cases) in enumerate(sorted(by_reservoir.items())):
         links.append(f'<a href="#reservoir-{i}">{escape(reservoir)}</a>')
         ramp_rows = ramps[ramps.reservoir.str.casefold() == reservoir.casefold()]
         curves, notes = firo_overlays(reservoir, results, firo_path, evidence)
+        for parameters in cases.values():
+            if 'elev' in parameters:
+                dates = parameters['elev'].dropna().index
+                available_years.update(dates.year + (dates.month >= 10).astype(int))
         fig, missing = reservoir_figure({label: cases.get(label, {}) for label in results},
                                         ramp_rows, crest.get(reservoir.casefold()), curves)
         if missing:
@@ -169,35 +175,145 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         firo_note = ('The FIRO line is the recurring target schedule from the reference CSV. '
                      'It does not establish whether FIRO was active in either run.')
         firo_sources = str(firo_path)
+    year_options = ''.join(f'<option value="{year}">{year}</option>' for year in sorted(available_years))
     output.write_text(
         '<!doctype html><html lang="en"><meta charset="utf-8"><title>Annual reservoir overlays</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}'
         'nav{display:flex;gap:.5rem 1rem;flex-wrap:wrap}.reservoir-chart{min-height:660px}'
-        'section{border-top:1px solid #dbe3eb;margin:2rem 0}</style>'
+        'section{border-top:1px solid #dbe3eb;margin:2rem 0;scroll-margin-top:4rem}'
+        '#overlay-controls{position:sticky;top:0;background:white;z-index:10;padding:.6rem 0;'
+        'border-bottom:1px solid #dbe3eb;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}'
+        '#overlay-controls button,#overlay-controls select{font:inherit}</style>'
         '<h1>Annual reservoir overlays</h1>'
         '<p>Each line overlays daily values for one water year. Hover to see its year. '
-        'Click a legend item to show or hide it. Inflow starts hidden.</p>'
+        'Click a legend item to show or hide it. Inflow starts hidden. Choose a year to highlight '
+        'its paired traces, and use Up/Down while the year selector has focus.</p>'
         f'<p>Rule curves come from DSS Elev-ZONE. {firo_note}</p>'
         f'<p>FIRO source: {escape(firo_sources)}<br>Spillway crests: {escape(str(project_data))}</p>'
-        '<nav>' + ''.join(links) + '</nav>' + ''.join(sections)
+        '<nav>' + ''.join(links) + '</nav>'
+        '<div id="overlay-controls"><label for="overlay-year">Water year</label>'
+        '<button type="button" id="previous-year" aria-label="Previous water year">↑</button>'
+        '<select id="overlay-year">' + year_options + '</select>'
+        '<button type="button" id="next-year" aria-label="Next water year">↓</button>'
+        '<label><input id="selected-year" type="checkbox" checked> Selected year</label>'
+        '<label><input id="all-years" type="checkbox" checked> All years</label></div>'
+        + ''.join(sections)
         + '<script>' + get_plotlyjs() + '</script>'
-        '<script>const observer = new IntersectionObserver((entries) => {'
-        '  for (const entry of entries) {'
-        '    const chart = entry.target;'
-        '    if (!entry.isIntersecting) {'
-        '      if (chart.data) {'
-        '        chart.traceVisibility = chart.data.map((trace) => trace.visible);'
-        '        Plotly.purge(chart);'
-        '      }'
-        '      continue;'
-        '    }'
-        '    if (chart.data) continue;'
-        '    const spec = JSON.parse(chart.nextElementSibling.textContent);'
-        '    if (chart.traceVisibility) {'
-        '      spec.data.forEach((trace, i) => { trace.visible = chart.traceVisibility[i]; });'
-        '    }'
-        '    Plotly.newPlot(chart, spec.data, spec.layout, {responsive: true});'
-        '  }'
-        '}, {rootMargin: "400px"});'
-        'document.querySelectorAll(".reservoir-chart").forEach((chart) => observer.observe(chart));</script>',
+        + OVERLAY_CONTROLS,
         encoding='utf-8')
+
+
+OVERLAY_CONTROLS = """<script>
+const yearPicker = document.getElementById("overlay-year");
+const selected = document.getElementById("selected-year");
+const background = document.getElementById("all-years");
+const previous = document.getElementById("previous-year");
+const next = document.getElementById("next-year");
+const charts = document.querySelectorAll(".reservoir-chart");
+
+function updatePair(chart) {
+  const sources = chart.annualSources;
+  if (!sources?.length || !chart.data) return;
+  const year = Number(yearPicker.value);
+  const indices = [];
+  const update = {x: [], y: [], name: [], visible: []};
+  for (const source of sources) {
+    const x = [], y = [];
+    for (let i = 0; i < source.trace.text.length; i++) {
+      if (Number(source.trace.text[i]) === year) {
+        x.push(source.trace.x[i]);
+        y.push(source.trace.y[i]);
+      }
+    }
+    indices.push(source.pairIndex);
+    update.x.push(x);
+    update.y.push(y);
+    update.name.push(source.trace.name + " · WY " + year);
+    const setting = chart.backgroundShown ? chart.data[source.index].visible : source.visibility;
+    update.visible.push(selected.checked && y.some(Number.isFinite) && setting !== "legendonly" && setting !== false);
+  }
+  Plotly.restyle(chart, update, indices);
+}
+
+function updateBackground(chart) {
+  if (!chart.annualSources?.length || !chart.data) return;
+  if (chart.backgroundShown && !background.checked) {
+    chart.annualSources.forEach((source) => { source.visibility = chart.data[source.index].visible ?? true; });
+  }
+  chart.backgroundShown = background.checked;
+  Plotly.restyle(chart, {visible: chart.annualSources.map((source) => background.checked ? source.visibility : false)},
+                 chart.annualSources.map((source) => source.index));
+  updatePair(chart);
+}
+
+function updateYear() {
+  charts.forEach(updatePair);
+}
+function stepYear(direction) {
+  const count = yearPicker.options.length;
+  if (!count) return;
+  yearPicker.selectedIndex = (yearPicker.selectedIndex + direction + count) % count;
+  updateYear();
+}
+previous.disabled = next.disabled = yearPicker.options.length < 2;
+previous.addEventListener("click", () => stepYear(-1));
+next.addEventListener("click", () => stepYear(1));
+yearPicker.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+    event.preventDefault();
+    stepYear(event.key === "ArrowUp" ? -1 : 1);
+  }
+});
+yearPicker.addEventListener("change", updateYear);
+selected.addEventListener("change", updateYear);
+background.addEventListener("change", () => charts.forEach(updateBackground));
+yearPicker.selectedIndex = yearPicker.options.length - 1;
+updateYear();
+
+async function mount(chart) {
+  const spec = JSON.parse(chart.nextElementSibling.textContent);
+  if (chart.traceVisibility) {
+    spec.data.forEach((trace, i) => { trace.visible = chart.traceVisibility[i]; });
+  }
+  await Plotly.newPlot(chart, spec.data, spec.layout, {responsive: true});
+  const annual = chart._fullData.flatMap((trace, index) => trace.meta === "annual"
+    ? [{trace, index, visibility: chart.data[index].visible ?? true}] : []);
+  const start = chart.data.length;
+  if (annual.length) {
+    await Plotly.addTraces(chart, annual.map(({trace}) => ({
+      type: "scatter", mode: "lines", x: [], y: [], visible: false, showlegend: false,
+      xaxis: trace.xaxis, yaxis: trace.yaxis, line: {...trace.line, width: 3.2},
+      hovertemplate: "%{x|%b %d}: %{y:,.2f}<extra>%{fullData.name}</extra>"
+    })));
+  }
+  chart.annualSources = annual.map((source, i) => ({...source, pairIndex: start + i}));
+  chart.backgroundShown = true;
+  chart.on("plotly_restyle", ([update, indices]) => {
+    if (update.visible && chart.backgroundShown && indices.some((i) => i < start)) {
+      window.requestAnimationFrame(() => updatePair(chart));
+    }
+  });
+  if (background.checked) updatePair(chart);
+  else updateBackground(chart);
+}
+
+const observer = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    const chart = entry.target;
+    if (!entry.isIntersecting && chart.data && !chart.mounting) {
+      const original = chart.data.length - (chart.annualSources?.length ?? 0);
+      const visibility = chart.data.slice(0, original).map((trace) => trace.visible);
+      if (!chart.backgroundShown) {
+        chart.annualSources.forEach((source) => { visibility[source.index] = source.visibility; });
+      }
+      chart.traceVisibility = visibility;
+      chart.annualSources = null;
+      Plotly.purge(chart);
+    } else if (entry.isIntersecting && !chart.data && !chart.mounting) {
+      chart.mounting = true;
+      mount(chart).finally(() => { chart.mounting = false; });
+    }
+  }
+}, {rootMargin: "400px"});
+charts.forEach((chart) => observer.observe(chart));
+</script>"""

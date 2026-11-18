@@ -18,13 +18,18 @@ from recreation import run as run_recreation, season_dates, zone_membership
 
 ROOT = Path(__file__).resolve().parent
 SITES = ('Albany', 'Salem')
+FLOOD_LEVELS = {
+    'action_cfs': 'Days above action / bankfull flow',
+    'flood_cfs': 'Days above flood flow',
+    'major_flood_cfs': 'Days above major flood flow',
+}
 EVACUATION_RULES = {'max evacuation release', 'max evacuation rate'}
 
 PURPOSES = {
-    'Flood Control': 'Peak daily routed flow is a flood exposure proxy. Special-release days use total '
+    'Flood Control': 'Threshold metrics count daily routed flows strictly above the specified cfs levels. '
+    'Peak daily routed flow is also shown. Special-release days use total '
     'pool outflow strictly above the saved Max Evacuation Release (Hills Creek: Max Evacuation Rate) '
-    'when the rule is in the daily operating-zone stack. Bankfull and damages need approved thresholds '
-    'and impact information.',
+    'when the rule is in the daily operating-zone stack. Flood damages require impact information.',
     'Hydropower': 'Powerplant discharge volume is a throughput proxy. Energy and value require '
     'net head, efficiency, operating limits and generation or pricing data.',
     'Recreation': 'Ramp-days within the configured season require actual pool elevation and '
@@ -91,7 +96,28 @@ def open_snapshot(stack, path):
     return fid, case_catalog(fid), digest
 
 
-def load_case(fid, catalog, path, fpart, report, dates, reference=False, ramps=None):
+def read_flood_thresholds(path):
+    thresholds = pd.read_csv(path, encoding='utf-8-sig')
+    identities = ['station_id', 'location', 'dss_location']
+    thresholds = thresholds[[*identities, *FLOOD_LEVELS]]
+    for name in identities:
+        field = thresholds[name].astype('string').str.strip()
+        if field.isna().any() or field.eq('').any() or field.str.casefold().duplicated().any():
+            raise ValueError(f'{path}: {name} must be nonempty and unique.')
+        thresholds[name] = field
+    thresholds[list(FLOOD_LEVELS)] = thresholds[list(FLOOD_LEVELS)].apply(pd.to_numeric, errors='raise')
+    levels = thresholds[list(FLOOD_LEVELS)].to_numpy()
+    if (thresholds.empty or not np.isfinite(levels).all() or (levels <= 0).any()
+            or (np.diff(levels, axis=1) <= 0).any()):
+        raise ValueError(f'{path}: require positive, increasing action, flood, and major flood thresholds.')
+    return thresholds
+
+
+def days_above(flow, threshold):
+    return flow.gt(threshold).astype(float).where(flow.notna())
+
+
+def load_case(fid, catalog, path, fpart, report, dates, flood_thresholds, reference=False, ramps=None):
     groups = {(a, b, c): paths for (a, b, c, interval, part), paths in catalog.items()
               if interval.casefold() == '1day' and part == fpart}
     sources, values, daily_checks, targets = [], {}, {}, {}
@@ -114,10 +140,23 @@ def load_case(fid, catalog, path, fpart, report, dates, reference=False, ramps=N
         sources.append({'paths': matches[0], 'units': units})
         return data.where(np.isfinite(data))
 
+    routed_flows = {}
+    for station in flood_thresholds.itertuples(index=False):
+        flow = series(station.dss_location, 'Flow', {'cfs'}, optional=True).reindex(dates)
+        routed_flows[station.dss_location.casefold()] = flow
+        location = station.location
+        values['Flood Control', location, 'Peak daily routed flow', 'cfs', 'proxy', 'max'] = flow
+        for field, metric in FLOOD_LEVELS.items():
+            values['Flood Control', location, metric, 'days', 'daily routed flow threshold', 'sum'] = (
+                days_above(flow, getattr(station, field))
+            )
     for site in SITES:
-        flow = series(f'Willamette_at {site}', 'Flow', {'cfs'}, optional=ramps is not None).reindex(dates)
-        values['Flood Control', site, 'Peak daily routed flow', 'cfs', 'proxy', 'max'] = flow
-        values['Water Quality', site, '10th percentile daily routed flow', 'cfs', 'proxy', 'p10'] = flow
+        name = f'Willamette_at {site}'
+        if name.casefold() not in routed_flows:
+            routed_flows[name.casefold()] = series(name, 'Flow', {'cfs'}, optional=True).reindex(dates)
+        values['Water Quality', site, '10th percentile daily routed flow', 'cfs', 'proxy', 'p10'] = (
+            routed_flows[name.casefold()]
+        )
         if reference:
             targets[site] = series(f'Min_Flow_Target_{site}', 'Flow-Min', {'cfs'},
                                    optional=True).reindex(dates)
@@ -217,6 +256,7 @@ def main():
     parser.add_argument('--last-year', type=int)
     parser.add_argument('--storage-season', nargs=2, metavar=('START_MM-DD', 'END_MM-DD'),
                         help='Season used to find the shared storage zero. Defaults to the configured season.')
+    parser.add_argument('--flood-thresholds', type=Path, default=ROOT/'data/flood_flow_thresholds.csv')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     local_mode = args.simulation_dss is not None
@@ -231,6 +271,7 @@ def main():
     elif args.first_year is not None or args.last_year is not None:
         parser.error('Set the study years in --config, or use both year flags with --simulation-dss.')
 
+    flood_thresholds = read_flood_thresholds(args.flood_thresholds)
     first, last = config['first_year'], config['last_year']
     if first > last:
         parser.error('first_year must be no later than last_year.')
@@ -280,7 +321,7 @@ def main():
                 hashes[str(report)] = hashlib.sha256(report_bytes).hexdigest()
                 model = json.loads(report_bytes)
             values, series_sources, checks, targets = load_case(fid, catalog, dss, case['f_part'], model,
-                                                                dates, reference=i == 1, ramps=ramps)
+                                                                dates, flood_thresholds, reference=i == 1, ramps=ramps)
             metrics.append(values)
             for (check, location), table in checks.items():
                 daily.append(table.assign(check=check, location=location, case=case['name']))
@@ -308,7 +349,7 @@ def main():
         reference = targets[site].reindex(water_dates)
         reference = reference.where(reference.ge(0))
         eligible = reference.gt(0)
-        flow_key = ('Flood Control', site, 'Peak daily routed flow', 'cfs', 'proxy', 'max')
+        flow_key = ('Water Quality', site, '10th percentile daily routed flow', 'cfs', 'proxy', 'p10')
         flows = [values[flow_key].reindex(water_dates) for values in metrics]
         below = [flow.lt(reference).astype(float).where(flow.notna() & eligible) for flow in flows]
         # Missing target days make the annual target screen incomplete; zero means no positive reference.
@@ -333,6 +374,7 @@ def main():
     summary = pd.DataFrame(rows).sort_values(['purpose', 'location', 'metric', 'year'])
     output.mkdir(parents=True, exist_ok=True)
     summary.to_csv(output/'annual_comparison.csv', index=False)
+    flood_thresholds.to_csv(output/'flood_flow_thresholds_used.csv', index=False)
     pd.concat(daily).rename_axis('date').to_csv(output/'daily_threshold_checks.csv')
     # Always overwrite the CSV so a rerun with incomplete coverage cannot leave stale values.
     storage_csv = storage if storage is not None else pd.DataFrame(columns=['baseline', 'alternative'])
@@ -347,13 +389,18 @@ def main():
         json.dumps(dict(config=config, start=str(water_dates[0].date()), end=str(water_dates[-1].date()),
                         mode='DSS-only' if local_mode else 'configured run evidence',
                         baseline=labels[0], alternative=labels[1], sources=provenance, methods=methods,
-                        system_members=system_members, storage_reference=storage_reference),
+                        system_members=system_members, storage_reference=storage_reference,
+                        flood_thresholds=str(args.flood_thresholds.resolve())),
                    indent=2), encoding='utf-8')
     sections = []
     for purpose, note in methods.items():
         table = summary[summary.purpose == purpose].drop(columns='purpose')
+        thresholds_html = ''
+        if purpose == 'Flood Control':
+            thresholds_html = ('<h3>Control-point flow thresholds (cfs)</h3>'
+                               + flood_thresholds.to_html(index=False))
         sections.append(f'<details><summary>{purpose} data table</summary><p>{note}</p>'
-                        + table.to_html(index=False, na_rep='—', float_format=lambda x: f'{x:,.2f}')
+                        + thresholds_html + table.to_html(index=False, na_rep='—', float_format=lambda x: f'{x:,.2f}')
                         + '</details>')
     recreation_note = (
         'Local DSS mode uses an elevation-only ramp screen. Verified recreation ramp-days and '
@@ -391,12 +438,13 @@ def main():
         f'{recreation_note}</p>'
         f'{source_note}'
         '<p><a href="annual_comparison.csv">Annual CSV</a> · '
-        '<a href="daily_threshold_checks.csv">Daily threshold checks</a></p>'
-        '<p>Choose a metric to see the system and applicable locations stacked below. Each dot in the box plot is a complete year or season. '
+        '<a href="daily_threshold_checks.csv">Daily threshold checks</a> · '
+        '<a href="flood_flow_thresholds_used.csv">Flood flow thresholds used (cfs)</a></p>'
+        '<p>Choose a metric to compare locations in grouped box plots and expand the individual plots. '
         'The duration plot ranks those annual or seasonal values. The bars show the change in the same year.</p>'
         '<p>System throughput can include the same water at successive plants. '
         'Routed flow and minimum-flow results stay at their control points.</p>'
-        + distribution_report(summary, labels, SYSTEM_METRICS)
+        + distribution_report(summary, labels, SYSTEM_METRICS, FLOOD_LEVELS)
         + storage_section
         + ''.join(sections), encoding='utf-8')
     print(f'Wrote six-purpose comparison to {output / "index.html"}')
