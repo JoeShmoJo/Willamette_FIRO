@@ -1,18 +1,18 @@
 # POR post-processing metrics
 
-This provides a data audit, daily duration plots and POR recreation metrics,
-including seasonal boat-ramp-day totals, box plots, seasonal exceedance plots,
-system rollups and paired baseline changes. Other purpose metrics and ensemble
-processing are not implemented yet.
+This provides a data audit, daily duration plots, and a first-pass comparison
+across six purposes for the paired ResSim period-of-record snapshots. Ensemble
+processing is deferred.
 The folder currently tracked in Git is `Post_Process_Metrics` (mixed case).
 
 ## Run
 
-From the repository root in an activated Python 3.12 environment:
+On Windows, use the existing Conda `hydro13Nov2026` environment (Python 3.11).
+From the repository root:
 
 ```powershell
 cd 'C:\Projects\A_Recent_Projects\Willamette_FIRO_GIT'
-python -m pip install -r Post_Process_Metrics/requirements.txt
+conda activate hydro13Nov2026
 python Post_Process_Metrics/inspect_por.py
 ```
 
@@ -52,6 +52,49 @@ Both files' pool results currently span 1990-09-29 through 2000-09-30 inclusive:
 These files do not yet supply the intended 84-year coverage. Initial days may be
 model lookback; the audit retains them and makes no claim that they are study days.
 
+## Six-purpose comparison
+
+```powershell
+python Post_Process_Metrics/compare_purposes.py
+Invoke-Item Post_Process_Metrics/outputs/purpose_comparison/index.html
+```
+
+The command uses the paired cases and years in `recreation_config.json`.
+Non-recreation metrics use complete paired water years 1991–2000 (October 1,
+1990 through September 30, 2000), excluding the two leading audit days.
+Recreation uses the configured season within each calendar year. All changes
+are Alternative minus Baseline. Annual values are blank if an expected paired
+date is missing. Recreation completeness is reported in the recreation tables.
+
+| Purpose | First-pass comparison | Inputs still needed |
+| --- | --- | --- |
+| Flood Control | Peak daily routed flow at Albany and Salem is an exposure proxy. Special-release days use the study's strict outflow test at the applicable projects. | Approved downstream thresholds and impact information for bankfull, flood impacts, or damages. |
+| Hydropower | Annual discharge volume through each of eight modeled powerplants, in acre-feet, is a throughput proxy. | Net head, efficiency, operating limits and generation or pricing data. |
+| Recreation | Verified FIRO activation and reconstructed daily zone membership feed seasonal boat-ramp days by reservoir and system. | Confirm the provisional Memorial Day–Labor Day season and workbook/DSS vertical datum. |
+| Water Quality | The 10th percentile of daily routed flow at Albany and Salem gives low-flow context. | Water temperature, dissolved oxygen, or a calibrated constituent model and applicable criteria. |
+| Water Supply | Minimum daily total pool storage by reservoir is a storage proxy. | Approved usable-storage bounds, accounting, demand, delivery, and any snapshot dates. |
+| ESA flow compliance | Both cases' routed flow is screened against the same positive daily `Min_Flow_Target_*/Flow-Min` series saved in the Alternative DSS. | Verified water-year-specific ESA targets and compliance criteria. The Baseline lacks a usable target and the shared reference screen does not establish ESA compliance. |
+
+The flood test compares daily total pool outflow strictly above the named
+`Flow-MAX` rule value when that rule is in the reconstructed operating-zone
+stack. Hills Creek uses its corresponding `Max Evacuation Rate` rule. Big
+Cliff, Dexter and Foster have no matching rule in the supplied stacks. A known
+zone without the rule contributes zero special-release days. An unknown zone
+or missing required outflow or limit leaves the day unknown. The rule output
+and the corresponding model report must come from the same run.
+
+The ESA reference screen counts days strictly below the Alternative's saved
+model target at Albany and Salem. Zero target days are outside the comparison,
+and missing target days make the year incomplete. Using one common reference
+keeps the paired comparison on the same dates. The saved model target has no
+verified ESA status for this analysis.
+
+Outputs under `outputs/purpose_comparison/` include an offline HTML report,
+`annual_comparison.csv` with coverage and paired changes,
+`daily_threshold_checks.csv` with rule or target inputs and event flags,
+`provenance.json` with source hashes and DSS paths, and the existing recreation
+reports in `recreation/`. Source DSS files are opened through temporary copies.
+
 ## Optional model metadata
 
 Run `copy_model_metadata.ps1` in PowerShell. It copies configuration TXT/CSV
@@ -87,8 +130,7 @@ The 24 conservation-pool reference rows are exported separately to
 `boat_ramp_pool_references.csv` and are not counted as ramps or automatically
 adopted as water-supply bounds. `boat_ramp_conversion_issues.json` flags Dexter's
 two maximum-pool labels (695 and 690 ft) and absent minimum-pool label; no label
-is corrected by inference. The original workbook is unchanged. The recreation
-evaluation season remains to be selected.
+is corrected by inference. The original workbook is unchanged.
 
 FRM special-curve days are defined by the study as outflow strictly greater than
 the applicable Max Evacuation Release. Use the matching rule value, not the
@@ -144,8 +186,3 @@ used as study results.
 
 Run the study-rule tests with
 `python -m unittest discover -s Post_Process_Metrics -p test_recreation.py -v`.
-
-Next inputs needed for purpose metrics: study dates and seasons, water-supply bounds and snapshot dates,
-power conversion/capacity relationships, and water-quality estimation functions.
-Bankfull thresholds already exist in shared data and in the prior checker, but
-their definitions and units must be reconciled before adopting either source.

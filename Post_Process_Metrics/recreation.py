@@ -191,8 +191,12 @@ def main():
     parser.add_argument('--config', type=Path, default=ROOT/'recreation_config.json')
     parser.add_argument('--output', type=Path, default=ROOT/'outputs/recreation')
     args = parser.parse_args()
-    config = json.loads(args.config.read_text())
-    base = args.config.resolve().parent
+    run(args.config, args.output)
+
+
+def run(config_path, output):
+    config = json.loads(config_path.read_text())
+    base = config_path.resolve().parent
     labels = [case['name'] for case in config['cases']]
     if not labels or len(set(labels)) != len(labels):
         raise ValueError('Provide at least one case with unique names; first case is baseline.')
@@ -264,7 +268,6 @@ def main():
                    incomplete_seasons=len(group)-len(values))
         row.update({f'p{p}': values.quantile(p/100) for p in [5, 10, 25, 50, 75, 90, 95]})
         statistics.append(row)
-    output = args.output
     output.mkdir(parents=True, exist_ok=True)
     for name, table in [('daily_ramp_availability', daily), ('seasonal_by_ramp', ramp_totals),
                         ('seasonal_totals', comparison), ('seasonal_percentiles', pd.DataFrame(statistics))]:
@@ -307,6 +310,7 @@ def main():
                'Vertical datum agreement between workbook and DSS must be confirmed.']), indent=2), encoding='utf-8')
     print(comparison[comparison.reservoir == 'SYSTEM'].to_string(index=False))
     print(f'Wrote recreation outputs to {output}')
+    return comparison
 
 
 if __name__ == '__main__':
