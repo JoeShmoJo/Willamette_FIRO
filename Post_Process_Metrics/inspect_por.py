@@ -64,9 +64,19 @@ def simulation_cases(groups):
         if len(matches) != 1:
             raise ValueError(f'Expected one daily pool elevation F-part ending in {suffix} for {label}; '
                              f'found {matches}. Available F-parts: {sorted(parts)}. '
-                             'Use --case to specify the full F-parts explicitly.')
+                             'Specify the full F-parts explicitly.')
         cases.append((label, matches[0]))
     return cases
+
+
+def case_catalog(fid):
+    groups = defaultdict(list)
+    for pathname in fid.search_path('/*/*/*/*/*/*/', sort=1):
+        parts = pathname.split('/')
+        if len(parts) == 8:
+            a, b, c, _, interval, part = parts[1:7]
+            groups[a, b, c, interval, part].append(pathname)
+    return groups
 
 
 def inspect(path, cases, output):
@@ -75,12 +85,7 @@ def inspect(path, cases, output):
         local = Path(directory) / path.name
         shutil.copyfile(path, local)
         with HecDss.Open(local, mode='r') as fid:
-            groups = defaultdict(list)
-            for pathname in fid.search_path('/*/*/*/*/*/*/', sort=1):
-                parts = pathname.split('/')
-                if len(parts) == 8:
-                    a, b, c, d, e, f = parts[1:7]
-                    groups[a, b, c, e, f].append(pathname)
+            groups = case_catalog(fid)
             cases = simulation_cases(groups) if cases is None else cases
             return {label: (fpart, *inspect_case(fid, groups, label, fpart, output))
                     for label, fpart in cases}

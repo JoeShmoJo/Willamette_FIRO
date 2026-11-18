@@ -74,6 +74,31 @@ model lookback; the audit retains them and makes no claim that they are study da
 
 ## Six-purpose comparison
 
+For the local 1935–2019 simulation, select the shared DSS and requested years:
+
+```powershell
+python Post_Process_Metrics/compare_purposes.py --simulation-dss $dss --first-year 1935 --last-year 2019
+if ($LASTEXITCODE -eq 0) {
+    Invoke-Item Post_Process_Metrics/outputs/purpose_comparison_local/index.html
+}
+```
+
+This uses the same `-0` Baseline and `-1` Alternative convention as the
+elevation report. Each metric's plots show how many periods have complete paired
+coverage. Water years run October 1 of the previous calendar year through
+September 30. Recreation windows run February 1 through December 1 of the
+labeled calendar year. If the DSS begins in January 1935, water year 1935 is
+incomplete. The 2019 ramp season requires data through December 1, 2019.
+
+Local DSS mode provides an elevation-only ramp screen, counting a ramp-day when
+pool elevation is strictly above the ramp. Verified recreation ramp-days and
+special-release counts require run-specific evidence. For those metrics, use
+`--config` with matching model reports and FIRO evidence. Set both case
+`dss` paths to the local file, enter each full `f_part`, and set
+`first_year` and `last_year` to the intended window in that configuration.
+
+To reproduce the bundled example with matching run evidence:
+
 ```powershell
 python Post_Process_Metrics/compare_purposes.py
 Invoke-Item Post_Process_Metrics/outputs/purpose_comparison/index.html
