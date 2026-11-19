@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 from plotly.offline import get_plotlyjs
 from plotly.subplots import make_subplots
 
-from recreation import firo_schedule
 from run_evidence import read_run_evidence
 
 CALENDAR = pd.date_range('1999-10-01', '2000-09-30')
@@ -96,6 +95,8 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
 
 
 def firo_overlays(reservoir, labels, firo_path, evidence):
+    from recreation import firo_schedule
+
     curves, notes = [], []
     if not evidence:
         target, _ = firo_schedule(firo_path, reservoir, CALENDAR)
