@@ -3,6 +3,7 @@ import argparse
 from html import escape
 import io
 import json
+import ntpath
 from pathlib import Path
 
 import numpy as np
@@ -22,10 +23,13 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--target-directory', type=Path, help='Watershed scripts/externalSVs folder')
     parser.add_argument('--settings-only', action='store_true', help='Refresh Model Settings in an existing output folder')
+    parser.add_argument('--baseline-fits', type=Path, help='Explicit saved Baseline input mapping file')
+    parser.add_argument('--alternative-fits', type=Path, help='Explicit saved Alternative input mapping file')
     args = parser.parse_args()
+    fits_files = {'Baseline': args.baseline_fits, 'Alternative': args.alternative_fits}
     if args.settings_only:
         source = json.loads((args.output/'csv_provenance.json').read_text(encoding='utf-8-sig'))
-        models = {label: read_compute_report(source[label.lower()], label)
+        models = {label: read_compute_report(source[label.lower()], label, fits_files[label])
                   for label in ('Baseline', 'Alternative')}
         page = args.output/'model_settings.html'
         pending = page.with_suffix('.tmp')
@@ -33,15 +37,63 @@ def main():
         pending.replace(page)
         print(page)
     else:
-        build(args.prior, args.output, args.target_directory)
+        build(args.prior, args.output, args.target_directory, fits_files)
 
 
-def read_compute_report(case, label):
+def read_compute_report(case, label, fits_file=None):
     model = json.loads(Path(case['report']).read_text(encoding='utf-8-sig'))
     compute = model['compute']
     if (compute['compute_id'], compute['output_fpart']) != (case['compute_id'], case['f_part']):
         raise ValueError(f'{label}: report identity differs from CSV provenance')
+    model['saved_input_mappings'] = read_saved_mappings(case, fits_file)
     return model
+
+
+def read_saved_mappings(case, explicit=None):
+    if explicit is None:
+        run = Path(case['report']).parent.parent
+        folder = run/'rss'
+        prefix = case['f_part'] + '_'
+        candidates = [path for path in folder.glob(prefix + '*.fits')
+                      if path.name.startswith(prefix) and not path.stem.casefold().endswith('obs')]
+        # WAT copies are a different input selection. Prefer the regular trial file.
+        regular = [path for path in candidates if not path.stem.casefold().endswith('wat-default')]
+        candidates = regular or candidates
+        if len(candidates) != 1:
+            return {'source': None, 'status': 'No matching trial mapping file' if not candidates
+                    else 'Multiple trial mapping files. Select one explicitly.'}
+        explicit = candidates[0]
+    records = {}
+    row = None
+    lines = explicit.read_bytes()
+    try:
+        text = lines.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        text = lines.decode('cp1252')
+    for line in text.splitlines():
+        key, sep, value = line.partition('=')
+        if not sep:
+            continue
+        if key == 'TSRecord':
+            if row is not None:
+                raise ValueError(f'{explicit}: unterminated TSRecord')
+            row = {}
+        elif row is not None and key == 'TSRecord End':
+            name, variable = row.pop('Name', ''), row.pop('VariableId', '')
+            identity = f'{name} (variable {variable})'
+            if not name or identity in records:
+                raise ValueError(f'{explicit}: missing or duplicate input mapping: {identity}')
+            if 'DssFilename' in row and row['DssFilename']:
+                row['DssFilename'] = ntpath.normcase(ntpath.normpath(row['DssFilename']))
+            if 'DssPathname' in row:
+                row['DssPathname'] = row['DssPathname'].upper()
+            records[identity] = row
+            row = None
+        elif row is not None and key.startswith('TSRecord '):
+            row[key.removeprefix('TSRecord ')] = value.strip()
+    if row is not None or not records:
+        raise ValueError(f'{explicit}: expected a complete ResSim input time-series dataset')
+    return {'source': str(explicit), 'status': f'{len(records)} saved mappings', 'records': records}
 
 
 def write_target_pages(output, directory, routed, years):
@@ -87,7 +139,7 @@ def write_target_pages(output, directory, routed, years):
     return '<p>Salem and Albany target comparisons | ' + ' | '.join(links) + '</p>'
 
 
-def model_settings(model):
+def model_settings(model, include_mappings=True):
     compute = model['compute']
     baseline = compute.get('baseline_configuration', {})
     resolved = baseline.get('resolved') or {}
@@ -122,6 +174,8 @@ def model_settings(model):
             } for op in model.get('operations', [])
         },
     }
+    if include_mappings and 'records' in model.get('saved_input_mappings', {}):
+        report['Alternative input time-series mappings'] = model['saved_input_mappings']['records']
     flattened = {}
 
     def visit(path, value):
@@ -136,7 +190,8 @@ def model_settings(model):
 
 
 def write_model_settings(path, models):
-    baseline, alternative = map(model_settings, (models['Baseline'], models['Alternative']))
+    have_mappings = all('records' in model.get('saved_input_mappings', {}) for model in models.values())
+    baseline, alternative = [model_settings(models[label], have_mappings) for label in ('Baseline', 'Alternative')]
     missing = object()
     changed, matching = [], []
 
@@ -168,6 +223,12 @@ def write_model_settings(path, models):
                           '<details><summary>Run details</summary>'
                           f'F-part {cell(compute.get("output_fpart"))} | compute {cell(compute.get("compute_id"))} | '
                           f'snapshot ID {cell(pointer.get("id"))}</details></li>')
+    mapping_sources = []
+    for label, model in models.items():
+        mapping = model.get('saved_input_mappings', {})
+        source = mapping.get('source')
+        mapping_sources.append(f'<li>{escape(label)} | {escape(mapping.get("status", "Unavailable"))}'
+                               + (f' | {escape(source)}' if source else '') + '</li>')
     differences = (
         '<table><thead><tr><th>Setting</th><th>Baseline</th><th>Alternative</th></tr></thead><tbody>'
         + ''.join(changed) + '</tbody></table>' if changed else
@@ -182,7 +243,12 @@ def write_model_settings(path, models):
         '<p>Compares captured values and baseline table checksums. Run IDs are shown for reference. '
         'Snapshot folder IDs are ignored for matched captured tables. Uncaptured external inputs and '
         'runtime rule behavior are outside this comparison.</p>'
-        f'<h2>{len(changed)} changed settings</h2>' + differences
+        '<details><summary>Input mapping sources</summary>'
+        '<p>Reads the currently saved ResSim trial mapping files. They may have been edited since compute. '
+        'This compares the mapping references and does not open any referenced DSS data files.</p><ul>'
+        + ''.join(mapping_sources) + '</ul></details>'
+        + ('' if have_mappings else '<p>Input mapping comparison is unavailable without both saved files.</p>')
+        + f'<h2>{len(changed)} changed settings</h2>' + differences
         + f'<details><summary>{len(matching)} matching settings</summary><table><thead>'
         '<tr><th>Setting</th><th>Shared value</th></tr></thead><tbody>'
         + ''.join(matching) + '</tbody></table></details>', encoding='utf-8')
@@ -216,7 +282,7 @@ def metric_panels(summary, labels):
     )
 
 
-def build(prior, output, target_directory=None):
+def build(prior, output, target_directory=None, fits_files=None):
     source = json.loads((prior/'csv_provenance.json').read_text(encoding='utf-8-sig'))
     annual = pd.read_csv(prior/'annual_csv_comparison.csv').rename(columns={
         'reservoir':'location', 'water_year':'year', 'expected_days':'expected', 'paired_days':'paired'})
@@ -235,7 +301,7 @@ def build(prior, output, target_directory=None):
 
     for label in labels:
         case = source[label.lower()]
-        models[label] = model = read_compute_report(case, label)
+        models[label] = model = read_compute_report(case, label, (fits_files or {}).get(label))
         compute = model['compute']
         daily = pd.read_csv(case['csv'])
         stamps = pd.DatetimeIndex(pd.to_datetime(daily.pop('Timestamp'), errors='raise'))
