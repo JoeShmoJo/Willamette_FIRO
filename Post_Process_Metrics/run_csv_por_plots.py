@@ -95,6 +95,42 @@ def build(prior, output):
                 (target.gt(0) & flow.lt(target - target.mul(.02).clip(lower=5)))
                 .astype(float).where(flow.notna()))
 
+    # Sum matched reservoirs each day. Count coincident flood or BiOp threshold
+    # events once; a missing member leaves the system value unknown.
+    groups = {}
+    for key in sorted(metrics[0].keys() | metrics[1].keys()):
+        purpose, _, metric, units, reducer = key
+        if (purpose in ('Water Supply', 'Recreation') or metric in LEVELS.values()
+                or metric == 'Days below reservoir BiOp schedule'):
+            groups.setdefault((purpose, 'SYSTEM', metric, units, reducer), []).append(key)
+    for key, members in groups.items():
+        for case in metrics:
+            daily = pd.concat([case.get(member, pd.Series(np.nan, index=dates))
+                               for member in members], axis=1)
+            total = daily.sum(axis=1, min_count=len(members))
+            if key[2] in LEVELS.values() or key[2] == 'Days below reservoir BiOp schedule':
+                total = total.gt(0).astype(float).where(total.notna())
+            case[key] = total
+
+    # These two metrics were already reduced to annual totals. A system sum
+    # is valid only when every member has a complete total in both cases.
+    aggregate_rows = []
+    for (purpose, metric), records_by_year in annual.groupby(['purpose', 'metric']):
+        members = set(records_by_year.location)
+        for year, group in records_by_year.groupby('year'):
+            if group.location.duplicated().any() or group.expected.nunique() != 1:
+                raise ValueError(f'Inconsistent annual coverage for {metric} in {year}')
+            row = group.iloc[0].to_dict()
+            complete = (set(group.location) == members and group.paired.eq(group.expected).all()
+                        and group[['baseline', 'alternative']].notna().all().all())
+            row.update(location='SYSTEM', units='reservoir-days' if purpose == 'Flood Control' else row['units'],
+                       paired=row['expected'] if complete else 0,
+                       baseline=group.baseline.sum() if complete else np.nan,
+                       alternative=group.alternative.sum() if complete else np.nan,
+                       change=group.change.sum() if complete else np.nan)
+            aggregate_rows.append(row)
+    annual = pd.concat([annual, pd.DataFrame(aggregate_rows)], ignore_index=True)
+
     rows = []
     missing = pd.Series(np.nan, index=dates)
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
@@ -124,7 +160,7 @@ def build(prior, output):
         options.append(f'<option value="{n}">{title}</option>')
         figures = [location_plot(table, labels, kind) for kind in ('box', 'duration')]
         # Set an explicit range even for all-zero traces.
-        if purpose == 'Flood Control' and table.units.eq('days').all():
+        if purpose == 'Flood Control' and table.units.isin(['days', 'reservoir-days']).all():
             locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
             columns = min(3, len(locations))
             for i, location in enumerate(locations):
@@ -140,6 +176,8 @@ def build(prior, output):
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
         '<h1>POR box and duration plots</h1><p><a href="annual_reservoir_overlays.html">'
         'Stacked annual reservoir plots</a> | <a href="annual_comparison.csv">Annual data</a></p>'
+        '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
+        'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
         '<p>Recreation uses pool elevation only. Salem and Albany daily targets, Combined Min Trib '
         'rule output, and verified FIRO ramp-days are unavailable in these inputs.</p>'
         '<label for="pick">Metric</label> <select id="pick">' + ''.join(options) + '</select>'
