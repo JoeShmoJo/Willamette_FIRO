@@ -22,3 +22,5 @@ Rule-curve source reconciliation is still pending.
 The pre-upload archive is a historical reference, not an active workflow. Its original names and paths are intentionally preserved. See its README and snapshot manifest for provenance. It does not include unpushed or ignored files from anyone's PC.
 
 Generated outputs and caches of the three separated workflows are ignored. External ResSim, SharePoint and temporary data under shared remain ignored. Dependency setup is unchanged; use the prepared Python environment for development.
+
+See the [POR workflow handoff](POR_WORKFLOW_HANDOFF.md) for current entry points and operating notes.
