@@ -4,6 +4,7 @@ from html import escape
 import io
 import json
 import ntpath
+import re
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +37,14 @@ def main():
         write_model_settings(pending, models)
         pending.replace(page)
         print(page)
+        for label, model in models.items():
+            compute = model['compute']
+            baseline = compute.get('baseline_configuration') or {}
+            pointer = baseline.get('pointer') or {}
+            name = (baseline.get('resolved') or {}).get('name') or pointer.get('name')
+            mapping = model['saved_input_mappings']
+            print(f'{label} | {compute["output_fpart"]} | captured configuration: {name or "None recorded"} '
+                  f'| snapshot: {pointer.get("id") or "-"} | {mapping["status"]}')
     else:
         build(args.prior, args.output, args.target_directory, fits_files)
 
@@ -49,9 +58,41 @@ def read_compute_report(case, label, fits_file=None):
     return model
 
 
+def linked_input_mapping(run, fpart):
+    """Follow the saved RssRun alternative to its declared input mapping."""
+    run_file = run/'rss'/f'{fpart}.rssrun'
+    if not run_file.is_file():
+        return None
+
+    def resolve_saved_path(value):
+        path = Path(value.strip().replace('\\', '/'))
+        return run/path
+
+    match = re.search(r'^\s*FLD=_altPath[ \t]*\r?\n[ \t]*STR=([^\r\n]+)',
+                      run_file.read_text(encoding='utf-8-sig', errors='replace'), re.MULTILINE)
+    if not match:
+        return None
+    alternative = resolve_saved_path(match[1])
+    if not alternative.is_file():
+        return None
+    match = re.search(r'^InputTSData Path=([^\r\n]+)',
+                      alternative.read_text(encoding='utf-8-sig', errors='replace'), re.MULTILINE)
+    if match:
+        return resolve_saved_path(match[1])
+    return None
+
+
 def read_saved_mappings(case, explicit=None):
+    basis = 'explicit selection'
     if explicit is None:
         run = Path(case['report']).parent.parent
+        linked = linked_input_mapping(run, case['f_part'])
+        if linked is not None:
+            if not linked.is_file():
+                return {'source': str(linked), 'status': 'Linked input mapping file is missing'}
+            explicit = linked
+            basis = 'linked by saved run and alternative'
+    if explicit is None:
         folder = run/'rss'
         prefix = case['f_part'] + '_'
         candidates = [path for path in folder.glob(prefix + '*.fits')
@@ -60,9 +101,10 @@ def read_saved_mappings(case, explicit=None):
         regular = [path for path in candidates if not path.stem.casefold().endswith('wat-default')]
         candidates = regular or candidates
         if len(candidates) != 1:
-            return {'source': None, 'status': 'No matching trial mapping file' if not candidates
+            return {'source': None, 'status': 'Could not resolve a saved mapping file for this trial' if not candidates
                     else 'Multiple trial mapping files. Select one explicitly.'}
         explicit = candidates[0]
+        basis = 'matched trial filename'
     records = {}
     row = None
     lines = explicit.read_bytes()
@@ -93,7 +135,7 @@ def read_saved_mappings(case, explicit=None):
             row[key.removeprefix('TSRecord ')] = value.strip()
     if row is not None or not records:
         raise ValueError(f'{explicit}: expected a complete ResSim input time-series dataset')
-    return {'source': str(explicit), 'status': f'{len(records)} saved mappings', 'records': records}
+    return {'source': str(explicit), 'status': f'{len(records)} saved mappings ({basis})', 'records': records}
 
 
 def write_target_pages(output, directory, routed, years):
@@ -240,7 +282,8 @@ def write_model_settings(path, models):
         'pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>'
         '<h1>Model settings</h1><p><a href="index.html">All POR plots</a></p>'
         '<ul>' + ''.join(identities) + '</ul>'
-        '<p>Compares captured values and baseline table checksums. Run IDs are shown for reference. '
+        '<p>Configuration names and settings come from each selected compute report. '
+        'Different snapshot IDs can have identical settings. '
         'Snapshot folder IDs are ignored for matched captured tables. Uncaptured external inputs and '
         'runtime rule behavior are outside this comparison.</p>'
         '<details><summary>Input mapping sources</summary>'
