@@ -72,8 +72,22 @@ def model_settings(model):
     compute = model['compute']
     baseline = compute.get('baseline_configuration', {})
     resolved = baseline.get('resolved') or {}
+    effective = compute.get('effective_alternative_configuration')
+    snapshot = (baseline.get('pointer') or {}).get('directory')
+    checksums = resolved.get('table_sha256') or {}
+    if isinstance(effective, dict) and snapshot:
+        effective = effective.copy()
+        for key, relative in (resolved.get('table_paths') or {}).items():
+            value = effective.get(key)
+            if not isinstance(value, str) or not checksums.get(relative):
+                continue
+            suffix = (snapshot.rstrip('/\\') + '/' + relative).replace('\\', '/').casefold()
+            path = value.replace('\\', '/').casefold()
+            if path == suffix or path.endswith('/' + suffix):
+                # The checksum below captures content changes across snapshots.
+                effective[key] = 'Captured baseline table: ' + relative.replace('\\', '/')
     report = {
-        'Effective alternative settings': compute.get('effective_alternative_configuration'),
+        'Effective alternative settings': effective,
         'Baseline application status': baseline.get('status'),
         'Baseline rule settings': resolved.get('rules'),
         'Baseline augmentation': resolved.get('baseline_augmentation'),
@@ -142,7 +156,8 @@ def write_model_settings(path, models):
         '<h1>Model settings</h1><p><a href="index.html">All POR plots</a></p>'
         '<ul>' + ''.join(identities) + '</ul>'
         '<p>Compares captured values and baseline table checksums. Run IDs are shown for reference. '
-        'Uncaptured external inputs and runtime rule behavior are outside this comparison.</p>'
+        'Snapshot folder IDs are ignored for matched captured tables. Uncaptured external inputs and '
+        'runtime rule behavior are outside this comparison.</p>'
         f'<h2>{len(changed)} changed settings</h2>' + differences
         + f'<details><summary>{len(matching)} matching settings</summary><table><thead>'
         '<tr><th>Setting</th><th>Shared value</th></tr></thead><tbody>'
