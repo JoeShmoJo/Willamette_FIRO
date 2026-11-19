@@ -21,8 +21,27 @@ def main():
     parser.add_argument('prior', type=Path, help='Existing CSV comparison folder')
     parser.add_argument('output', type=Path)
     parser.add_argument('--target-directory', type=Path, help='Watershed scripts/externalSVs folder')
+    parser.add_argument('--settings-only', action='store_true', help='Refresh Model Settings in an existing output folder')
     args = parser.parse_args()
-    build(args.prior, args.output, args.target_directory)
+    if args.settings_only:
+        source = json.loads((args.output/'csv_provenance.json').read_text(encoding='utf-8-sig'))
+        models = {label: read_compute_report(source[label.lower()], label)
+                  for label in ('Baseline', 'Alternative')}
+        page = args.output/'model_settings.html'
+        pending = page.with_suffix('.tmp')
+        write_model_settings(pending, models)
+        pending.replace(page)
+        print(page)
+    else:
+        build(args.prior, args.output, args.target_directory)
+
+
+def read_compute_report(case, label):
+    model = json.loads(Path(case['report']).read_text(encoding='utf-8-sig'))
+    compute = model['compute']
+    if (compute['compute_id'], compute['output_fpart']) != (case['compute_id'], case['f_part']):
+        raise ValueError(f'{label}: report identity differs from CSV provenance')
+    return model
 
 
 def write_target_pages(output, directory, routed, years):
@@ -140,10 +159,15 @@ def write_model_settings(path, models):
     identities = []
     for label, model in models.items():
         compute = model['compute']
-        pointer = compute.get('baseline_configuration', {}).get('pointer') or {}
-        identities.append(f'<li>{escape(label)} | F-part {cell(compute.get("output_fpart"))} | '
-                          f'compute {cell(compute.get("compute_id"))} | applied configuration '
-                          f'{cell(pointer["id"]) if pointer.get("id") else "None recorded"}</li>')
+        baseline = compute.get('baseline_configuration') or {}
+        pointer = baseline.get('pointer') or {}
+        configuration_name = ((baseline.get('resolved') or {}).get('name') or pointer.get('name')
+                              or ('Name unavailable' if pointer.get('id') else 'None recorded'))
+        identities.append(f'<li><strong>{escape(label)}</strong> | Applied configuration '
+                          f'<strong>{escape(configuration_name)}</strong>'
+                          '<details><summary>Run details</summary>'
+                          f'F-part {cell(compute.get("output_fpart"))} | compute {cell(compute.get("compute_id"))} | '
+                          f'snapshot ID {cell(pointer.get("id"))}</details></li>')
     differences = (
         '<table><thead><tr><th>Setting</th><th>Baseline</th><th>Alternative</th></tr></thead><tbody>'
         + ''.join(changed) + '</tbody></table>' if changed else
@@ -211,10 +235,8 @@ def build(prior, output, target_directory=None):
 
     for label in labels:
         case = source[label.lower()]
-        models[label] = model = json.loads(Path(case['report']).read_text(encoding='utf-8-sig'))
+        models[label] = model = read_compute_report(case, label)
         compute = model['compute']
-        if (compute['compute_id'], compute['output_fpart']) != (case['compute_id'], case['f_part']):
-            raise ValueError(f'{label}: report identity differs from CSV provenance')
         daily = pd.read_csv(case['csv'])
         stamps = pd.DatetimeIndex(pd.to_datetime(daily.pop('Timestamp'), errors='raise'))
         if stamps.hasnans or stamps.has_duplicates or not stamps.equals(stamps.normalize()):
