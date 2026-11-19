@@ -20,11 +20,55 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('prior', type=Path, help='Existing CSV comparison folder')
     parser.add_argument('output', type=Path)
+    parser.add_argument('--target-directory', type=Path, help='Watershed scripts/externalSVs folder')
     args = parser.parse_args()
-    build(args.prior, args.output)
+    build(args.prior, args.output, args.target_directory)
 
 
-def build(prior, output):
+def write_target_pages(output, directory, routed, years):
+    links = []
+    labels = ('Baseline', 'Alternative')
+    for regime, regime_name in (('2008BiOp', '2008 BiOp'), ('HD531', 'House Document 531')):
+        panels = []
+        for site in ('Salem', 'Albany'):
+            path = directory/f'MinFlow{site}_{regime}.csv'
+            schedule = pd.read_csv(path, comment='#', encoding='utf-8-sig')
+            breakpoints = pd.to_datetime([column+'2000' for column in schedule.columns[1:]],
+                                         format='%d%b%Y').dayofyear.to_numpy()
+            for _, group in schedule.groupby(list(schedule.columns[1:]), sort=False):
+                values = group.iloc[0, 1:].to_numpy(dtype=float)
+                classification = ', '.join(f'{value:g}' for value in group['WY_type'])
+                rows = []
+                for year in years:
+                    dates = pd.date_range(f'{year-1}-10-01', f'{year}-09-30')
+                    calendar = np.array([pd.Timestamp(2000, day.month, day.day).dayofyear for day in dates])
+                    target = pd.Series(values[np.searchsorted(breakpoints, calendar, side='right')-1], index=dates)
+                    eligible = target[target.gt(0)]
+                    flows = [routed[label][f'{site}__Flow'].reindex(eligible.index) for label in labels]
+                    complete = len(eligible) > 0 and all(flow.notna().all() for flow in flows)
+                    b, a = [int(flow.lt(eligible).sum()) if complete else np.nan for flow in flows]
+                    rows.append(dict(purpose='ESA flow compliance', location=site, year=year, units='days',
+                                     baseline=b, alternative=a))
+                table = pd.DataFrame(rows)
+                panels.append(f'<h2>{site} | Water-year-type table rows {escape(classification)}</h2>')
+                for kind in ('box', 'duration'):
+                    fig = location_plot(table, labels, kind)
+                    peak = table[['baseline', 'alternative']].max().max()
+                    fig.update_yaxes(range=[0, max(1, 1.05*peak)] if pd.notna(peak) else [0, 1],
+                                     dtick=1 if pd.isna(peak) or peak <= 10 else None)
+                    panels.append(fig.to_html(full_html=False, include_plotlyjs=len(panels) == 1))
+        filename = f'mainstem_{regime.lower()}.html'
+        (output/filename).write_text(
+            f'<!doctype html><meta charset="utf-8"><title>{regime_name}</title>'
+            f'<h1>Salem and Albany | {regime_name}</h1><a href="index.html">POR plots</a>'
+            '<p>Days with routed flow strictly below a positive configured target. Each distinct schedule '
+            'is applied to both cases and every year. These are fixed-schedule comparisons.</p>'
+            + ''.join(panels), encoding='utf-8')
+        links.append(f'<a href="{filename}">{regime_name}</a>')
+    return '<p>Salem and Albany target comparisons | ' + ' | '.join(links) + '</p>'
+
+
+def build(prior, output, target_directory=None):
     source = json.loads((prior/'csv_provenance.json').read_text(encoding='utf-8-sig'))
     annual = pd.read_csv(prior/'annual_csv_comparison.csv').rename(columns={
         'reservoir':'location', 'water_year':'year', 'expected_days':'expected', 'paired_days':'paired'})
@@ -37,7 +81,7 @@ def build(prior, output):
     ramps = pd.read_csv(ROOT/'data/boat_ramp_elevations.csv')
     thresholds = pd.read_csv(ROOT/'data/flood_flow_thresholds.csv').query("location != 'Eugene'")
     schedules = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv', comment='#')
-    records, targets, metrics = {}, {}, []
+    records, targets, metrics, routed = {}, {}, [], {}
     years = sorted(annual.year.unique())
     dates = pd.date_range(f'{years[0]-1}-10-01', f'{years[-1]}-12-01')
 
@@ -52,6 +96,7 @@ def build(prior, output):
             raise ValueError(f'{label}: expected unique daily midnight timestamps')
         daily.index = stamps - pd.Timedelta(days=1)
         daily = daily.apply(pd.to_numeric, errors='coerce').where(lambda x: np.isfinite(x) & x.gt(-900))
+        routed[label] = daily[['Salem__Flow', 'Albany__Flow']]
         records[label], values = {}, {}
         metrics.append(values)
         config = compute.get('baseline_configuration', {})
@@ -172,14 +217,16 @@ def build(prior, output):
         body = ''.join(fig.to_html(full_html=False, include_plotlyjs=(n == i == 0))
                        for i, fig in enumerate(figures))
         panels.append(f'<section id="metric-{n}"{" hidden" if n else ""}>{body}</section>')
+    regime_links = write_target_pages(output, target_directory, routed, years) if target_directory else ''
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
         '<h1>POR box and duration plots</h1><p><a href="annual_reservoir_overlays.html">'
         'Stacked annual reservoir plots</a> | <a href="annual_comparison.csv">Annual data</a></p>'
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
-        '<p>Recreation uses pool elevation only. Salem and Albany daily targets, Combined Min Trib '
-        'rule output, and verified FIRO ramp-days are unavailable in these inputs.</p>'
+        + regime_links +
+        '<p>Recreation uses pool elevation only. Combined Min Trib rule output and verified FIRO '
+        'ramp-days are unavailable in these inputs.</p>'
         '<label for="pick">Metric</label> <select id="pick">' + ''.join(options) + '</select>'
         + ''.join(panels)
         + '<script>document.querySelector("#pick").onchange=e=>{document.querySelectorAll("section").forEach(s=>'
