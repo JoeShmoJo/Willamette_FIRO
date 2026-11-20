@@ -12,7 +12,8 @@ from run_evidence import read_run_evidence
 CALENDAR = pd.date_range('1999-10-01', '2000-09-30')
 CALENDAR_DAYS = {(day.month, day.day): i for i, day in enumerate(CALENDAR)}
 CALENDAR_MS = CALENDAR.to_numpy(dtype='datetime64[ms]').astype(np.float64)
-CASE_COLORS = ['#17638a', '#a44721', '#5e4890', '#247455']
+CASE_COLORS = ['#17638a', '#a44721', '#5e4890', '#247455', '#926624',
+               '#943c78', '#34777e', '#657525', '#80592e', '#4458a6', '#8d4350']
 
 
 def water_year_overlay(series):
@@ -29,7 +30,7 @@ def water_year_overlay(series):
             np.insert(years.to_numpy(), starts, 0))
 
 
-def reservoir_figure(cases, ramps, crest, firo_curves):
+def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=.10,
                         subplot_titles=('Pool elevation and references', 'Daily flow'))
     missing = []
@@ -61,13 +62,15 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
                                       y=y, text=years, name=f'{label} {title}', mode='lines',
                                       line=dict(color=color, dash=dash, width=1.6 if row == 1 else 1),
                                       opacity=opacity, visible=visible,
+                                      legendgroup=label if trial_controls else None,
                                       meta='annual' if parameter != 'elev-zone' else None,
                                       hovertemplate=date_label + ': %{y:,.2f}<extra>%{fullData.name}</extra>'),
                           row=row, col=1)
 
     for label, target, color in firo_curves:
+        group = label.removesuffix(' configured FIRO target') if trial_controls else None
         fig.add_trace(go.Scatter(x=CALENDAR_MS, y=target, name=label, mode='lines',
-                                 line=dict(color=color, width=2, dash='dashdot')), row=1, col=1)
+                                 line=dict(color=color, width=2, dash='dashdot'), legendgroup=group), row=1, col=1)
     if pd.notna(crest):
         fig.add_trace(go.Scatter(x=CALENDAR_MS[[0, -1]], y=[crest, crest], mode='lines',
                                  name=f'Spillway crest ({crest:g} ft)',
@@ -90,7 +93,7 @@ def reservoir_figure(cases, ramps, crest, firo_curves):
     fig.update_yaxes(title_text='Elevation (ft)', row=1, col=1)
     fig.update_yaxes(title_text='Flow (cfs)', row=2, col=1)
     fig.update_layout(template='plotly_white', height=660, margin=dict(t=45),
-                      legend=dict(orientation='h', y=-.20))
+                      legend=dict(orientation='h', y=-.20, groupclick='toggleitem'))
     return fig, missing
 
 
@@ -125,7 +128,8 @@ def firo_overlays(reservoir, labels, firo_path, evidence):
     return curves, notes
 
 
-def write_annual_overlays(output, results, ramps, firo_path, project_data, markers, fparts):
+def write_annual_overlays(output, results, ramps, firo_path, project_data, markers, fparts, *,
+                          reference_curves=None, trial_controls=False):
     with project_data.open(encoding='utf-8-sig') as stream:
         header = next((i for i, line in enumerate(stream) if line.startswith('Variable,')), None)
     if header is None:
@@ -160,13 +164,14 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
     for i, (reservoir, cases) in enumerate(sorted(by_reservoir.items())):
         links.append(f'<a href="#reservoir-{i}">{escape(reservoir)}</a>')
         ramp_rows = ramps[ramps.reservoir.str.casefold() == reservoir.casefold()]
-        curves, notes = firo_overlays(reservoir, results, firo_path, evidence)
+        curves, notes = (reference_curves or firo_overlays)(reservoir, results, firo_path, evidence)
         for parameters in cases.values():
             if 'elev' in parameters:
                 dates = parameters['elev'].dropna().index
                 available_years.update(dates.year + (dates.month >= 10).astype(int))
         fig, missing = reservoir_figure({label: cases.get(label, {}) for label in results},
-                                        ramp_rows, crest.get(reservoir.casefold()), curves)
+                                        ramp_rows, crest.get(reservoir.casefold()), curves,
+                                        trial_controls=trial_controls)
         if missing:
             notes.append(f'Unavailable: {", ".join(missing)}')
         note = f'<p>{escape(". ".join(notes))}.</p>' if notes else ''
@@ -183,6 +188,14 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
                      'It does not establish whether FIRO was active in either run.')
         firo_sources = str(firo_path)
     year_options = ''.join(f'<option value="{year}">{year}</option>' for year in sorted(available_years))
+    run_controls = ''
+    if trial_controls:
+        run_controls = '<fieldset><legend>Show runs</legend>' + ' '.join(
+            f'<label><input type="checkbox" data-run="{escape(label, quote=True)}" checked> {escape(label)}</label>'
+            for label in results) + '</fieldset>'
+    data_note = (f'Pool series come from CSV exports. FIRO lines show captured configured schedules. '
+                 'Daily activation and rule curves are unavailable.' if reference_curves else
+                 f'Rule curves come from DSS Elev-ZONE. {firo_note}')
     output.write_text(
         '<!doctype html><html lang="en"><meta charset="utf-8"><title>Annual reservoir overlays</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}'
@@ -194,8 +207,8 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         '<h1>Annual reservoir overlays</h1>'
         '<p>Each line overlays daily values for one water year. Hover to see its year. '
         'Click a legend item to show or hide it. Inflow starts hidden. Choose a year to highlight '
-        'its paired traces, and use Up/Down while the year selector has focus.</p>'
-        f'<p>Rule curves come from DSS Elev-ZONE. {firo_note}</p>'
+        'its traces, and use Up/Down while the year selector has focus.</p>'
+        f'<p>{data_note}</p>'
         f'<p>FIRO source: {escape(firo_sources)}<br>Spillway crests: {escape(str(project_data))}</p>'
         '<nav>' + ''.join(links) + '</nav>'
         '<div id="overlay-controls"><label for="overlay-year">Water year</label>'
@@ -203,7 +216,7 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         '<select id="overlay-year">' + year_options + '</select>'
         '<button type="button" id="next-year" aria-label="Next water year">↓</button>'
         '<label><input id="selected-year" type="checkbox" checked> Selected year</label>'
-        '<label><input id="all-years" type="checkbox" checked> All years</label></div>'
+        '<label><input id="all-years" type="checkbox" checked> All years</label>' + run_controls + '</div>'
         + ''.join(sections)
         + '<script>' + get_plotlyjs() + '</script>'
         + OVERLAY_CONTROLS,
@@ -217,6 +230,32 @@ const background = document.getElementById("all-years");
 const previous = document.getElementById("previous-year");
 const next = document.getElementById("next-year");
 const charts = document.querySelectorAll(".reservoir-chart");
+const runToggles = new Map(Array.from(document.querySelectorAll("[data-run]"),
+  input => [input.dataset.run, input]));
+const runEnabled = trace => runToggles.get(trace.legendgroup)?.checked ?? true;
+
+function updateRun(chart, label, enabled) {
+  if (!chart.annualSources || !chart.data) return;
+  const indices = [], visibility = [];
+  const sources = new Map(chart.annualSources.map(source => [source.index, source]));
+  chart.data.forEach((trace, index) => {
+    if (trace.legendgroup !== label) return;
+    const source = sources.get(index);
+    if (!enabled && !chart.hiddenRunTraces.has(index)) {
+      chart.hiddenRunTraces.set(index, source && !chart.backgroundShown
+        ? source.visibility : trace.visible ?? true);
+    }
+    const preferred = chart.hiddenRunTraces.get(index) ?? trace.visible ?? true;
+    indices.push(index);
+    visibility.push(enabled && (!source || chart.backgroundShown) ? preferred : false);
+    if (enabled) {
+      if (source) source.visibility = preferred;
+      chart.hiddenRunTraces.delete(index);
+    }
+  });
+  if (indices.length) Plotly.restyle(chart, {visible: visibility}, indices);
+  updatePair(chart);
+}
 
 function updatePair(chart) {
   const sources = chart.annualSources;
@@ -237,7 +276,7 @@ function updatePair(chart) {
     update.y.push(y);
     update.name.push(source.trace.name + " · WY " + year);
     const setting = chart.backgroundShown ? chart.data[source.index].visible : source.visibility;
-    update.visible.push(selected.checked && y.some(Number.isFinite) && setting !== "legendonly" && setting !== false);
+    update.visible.push(selected.checked && runEnabled(source.trace) && y.some(Number.isFinite) && setting !== "legendonly" && setting !== false);
   }
   Plotly.restyle(chart, update, indices);
 }
@@ -245,10 +284,10 @@ function updatePair(chart) {
 function updateBackground(chart) {
   if (!chart.annualSources?.length || !chart.data) return;
   if (chart.backgroundShown && !background.checked) {
-    chart.annualSources.forEach((source) => { source.visibility = chart.data[source.index].visible ?? true; });
+    chart.annualSources.forEach((source) => { if (runEnabled(source.trace)) source.visibility = chart.data[source.index].visible ?? true; });
   }
   chart.backgroundShown = background.checked;
-  Plotly.restyle(chart, {visible: chart.annualSources.map((source) => background.checked ? source.visibility : false)},
+  Plotly.restyle(chart, {visible: chart.annualSources.map((source) => background.checked && runEnabled(source.trace) ? source.visibility : false)},
                  chart.annualSources.map((source) => source.index));
   updatePair(chart);
 }
@@ -274,6 +313,8 @@ yearPicker.addEventListener("keydown", (event) => {
 yearPicker.addEventListener("change", updateYear);
 selected.addEventListener("change", updateYear);
 background.addEventListener("change", () => charts.forEach(updateBackground));
+runToggles.forEach((input, label) => input.addEventListener("change", () =>
+  charts.forEach(chart => updateRun(chart, label, input.checked))));
 yearPicker.selectedIndex = yearPicker.options.length - 1;
 updateYear();
 
@@ -295,6 +336,10 @@ async function mount(chart) {
   }
   chart.annualSources = annual.map((source, i) => ({...source, pairIndex: start + i}));
   chart.backgroundShown = true;
+  chart.hiddenRunTraces = new Map();
+  runToggles.forEach((input, label) => {
+    if (!input.checked) updateRun(chart, label, false);
+  });
   chart.on("plotly_restyle", ([update, indices]) => {
     if (update.visible && chart.backgroundShown && indices.some((i) => i < start)) {
       window.requestAnimationFrame(() => updatePair(chart));
@@ -313,6 +358,7 @@ const observer = new IntersectionObserver((entries) => {
       if (!chart.backgroundShown) {
         chart.annualSources.forEach((source) => { visibility[source.index] = source.visibility; });
       }
+      chart.hiddenRunTraces.forEach((setting, index) => { visibility[index] = setting; });
       chart.traceVisibility = visibility;
       chart.annualSources = null;
       Plotly.purge(chart);

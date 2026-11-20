@@ -394,7 +394,7 @@ def metric_panels(summary, labels):
     )
 
 
-def build(prior, output, target_directory=None, fits_files=None):
+def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=None):
     source = json.loads((prior/'csv_provenance.json').read_text(encoding='utf-8-sig'))
     annual = pd.read_csv(prior/'annual_csv_comparison.csv').rename(columns={
         'reservoir':'location', 'water_year':'year', 'expected_days':'expected', 'paired_days':'paired'})
@@ -567,9 +567,10 @@ def build(prior, output, target_directory=None, fits_files=None):
 
     compliance_links = write_compliance_pages(output, summary, lambda table: metric_panels(table, labels))
     regime_links = write_target_pages(output, target_directory, routed, sorted(calendar_years)) if target_directory else ''
+    stacked_href = escape(stacked_url or 'annual_reservoir_overlays.html', quote=True)
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
-        '<h1>POR box and duration plots</h1><p><a href="annual_reservoir_overlays.html">'
+        f'<h1>POR box and duration plots</h1><p><a href="{stacked_href}">'
         'Stacked annual reservoir plots</a> | <a href="system_metrics.html">System metrics</a> | '
         '<a href="model_settings.html">Model settings</a> | <a href="annual_comparison.csv">Annual data</a></p>'
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
@@ -581,32 +582,32 @@ def build(prior, output, target_directory=None, fits_files=None):
         'spillway crests or Cougar’s 1,571 ft minimum temperature tower elevation.</p>'
         + metric_panels(summary, labels), encoding='utf-8')
 
+    if stacked_url is None:
+        write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets)
+    print(output/'index.html')
+    return records, targets
+
+
+def write_csv_overlays(output, records, targets, *, trial_controls=False):
+    project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
+    ramps = pd.read_csv(ROOT/'data/boat_ramp_elevations.csv')
+
     def firo_references(reservoir, *_):
         curves = []
-        for i, (label, table) in enumerate(targets.items()):
-            if reservoir in table:
+        for i, label in enumerate(records):
+            table = targets.get(label)
+            if table is not None and reservoir in table:
                 dates = overlays.CALENDAR
                 keys = [(day.month, 28 if (day.month, day.day) == (2, 29) else day.day) for day in dates]
                 schedule = table[reservoir].reindex(keys).set_axis(dates)
                 if schedule.notna().any():
-                    curves.append((f'{label} configured FIRO target', schedule, overlays.CASE_COLORS[i]))
+                    color = overlays.CASE_COLORS[i % len(overlays.CASE_COLORS)]
+                    curves.append((f'{label} configured FIRO target', schedule, color))
         return curves, [] if curves else ['Captured FIRO schedule unavailable']
 
-    original = overlays.firo_overlays
-    try:
-        overlays.firo_overlays = firo_references
-        overlay_path = output/'annual_reservoir_overlays.html'
-        overlays.write_annual_overlays(overlay_path, records, ramps, Path('per-compute JSON'),
-            project_data, {}, {})
-        content = overlay_path.read_text(encoding='utf-8')
-        overlay_path.write_text(content.replace('Rule curves come from DSS Elev-ZONE. '
-            'The FIRO line is the recurring target schedule from the reference CSV. '
-            'It does not establish whether FIRO was active in either run.',
-            'Pool series come from the CSV exports. FIRO lines show captured configured schedules. '
-            'Daily activation and rule curves are unavailable.'), encoding='utf-8')
-    finally:
-        overlays.firo_overlays = original
-    print(output/'index.html')
+    overlays.write_annual_overlays(
+        output, records, ramps, Path('per-compute JSON'), project_data, {}, {},
+        reference_curves=firo_references, trial_controls=trial_controls)
 
 
 if __name__ == '__main__':
