@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 from plotly.offline import get_plotlyjs
 from plotly.colors import qualitative
 
-from run_csv_por_plots import build, write_compliance_pages, write_csv_overlays
+from run_csv_por_plots import build, metric_groups, metric_heading, write_csv_overlays
 
 
 def select_case(run, trial):
@@ -105,27 +105,27 @@ def location_panel(rows, labels, purpose, period, location, units):
     title = 'System' if location == 'SYSTEM' else escape(location)
     criterion = f'<p>{escape(rows.status.iloc[0])}</p>' if purpose == 'Reservoir elevation' else ''
     curve = duration.to_html(full_html=False, include_plotlyjs=False)
-    return (f'<article><h2>{title}</h2>{criterion}'
+    return (f'<article><h3>{title}</h3>{criterion}'
             f'<div data-view="box">{body}</div><div data-view="duration" hidden>{curve}</div></article>')
 
 
 def comparison_panels(summary, labels):
     options, panels = [], []
     width = min(780, max(340, 160 + 52 * len(labels)))
-    for i, ((purpose, metric, period), rows) in enumerate(
-            summary.groupby(['purpose', 'metric', 'period'])):
-        title = escape(f'{purpose} / {metric} ({period})')
+    for i, ((purpose, metric, period), rows) in enumerate(metric_groups(summary)):
+        title, heading = metric_heading(purpose, metric, period)
         options.append(f'<option value="{i}">{title}</option>')
         locations = list(rows.groupby(['location', 'units']))
         locations.sort(key=lambda item: (item[0][0] != 'SYSTEM', item[0]))
         body = ''.join(location_panel(group, labels, purpose, period, location, units)
                        for (location, units), group in locations)
-        panels.append(f'<section id="metric-{i}"{" hidden" if i else ""}>'
-                      f'<div class="reservoir-grid" style="--panel-width:{width}px">{body}</div></section>')
+        charts = (f'<div class="reservoir-grid" style="--panel-width:{width}px">{body}</div>'
+                  if body else '<p>No comparison data are available.</p>')
+        panels.append(f'<section id="metric-{i}"{" hidden" if i else ""}>{heading}{charts}</section>')
     return ('<script src="plotly.min.js"></script><style>'
             '.reservoir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--panel-width)),1fr));'
             'gap:16px;align-items:start}.reservoir-grid article{min-width:0;border:1px solid #ddd;padding:8px;'
-            'overflow-x:auto}.reservoir-grid h2{margin:4px 0;font-size:1.1rem}'
+            'overflow-x:auto}.reservoir-grid h3{margin:4px 0;font-size:1.1rem}'
             'table{border-collapse:collapse}td,th{padding:.35em}</style>'
             '<p>Boxes and points use complete years shared by the trials with data for each location. '
             'Click a trial in a legend to hide or show it.</p>'
@@ -202,8 +202,6 @@ def main():
                        trial_controls=True)
     stacked_link = ('<p><a href="annual_reservoir_overlays.html" target="_blank" rel="noopener">'
                     'Stacked reservoir plots for all trials (new tab)</a></p>')
-    compliance = write_compliance_pages(
-        output, summary, lambda table: configuration_list + comparison_panels(table, labels))
     if skipped:
         print('Excluded results: ' + '; '.join(skipped), flush=True)
     excluded = ('<h2>Excluded results</h2><ul>' + ''.join(f'<li>{escape(reason)}</li>' for reason in skipped)
@@ -211,7 +209,7 @@ def main():
     page = output / 'index.html'
     page.write_text('<!doctype html><meta charset="utf-8"><title>POR trial comparison</title>'
                     '<h1>POR trial comparison</h1>' + configuration_list
-                    + stacked_link + compliance + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
+                    + stacked_link + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
                     '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
                     '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'

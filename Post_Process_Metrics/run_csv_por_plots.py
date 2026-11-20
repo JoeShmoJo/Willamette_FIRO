@@ -21,9 +21,9 @@ LEVELS = dict(action_cfs='Days above action / bankfull flow',
 BIOP = 'ESA flow compliance / BiOp component'
 COMBINED = 'ESA flow compliance / BiOp plus withdrawals'
 FLOW_COMPLIANCE = {
-    BIOP: ('biop_component.html', 'BiOp minimum-flow component',
+    BIOP: ('BiOp minimum-flow component',
            'Daily outflow screened against the fixed BiOp minimum-flow schedule.'),
-    COMBINED: ('combined_minimum_flow.html', 'Combined minimum flow',
+    COMBINED: ('Combined minimum flow',
                'Daily outflow screened against each compute’s captured minimum-flow plus withdrawal schedules. '
                'Missing captured schedules leave that trial unavailable. This screen does not reproduce '
                'native timestep rule adjustments or verify that the rule was active.'),
@@ -72,19 +72,30 @@ def compliance_series(schedule, daily, dates):
                           ).astype(float).where(flow.notna() | ~target.gt(0))
 
 
-def write_compliance_pages(output, summary, render):
-    links = []
-    for purpose, (filename, title, explanation) in FLOW_COMPLIANCE.items():
-        table = summary[summary.purpose.eq(purpose)]
-        content = render(table) if not table.empty else '<p>No comparison data are available.</p>'
-        (output / filename).write_text(
-            f'<!doctype html><meta charset="utf-8"><title>{title}</title><h1>{title}</h1>'
-            '<p><a href="index.html">All POR metrics</a></p>'
-            f'<p>{explanation} Counts use a tolerance of the greater of 5 cfs or 2% of target. '
-            'The Green Peter target is evaluated at Foster. System counts count a day once.</p>'
-            + content, encoding='utf-8')
-        links.append(f'<a href="{filename}">{title}</a>')
-    return '<p>' + ' | '.join(links) + '</p>'
+def metric_groups(summary):
+    groups = dict(tuple(summary.groupby(['purpose', 'metric', 'period'])))
+    if summary.purpose.isin(FLOW_COMPLIANCE).any():
+        for purpose in FLOW_COMPLIANCE:
+            groups.setdefault((purpose, 'Days below minimum-flow target', 'calendar year'),
+                              summary.iloc[:0])
+    return sorted(groups.items())
+
+
+def metric_heading(purpose, metric, period):
+    if purpose in FLOW_COMPLIANCE:
+        name, explanation = FLOW_COMPLIANCE[purpose]
+        title = f'{name} ({period})'
+        context = f'{metric} · {period.capitalize()}'
+        details = (f'<p>{explanation} Counts use a tolerance of the greater of 5 cfs or 2% of target. '
+                   'The Green Peter target is evaluated at Foster. System counts count a day once.</p>')
+    else:
+        name = metric
+        title = f'{purpose} / {metric} ({period})'
+        context = f'{purpose} · {period.capitalize()}'
+        details = ''
+    heading = (f'<h2 style="font-size:1.8rem;margin-bottom:.25em">{escape(name)}</h2>'
+               f'<p style="margin-top:0">{escape(context)}</p>{details}')
+    return escape(title), heading
 
 
 def main():
@@ -368,9 +379,14 @@ def write_model_settings(path, models):
 
 def metric_panels(summary, labels):
     options, panels = [], []
-    for n, ((purpose, metric), table) in enumerate(summary.groupby(['purpose', 'metric'])):
-        title = escape(f'{purpose} / {metric}')
+    plotly_included = False
+    for n, ((purpose, metric, period), table) in enumerate(metric_groups(summary)):
+        title, heading = metric_heading(purpose, metric, period)
         options.append(f'<option value="{n}">{title}</option>')
+        start = f'<section id="metric-{n}"{" hidden" if n else ""}>{heading}'
+        if table.empty:
+            panels.append(start + '<p>No comparison data are available.</p></section>')
+            continue
         figures = [location_plot(table, labels, kind, percentile_boxes=True) for kind in ('box', 'duration')]
         # Set an explicit range even for all-zero traces.
         if purpose == 'Flood Control' and table.units.isin(['days', 'reservoir-days']).all():
@@ -382,9 +398,10 @@ def metric_panels(summary, labels):
                     fig.update_yaxes(range=[0, max(1, 1.05*peak)] if pd.notna(peak) else [0, 1],
                                      dtick=1 if pd.isna(peak) or peak <= 10 else None,
                                      row=i//columns+1, col=i%columns+1)
-        body = ''.join(fig.to_html(full_html=False, include_plotlyjs=(n == i == 0))
+        body = ''.join(fig.to_html(full_html=False, include_plotlyjs=(not plotly_included and i == 0))
                        for i, fig in enumerate(figures))
-        panels.append(f'<section id="metric-{n}"{" hidden" if n else ""}>{body}</section>')
+        panels.append(start + body + '</section>')
+        plotly_included = True
     return (
         '<label for="pick">Metric</label> <select id="pick">' + ''.join(options) + '</select>'
         + ''.join(panels)
@@ -565,7 +582,6 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         encoding='utf-8')
     write_model_settings(output/'model_settings.html', models)
 
-    compliance_links = write_compliance_pages(output, summary, lambda table: metric_panels(table, labels))
     regime_links = write_target_pages(output, target_directory, routed, sorted(calendar_years)) if target_directory else ''
     stacked_href = escape(stacked_url or 'annual_reservoir_overlays.html', quote=True)
     (output/'index.html').write_text(
@@ -575,7 +591,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         '<a href="model_settings.html">Model settings</a> | <a href="annual_comparison.csv">Annual data</a></p>'
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
-        + regime_links + compliance_links +
+        + regime_links +
         '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the sum of each day’s reservoir storage. '
         'Holiday storage and ramps use the holiday date only. Ramp counts use pool elevation.</p>'
         '<p>Elevation counts use daily pool elevation strictly above the Lookout Point and Detroit '

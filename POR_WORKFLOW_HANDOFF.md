@@ -35,7 +35,7 @@ Flood exceedance count axes start at zero.
 
 ## Interpretation and provenance
 
-- The BiOp page uses the fixed minimum-flow component. The combined page uses
+- The BiOp metric uses the fixed minimum-flow component. The combined metric uses
   each compute's captured minimum-flow and withdrawal tables. It screens daily
   outflows against the summed schedule and requires both captured tables.
 - Flood metrics use October through September water years. Other annual
