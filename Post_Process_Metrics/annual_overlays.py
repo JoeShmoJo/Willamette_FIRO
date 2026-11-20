@@ -237,7 +237,8 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         data_note = ('Pool series come from the trial CSV exports. FIRO target lines require captured '
                      'enablement and a captured schedule. Dotted FIRO targets repeat by month and day. '
                      'They stay fixed when you change the selected plot year. '
-                     'Long dashes show daily storage above Min Con. Bold daily traces show the selected plot year. '
+                     'Long dashes show daily storage above Min Con on the left axis. Solid elevation traces use the right axis. '
+                     'The chart initially shows the selected year. Turn on All years to add the faint background traces. '
                      'Plot years run August 1 through July 31 and are labeled by the ending year. '
                      'The selector starts at the latest complete plot year when available. '
                      'Partial years are labeled and show only the dates available. '
@@ -268,7 +269,8 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         f'<select id="overlay-year" data-year-label="{year_label}">' + year_options + '</select>'
         '<button type="button" id="next-year" aria-label="Next year">↓</button>'
         '<label><input id="selected-year" type="checkbox" checked> Selected year</label>'
-        '<label><input id="all-years" type="checkbox" checked> All years</label>' + run_controls + '</div>'
+        f'<label><input id="all-years" type="checkbox"{" checked" if not reference_curves else ""}> All years</label>'
+        + run_controls + '</div>'
         + ''.join(sections)
         + '<script>' + get_plotlyjs() + '</script>'
         + OVERLAY_CONTROLS,
@@ -325,7 +327,7 @@ function updatePair(chart) {
   if (!sources?.length || !chart.data) return;
   const year = Number(yearPicker.value);
   const indices = [];
-  const update = {x: [], y: [], name: [], visible: []};
+  const update = {x: [], y: [], text: [], name: [], visible: [], showlegend: []};
   for (const source of sources) {
     const x = [], y = [];
     for (let i = 0; i < source.trace.text.length; i++) {
@@ -337,9 +339,14 @@ function updatePair(chart) {
     indices.push(source.pairIndex);
     update.x.push(x);
     update.y.push(y);
+    update.text.push(x.map(value => new Date(value).toISOString().slice(5, 10)));
     update.name.push(source.trace.name + " · " + yearPicker.dataset.yearLabel + " " + year);
     const setting = chart.backgroundShown ? chart.data[source.index].visible : source.visibility;
-    update.visible.push(selected.checked && runEnabled(source.trace) && y.some(Number.isFinite) && setting !== "legendonly" && setting !== false);
+    const valid = selected.checked && runEnabled(source.trace) && y.some(Number.isFinite);
+    const legend = valid && !chart.backgroundShown;
+    update.showlegend.push(legend);
+    update.visible.push(!valid ? false : setting === "legendonly" || setting === false
+      ? (legend ? "legendonly" : false) : true);
   }
   Plotly.restyle(chart, update, indices);
 }
@@ -393,7 +400,7 @@ async function mount(chart) {
     await Plotly.addTraces(chart, annual.map(({trace}) => ({
       type: "scatter", mode: "lines", x: [], y: [], visible: false, showlegend: false,
       xaxis: trace.xaxis, yaxis: trace.yaxis, line: {...trace.line, width: 3.2},
-      hovertemplate: "%{x|%b %d}: %{y:,.2f}<extra>%{fullData.name}</extra>"
+      hovertemplate: "%{text}: %{y:,.2f}<extra>%{fullData.name}</extra>"
     })));
   }
   chart.annualSources = annual.map((source, i) => ({...source, pairIndex: start + i}));
@@ -401,6 +408,14 @@ async function mount(chart) {
   chart.hiddenRunTraces = new Map();
   runToggles.forEach((input, label) => {
     if (!input.checked) updateRun(chart, label, false);
+  });
+  chart.on("plotly_legendclick", event => {
+    if (chart.backgroundShown) return;
+    const source = chart.annualSources.find(item => item.pairIndex === event.curveNumber);
+    if (!source) return;
+    source.visibility = source.visibility === "legendonly" || source.visibility === false ? true : "legendonly";
+    updatePair(chart);
+    return false;
   });
   chart.on("plotly_restyle", ([update, indices]) => {
     if (update.visible && chart.backgroundShown && indices.some((i) => i < start)) {
