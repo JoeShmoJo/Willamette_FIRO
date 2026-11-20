@@ -75,13 +75,12 @@ def location_panel(rows, labels, purpose, period, location, units):
         minimum, maximum = values.min(), values.max()
         stats.append([label, len(values), minimum, q1, median, q3, maximum])
         color = qualitative.Plotly[index % len(qualitative.Plotly)]
-        tag = f'Trial {trial}' if trial else 'Baseline (-0)'
-        fig.add_trace(go.Box(x=[tag], q1=[q1], median=[median], q3=[q3], lowerfence=[minimum],
+        fig.add_trace(go.Box(x=[label], q1=[q1], median=[median], q3=[q3], lowerfence=[minimum],
                              upperfence=[maximum], name=label, marker_color=color,
-                             legendgroup=tag, boxpoints=False, hoverinfo='skip'))
-        fig.add_trace(go.Scatter(x=[tag] * len(values), y=values.tolist(), text=values.index.tolist(),
+                             legendgroup=label, boxpoints=False, hoverinfo='skip'))
+        fig.add_trace(go.Scatter(x=[label] * len(values), y=values.tolist(), text=values.index.tolist(),
                                  name=label, marker=dict(color=color, opacity=.6, size=5),
-                                 mode='markers', legendgroup=tag, showlegend=False,
+                                 mode='markers', legendgroup=label, showlegend=False,
                                  hovertemplate=period.title() + ' %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
     fig.update_layout(template='plotly_white', yaxis_title=units,
                       legend=dict(groupclick='togglegroup', orientation='h', y=-.25),
@@ -92,7 +91,7 @@ def location_panel(rows, labels, purpose, period, location, units):
     table = pd.DataFrame(stats, columns=['Run', 'Years', 'Minimum', '25th percentile',
                                          '50th percentile', '75th percentile', 'Maximum'])
     body = fig.to_html(full_html=False, include_plotlyjs=False)
-    body += '<details><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
+    body += '<details open><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
     title = 'System' if location == 'SYSTEM' else escape(location)
     return f'<article><h2>{title}</h2>{body}</article>'
 
@@ -149,7 +148,8 @@ def main():
 
     output = run / 'por_csv_plots' / (datetime.now().strftime('%Y%m%d-%H%M%S-') + uuid4().hex[:8])
     staging = output / 'csv_metrics'
-    labels = {0: f'Baseline (-0): {baseline_name}'}
+    labels = {0: 'Baseline'}
+    configurations = {0: baseline_name}
     links, summaries = [], []
     for trial, (case, name) in cases.items():
         print(f'{case[2]} | {name} | {Path(case[1]).name} | {Path(case[0]).name}', flush=True)
@@ -162,20 +162,25 @@ def main():
         pair = output / f'trial{trial}'
         build(prior, pair, args.targets)
         summaries.append(pd.read_csv(pair / 'annual_comparison.csv').assign(trial=trial))
-        labels[trial] = f'Trial {trial}: {name}'
-        links.append(f'<li><a href="trial{trial}/index.html">{escape(labels[trial])} versus baseline</a></li>')
+        labels[trial] = f'Trial {trial}'
+        configurations[trial] = name
+        links.append(f'<li><a href="trial{trial}/index.html">{labels[trial]} versus baseline</a></li>')
 
     summary = pd.concat(summaries, ignore_index=True)
     summary.to_csv(output / 'annual_comparison.csv', index=False)
     (output / 'plotly.min.js').write_text(get_plotlyjs(), encoding='utf-8')
-    compliance = write_compliance_pages(output, summary, lambda table: comparison_panels(table, labels))
+    configuration_list = '<h2>Configurations</h2><ul>' + ''.join(
+        f'<li><strong>{label}</strong> — {escape(configurations[trial])}</li>'
+        for trial, label in labels.items()) + '</ul>'
+    compliance = write_compliance_pages(
+        output, summary, lambda table: configuration_list + comparison_panels(table, labels))
     if skipped:
         print('Excluded results: ' + '; '.join(skipped), flush=True)
     excluded = ('<h2>Excluded results</h2><ul>' + ''.join(f'<li>{escape(reason)}</li>' for reason in skipped)
                 + '</ul>') if skipped else ''
     page = output / 'index.html'
     page.write_text('<!doctype html><meta charset="utf-8"><title>POR trial comparison</title>'
-                    '<h1>POR trial comparison</h1><p>' + escape(labels[0]) + '</p>'
+                    '<h1>POR trial comparison</h1>' + configuration_list
                     + compliance + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
                     '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
