@@ -65,6 +65,7 @@ def location_panel(rows, labels, purpose, period, location, units):
     available = samples.loc[:, samples.notna().any()]
     common = available.dropna().index if 0 in available else []
     fig = go.Figure()
+    duration = go.Figure()
     stats = []
     for index, (trial, label) in enumerate(labels.items()):
         values = samples.loc[common, trial].dropna()
@@ -82,18 +83,30 @@ def location_panel(rows, labels, purpose, period, location, units):
                                  name=label, marker=dict(color=color, opacity=.6, size=5),
                                  mode='markers', legendgroup=label, showlegend=False,
                                  hovertemplate=period.title() + ' %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
-    fig.update_layout(template='plotly_white', yaxis_title=units,
-                      legend=dict(groupclick='togglegroup', orientation='h', y=-.25),
-                      height=390, margin=dict(t=12, b=100))
+        ranked = values.sort_values(ascending=False, kind='stable')
+        exceedance = [100 * rank / (len(ranked) + 1) for rank in range(1, len(ranked) + 1)]
+        duration.add_trace(go.Scatter(
+            x=exceedance, y=ranked.tolist(), text=ranked.index.tolist(), name=label,
+            mode='lines+markers', line_color=color, marker=dict(size=5),
+            hovertemplate=period.title() + ' %{text}: %{y:,.2f} at %{x:.1f}%<extra>%{fullData.name}</extra>'))
+
+    for chart in (fig, duration):
+        chart.update_layout(template='plotly_white', yaxis_title=units,
+                            legend=dict(groupclick='togglegroup', orientation='h', y=-.25),
+                            height=390, margin=dict(t=12, b=100))
+        if purpose == 'Flood Control' and units in ('days', 'reservoir-days'):
+            chart.update_yaxes(rangemode='tozero')
     fig.update_xaxes(tickangle=-35 if len(labels) > 4 else 0, automargin=True)
-    if purpose == 'Flood Control' and units in ('days', 'reservoir-days'):
-        fig.update_yaxes(rangemode='tozero')
+    duration.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%')
     table = pd.DataFrame(stats, columns=['Run', 'Years', 'Minimum', '25th percentile',
                                          '50th percentile', '75th percentile', 'Maximum'])
     body = fig.to_html(full_html=False, include_plotlyjs=False)
     body += '<details open><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
     title = 'System' if location == 'SYSTEM' else escape(location)
-    return f'<article><h2>{title}</h2>{body}</article>'
+    criterion = f'<p>{escape(rows.status.iloc[0])}</p>' if purpose == 'Reservoir elevation' else ''
+    curve = duration.to_html(full_html=False, include_plotlyjs=False)
+    return (f'<article><h2>{title}</h2>{criterion}'
+            f'<div data-view="box">{body}</div><div data-view="duration" hidden>{curve}</div></article>')
 
 
 def comparison_panels(summary, labels):
@@ -117,10 +130,15 @@ def comparison_panels(summary, labels):
             '<p>Boxes and points use complete years shared by the trials with data for each location. '
             'Click a trial in a legend to hide or show it.</p>'
             '<label for="metric">Metric</label> <select id="metric">' + ''.join(options)
-            + '</select>' + ''.join(panels)
-            + '<script>document.querySelector("#metric").onchange=e=>{document.querySelectorAll("section")'
-              '.forEach(s=>s.hidden=s.id!=="metric-"+e.target.value);document.querySelectorAll('
-              '"section:not([hidden]) .js-plotly-plot").forEach(p=>Plotly.Plots.resize(p))}</script>')
+            + '</select> <label for="plot-view">View</label> <select id="plot-view">'
+              '<option value="box">Box plots and statistics</option>'
+              '<option value="duration">Duration plots</option></select>' + ''.join(panels)
+            + '<script>const metric=document.querySelector("#metric"),view=document.querySelector("#plot-view");'
+              'function updatePlots(){document.querySelectorAll("section").forEach(section=>'
+              'section.hidden=section.id!=="metric-"+metric.value);'
+              'document.querySelectorAll("[data-view]").forEach(panel=>panel.hidden=panel.dataset.view!==view.value);'
+              'document.querySelectorAll("section:not([hidden]) [data-view]:not([hidden]) .js-plotly-plot")'
+              '.forEach(plot=>Plotly.Plots.resize(plot))}metric.onchange=view.onchange=updatePlots;</script>')
 
 
 def main():

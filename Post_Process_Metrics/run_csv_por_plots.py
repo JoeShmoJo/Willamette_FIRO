@@ -417,9 +417,9 @@ def build(prior, output, target_directory=None, fits_files=None):
     projects = pd.read_csv(project_data, skiprows=header, encoding='utf-8-sig')
     crests = projects.set_index('Variable').loc['SpillwayCrestElev']
     elevation_criteria = {
-        'Lookout Point': ('Days above spillway crest', float(crests['Lookout Point'])),
-        'Detroit': ('Days above spillway crest', float(crests['Detroit'])),
-        'Cougar': ('Days above minimum temperature tower elevation', 1571.0),
+        'Lookout Point': ('Spillway crest', float(crests['Lookout Point'])),
+        'Detroit': ('Spillway crest', float(crests['Detroit'])),
+        'Cougar': ('Minimum temperature tower elevation', 1571.0),
     }
     water_years = set()
     calendar_years = set()
@@ -461,11 +461,11 @@ def build(prior, output, target_directory=None, fits_files=None):
                 for holiday in HOLIDAYS:
                     values['Recreation', reservoir, f'Pool storage on {holiday}', 'acre-ft', 'max'] = values_series
 
-        for reservoir, (metric, elevation) in elevation_criteria.items():
+        for reservoir, (_, elevation) in elevation_criteria.items():
             pool = daily.get(f'{reservoir}__Elev')
             if pool is not None:
                 pool = pool.reindex(dates)
-                key = ('Reservoir elevation', reservoir, metric, 'days', 'sum')
+                key = ('Reservoir elevation', reservoir, 'Days above', 'days', 'sum')
                 values[key] = pool.gt(elevation).astype(float).where(pool.notna())
 
         for station in thresholds.itertuples(index=False):
@@ -538,12 +538,20 @@ def build(prior, output, target_directory=None, fits_files=None):
             if paired == len(window):
                 totals = pair.quantile(.1).tolist() if reducer == 'p10' else pair.agg(reducer).tolist()
             baseline, alternative = totals
+            if purpose == 'Reservoir elevation':
+                criterion, elevation = elevation_criteria[name]
+                status = f'{criterion} ({elevation:,.1f} ft)'
+            elif units in ('ramps', 'ramp-days'):
+                status = 'Elevation-only screen'
+            elif purpose in FLOW_COMPLIANCE:
+                status = 'Minimum-flow schedule screen'
+            else:
+                status = 'Daily POR CSV'
             rows.append(dict(purpose=purpose, location=name, metric=metric, units=units, year=year,
                              period='water year' if flood else 'calendar year',
                              expected=len(window), paired=paired, baseline=baseline,
                              alternative=alternative, change=alternative-baseline,
-                             status='Elevation-only screen' if units in ('ramps', 'ramp-days') else
-                             'Minimum-flow schedule screen' if purpose in FLOW_COMPLIANCE else 'Daily POR CSV'))
+                             status=status))
     summary = pd.concat([annual, pd.DataFrame(rows)], ignore_index=True)
     output.mkdir(parents=True, exist_ok=False)
     summary.to_csv(output/'annual_comparison.csv', index=False)
