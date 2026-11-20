@@ -161,10 +161,10 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
                 raise ValueError(f'{label} {location}/{parameter}: multiple daily series')
             case[parameter] = values
 
-    links, sections = [], []
+    reservoir_options, sections = [], []
     available_years = set()
     for i, (reservoir, cases) in enumerate(sorted(by_reservoir.items())):
-        links.append(f'<a href="#reservoir-{i}">{escape(reservoir)}</a>')
+        reservoir_options.append(f'<option value="reservoir-{i}">{escape(reservoir)}</option>')
         ramp_rows = ramps[ramps.reservoir.str.casefold() == reservoir.casefold()]
         curves, notes = (reference_curves or firo_overlays)(reservoir, results, firo_path, evidence)
         for parameters in cases.values():
@@ -205,8 +205,8 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
     output.write_text(
         '<!doctype html><html lang="en"><meta charset="utf-8"><title>Annual reservoir overlays</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}'
-        'nav{display:flex;gap:.5rem 1rem;flex-wrap:wrap}.reservoir-chart{min-height:660px}'
-        'section{border-top:1px solid #dbe3eb;margin:2rem 0;scroll-margin-top:4rem}'
+        '.reservoir-chart{min-height:660px}'
+        'section{border-top:1px solid #dbe3eb;margin:2rem 0;scroll-margin-top:var(--overlay-scroll-offset,4rem)}'
         '#overlay-controls{position:sticky;top:0;background:white;z-index:10;padding:.6rem 0;'
         'border-bottom:1px solid #dbe3eb;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}'
         '#overlay-controls button,#overlay-controls select{font:inherit}</style>'
@@ -216,8 +216,10 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         'its traces, and use Up/Down while the year selector has focus.</p>'
         f'<p>{escape(data_note)}</p>'
         f'<p>FIRO source: {escape(firo_sources)}<br>Spillway crests: {escape(str(project_data))}</p>'
-        '<nav>' + ''.join(links) + '</nav>'
-        '<div id="overlay-controls"><label for="overlay-year">Water year</label>'
+        '<div id="overlay-controls"><label for="overlay-reservoir">Reservoir</label>'
+        '<select id="overlay-reservoir"><option value="">Choose a reservoir</option>'
+        + ''.join(reservoir_options) + '</select>'
+        '<label for="overlay-year">Water year</label>'
         '<button type="button" id="previous-year" aria-label="Previous water year">↑</button>'
         '<select id="overlay-year">' + year_options + '</select>'
         '<button type="button" id="next-year" aria-label="Next water year">↓</button>'
@@ -230,6 +232,17 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
 
 
 OVERLAY_CONTROLS = """<script>
+const toolbar = document.getElementById("overlay-controls");
+const reservoirPicker = document.getElementById("overlay-reservoir");
+function updateScrollOffset() {
+  document.documentElement.style.setProperty("--overlay-scroll-offset", (toolbar.offsetHeight + 12) + "px");
+}
+new ResizeObserver(updateScrollOffset).observe(toolbar);
+reservoirPicker.addEventListener("change", () => {
+  if (!reservoirPicker.value) return;
+  updateScrollOffset();
+  document.getElementById(reservoirPicker.value)?.scrollIntoView({block: "start"});
+});
 const yearPicker = document.getElementById("overlay-year");
 const selected = document.getElementById("selected-year");
 const background = document.getElementById("all-years");
