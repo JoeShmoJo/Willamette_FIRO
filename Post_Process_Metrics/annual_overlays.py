@@ -33,12 +33,40 @@ def water_year_overlay(series, calendar=CALENDAR):
             np.insert(years.to_numpy(), starts, 0))
 
 
-def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, native_rule_curves=True, calendar=CALENDAR):
+def add_storage_scale(fig, rating):
+    if rating is None:
+        fig.update_yaxes(showticklabels=False, showgrid=False, row=1, col=1, secondary_y=False)
+        return
+    elevations, storage, min_con = rating
+    plotted = np.concatenate([np.asarray(trace.y, dtype=float) for trace in fig.data if trace.yaxis == 'y2']
+                             or [np.array([])])
+    plotted = plotted[np.isfinite(plotted)]
+    if not plotted.size:
+        return
+    lower, upper = plotted.min(), plotted.max()
+    spacing = max((upper - lower) / 6, .1)
+    power = 10 ** np.floor(np.log10(spacing))
+    interval = next(step * power for step in (1, 2, 5, 10) if step * power >= spacing)
+    first = np.floor(lower / interval) * interval
+    last = max(np.ceil(upper / interval) * interval, first + interval)
+    ticks = np.arange(first, last + interval / 2, interval)
+    labels = ['' if not elevations[0] <= tick <= elevations[-1] else
+              f'{max(0, np.interp(tick, elevations, storage) - min_con):,.0f}' for tick in ticks]
+    # Keep the left layout axis mounted without drawing a second daily series.
+    fig.add_trace(go.Scatter(x=[fig.layout.xaxis.range[0]], y=[first], mode='markers',
+                             opacity=0, showlegend=False, hoverinfo='skip'), row=1, col=1, secondary_y=False)
+    fig.update_yaxes(range=[first, last], tickmode='array', tickvals=ticks, row=1, col=1, secondary_y=True)
+    fig.update_yaxes(range=[first, last], matches='y2', tickmode='array', tickvals=ticks, ticktext=labels,
+                     showgrid=False, title_text='Storage above Min Con (acre-ft)',
+                     row=1, col=1, secondary_y=False)
+
+
+def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, native_rule_curves=True, calendar=CALENDAR, storage_rating=None):
     storage_axis = not native_rule_curves
     period = 'Plot year' if storage_axis else 'Water year'
     calendar_ms = (CALENDAR_MS if calendar is CALENDAR else
                    calendar.to_numpy(dtype='datetime64[ms]').astype(np.float64))
-    title = 'Storage above Min Con and pool elevation' if storage_axis else 'Pool elevation and references'
+    title = 'Pool elevation and references'
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=.10,
                         specs=[[{'secondary_y': storage_axis}], [{}]],
                         subplot_titles=(title, 'Daily flow'))
@@ -51,7 +79,6 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, 
     ]
     if not native_rule_curves:
         definitions.pop()
-        definitions.insert(0, ('stor-above-min-con', 'Storage above Min Con', 1, 'longdash', True, .34))
     for i, (label, series_by_parameter) in enumerate(cases.items()):
         color = CASE_COLORS[i % len(CASE_COLORS)]
         for parameter, title, row, dash, visible, opacity in definitions:
@@ -110,7 +137,7 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, 
                                  'Water year (October–September)'), row=2, col=1)
     fig.update_yaxes(title_text='Elevation (ft)', row=1, col=1, secondary_y=storage_axis)
     if storage_axis:
-        fig.update_yaxes(title_text='Storage above Min Con (acre-ft)', row=1, col=1, secondary_y=False)
+        add_storage_scale(fig, storage_rating)
     fig.update_yaxes(title_text='Flow (cfs)', row=2, col=1)
     fig.update_layout(template='plotly_white', height=660, margin=dict(t=45),
                       legend=dict(orientation='h', y=-.20, groupclick='toggleitem'))
@@ -149,7 +176,7 @@ def firo_overlays(reservoir, labels, firo_path, evidence):
 
 
 def write_annual_overlays(output, results, ramps, firo_path, project_data, markers, fparts, *,
-                          reference_curves=None, trial_controls=False, rule_note=None):
+                          reference_curves=None, trial_controls=False, rule_note=None, storage_axes=None):
     with project_data.open(encoding='utf-8-sig') as stream:
         header = next((i for i, line in enumerate(stream) if line.startswith('Variable,')), None)
     if header is None:
@@ -199,7 +226,10 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         fig, missing = reservoir_figure({label: cases.get(label, {}) for label in results},
                                         ramp_rows, crest.get(reservoir.casefold()), curves,
                                         trial_controls=trial_controls, native_rule_curves=reference_curves is None,
-                                        calendar=calendar)
+                                        calendar=calendar,
+                                        storage_rating=(storage_axes or {}).get(reservoir.casefold()))
+        if reference_curves and reservoir.casefold() not in (storage_axes or {}):
+            notes.append('Baseline elevation–storage rating or minimum conservation level unavailable')
         if missing:
             notes.append(f'Unavailable: {", ".join(missing)}')
         note = f'<p>{escape(". ".join(notes))}.</p>' if notes else ''
@@ -237,7 +267,9 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         data_note = ('Pool series come from the trial CSV exports. FIRO target lines require captured '
                      'enablement and a captured schedule. Dotted FIRO targets repeat by month and day. '
                      'They stay fixed when you change the selected plot year. '
-                     'Long dashes show daily storage above Min Con on the left axis. Solid elevation traces use the right axis. '
+                     'One line shows pool elevation on the right and the equivalent storage above Min Con on the left. '
+                     'The storage scale uses the baseline elevation–storage rating for all runs. '
+                     'Storage labels are blank outside that rating’s range. '
                      'The chart initially shows the selected year. Turn on All years to add the faint background traces. '
                      'Plot years run August 1 through July 31 and are labeled by the ending year. '
                      'The selector starts at the latest complete plot year when available. '

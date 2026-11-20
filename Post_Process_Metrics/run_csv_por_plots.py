@@ -85,7 +85,7 @@ def bankfull_thresholds(model, thresholds, target_directory):
     return result
 
 
-def minimum_conservation_storage(model, rule_curve):
+def conservation_storage_ratings(model, rule_curve):
     if rule_curve is None:
         return {}
     values = {}
@@ -104,7 +104,7 @@ def minimum_conservation_storage(model, rule_curve):
         minimum = rule_curve[key].min()
         if (np.diff(elevations) <= 0).any() or (np.diff(storage) < 0).any() or not elevations[0] <= minimum <= elevations[-1]:
             continue
-        values[name] = np.interp(minimum, elevations, storage)
+        values[name] = (elevations, storage, np.interp(minimum, elevations, storage))
     return values
 
 
@@ -544,7 +544,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         models[label] = model = read_compute_report(case, label, (fits_files or {}).get(label))
         compute = model['compute']
         bankfull[label] = bankfull_thresholds(model, thresholds, target_directory)
-        min_con = minimum_conservation_storage(model, rule_curve)
+        min_con = {name: rating[2] for name, rating in conservation_storage_ratings(model, rule_curve).items()}
         daily = pd.read_csv(case['csv'])
         stamps = pd.DatetimeIndex(pd.to_datetime(daily.pop('Timestamp'), errors='raise'))
         if stamps.hasnans or stamps.has_duplicates or not stamps.equals(stamps.normalize()):
@@ -571,7 +571,6 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
                     values_series, 'ft' if parameter == 'Elev' else 'cfs')
             elif parameter == 'Stor':
                 above = (values_series - min_con.get(reservoir, np.nan)).clip(lower=0)
-                records[label]['', reservoir+'-Pool', 'Stor-above-min-con'] = (above, 'acre-ft')
                 values['Water Supply', reservoir, 'Maximum daily storage above Min Con', 'acre-ft', 'max'] = above
                 for holiday in HOLIDAYS:
                     values['Recreation', reservoir, f'Storage above Min Con on {holiday}', 'acre-ft', 'max'] = above
@@ -704,7 +703,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         + metric_panels(summary, labels, bankfull), encoding='utf-8')
 
     if stacked_url is None:
-        write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets, target_directory)
+        write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets, models['Baseline'], target_directory)
     print(output/'index.html')
     return records, targets, models, control_point_flows, bankfull
 
@@ -750,10 +749,11 @@ def conservation_rule_curve(target_directory):
     return None, None
 
 
-def write_csv_overlays(output, records, targets, target_directory=None, *, trial_controls=False):
+def write_csv_overlays(output, records, targets, baseline, target_directory=None, *, trial_controls=False):
     project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
     ramps = pd.read_csv(ROOT/'data/boat_ramp_elevations.csv')
     rule_path, rule_curve = conservation_rule_curve(target_directory)
+    storage_axes = {name.casefold(): rating for name, rating in conservation_storage_ratings(baseline, rule_curve).items()}
 
     def references(reservoir, *_):
         curves, notes = [], []
@@ -779,7 +779,7 @@ def write_csv_overlays(output, records, targets, target_directory=None, *, trial
                  'when absent from the reference.' if rule_path else None)
     overlays.write_annual_overlays(
         output, records, ramps, Path('per-compute JSON'), project_data, {}, {},
-        reference_curves=references, trial_controls=trial_controls, rule_note=rule_note)
+        reference_curves=references, trial_controls=trial_controls, rule_note=rule_note, storage_axes=storage_axes)
 
 
 if __name__ == '__main__':
