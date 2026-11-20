@@ -442,6 +442,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
     biop_schedule = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv',
                                 comment='#').set_index(['Month', 'Day'])
     records, targets, metrics, routed, models = {}, {}, [], {}, {}
+    control_point_flows = {}
     project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
     with project_data.open(encoding='utf-8-sig') as stream:
         header = next(i for i, line in enumerate(stream) if line.startswith('Variable,'))
@@ -471,6 +472,8 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         water_years.update(daily.index.year + (daily.index.month >= 10).astype(int))
         calendar_years.update(daily.index.year)
         routed[label] = daily[['Salem__Flow', 'Albany__Flow']]
+        columns = {f'{site}__Flow': site for site in thresholds.location}
+        control_point_flows[label] = daily[list(columns)].rename(columns=columns)
         records[label], values = {}, {}
         metrics.append(values)
         config = compute.get('baseline_configuration') or {}
@@ -500,7 +503,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
                 values[key] = pool.gt(elevation).astype(float).where(pool.notna())
 
         for station in thresholds.itertuples(index=False):
-            flow = daily[f'{station.location}__Flow'].reindex(dates)
+            flow = control_point_flows[label][station.location].reindex(dates)
             values['Flood Control', station.location, 'Peak daily routed flow', 'cfs', 'max'] = flow
             for field, metric in LEVELS.items():
                 values['Flood Control', station.location, metric, 'days', 'sum'] = flow.gt(
@@ -617,7 +620,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
     if stacked_url is None:
         write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets)
     print(output/'index.html')
-    return records, targets, models
+    return records, targets, models, control_point_flows
 
 
 def write_csv_overlays(output, records, targets, *, trial_controls=False):

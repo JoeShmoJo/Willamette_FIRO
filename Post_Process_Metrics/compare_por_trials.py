@@ -58,10 +58,7 @@ def timestamps(case):
     return index
 
 
-def location_panel(rows, labels, purpose, period, location, units):
-    samples = rows.pivot(index='year', columns='trial', values='alternative').reindex(columns=list(labels)[1:])
-    baseline = rows.groupby('year').baseline.first()
-    samples.insert(0, 0, baseline)
+def distribution_charts(samples, labels, purpose, period, units, *, daily=False):
     available = samples.loc[:, samples.notna().any()]
     common = available.dropna().index if 0 in available else []
     fig = go.Figure()
@@ -79,16 +76,26 @@ def location_panel(rows, labels, purpose, period, location, units):
         fig.add_trace(go.Box(x=[label], q1=[q1], median=[median], q3=[q3], lowerfence=[minimum],
                              upperfence=[maximum], name=label, marker_color=color,
                              legendgroup=label, boxpoints=False, hoverinfo='skip'))
-        fig.add_trace(go.Scatter(x=[label] * len(values), y=values.tolist(), text=values.index.tolist(),
-                                 name=label, marker=dict(color=color, opacity=.6, size=5),
-                                 mode='markers', legendgroup=label, showlegend=False,
-                                 hovertemplate=period.title() + ' %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
+        if not daily:
+            fig.add_trace(go.Scatter(x=[label] * len(values), y=values.tolist(), text=values.index.tolist(),
+                                     name=label, marker=dict(color=color, opacity=.6, size=5),
+                                     mode='markers', legendgroup=label, showlegend=False,
+                                     hovertemplate=period.title() + ' %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
         ranked = values.sort_values(ascending=False, kind='stable')
-        exceedance = [100 * rank / (len(ranked) + 1) for rank in range(1, len(ranked) + 1)]
+        size = len(ranked)
+        positions = range(size)
+        max_points = 1200
+        if daily and size > max_points:
+            # Keep the endpoints and sample exact ranks from the full daily series.
+            positions = [i * (size - 1) // (max_points - 1) for i in range(max_points)]
+        plotted = ranked.iloc[positions]
+        exceedance = [100 * (i + 1) / (size + 1) for i in positions]
+        date_labels = plotted.index.strftime('%Y-%m-%d').tolist() if daily else plotted.index.tolist()
         duration.add_trace(go.Scatter(
-            x=exceedance, y=ranked.tolist(), text=ranked.index.tolist(), name=label,
-            mode='lines+markers', line_color=color, marker=dict(size=5),
-            hovertemplate=period.title() + ' %{text}: %{y:,.2f} at %{x:.1f}%<extra>%{fullData.name}</extra>'))
+            x=exceedance, y=plotted.tolist(), text=date_labels, name=label,
+            mode='lines' if daily and size > 1 else 'lines+markers', line_color=color, marker=dict(size=5),
+            hovertemplate=('Date' if daily else period.title())
+            + ' %{text}: %{y:,.2f} at %{x:.2f}%<extra>%{fullData.name}</extra>'))
 
     for chart in (fig, duration):
         chart.update_layout(template='plotly_white', yaxis_title=units,
@@ -98,26 +105,48 @@ def location_panel(rows, labels, purpose, period, location, units):
             chart.update_yaxes(rangemode='tozero')
     fig.update_xaxes(tickangle=-35 if len(labels) > 4 else 0, automargin=True)
     duration.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%')
-    table = pd.DataFrame(stats, columns=['Run', 'Years', 'Minimum', '25th percentile',
+    table = pd.DataFrame(stats, columns=['Run', 'Days' if daily else 'Years', 'Minimum', '25th percentile',
                                          '50th percentile', '75th percentile', 'Maximum'])
     body = fig.to_html(full_html=False, include_plotlyjs=False)
     body += '<details open><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
+    curve = duration.to_html(full_html=False, include_plotlyjs=False)
+    prefix = 'daily-' if daily else ''
+    return (f'<div data-view="{prefix}box"{" hidden" if daily else ""}>{body}</div>'
+            f'<div data-view="{prefix}duration" hidden>{curve}</div>')
+
+
+def location_panel(rows, labels, purpose, period, location, units, daily_flows):
+    samples = rows.pivot(index='year', columns='trial', values='alternative').reindex(columns=list(labels)[1:])
+    baseline = rows.groupby('year').baseline.first()
+    samples.insert(0, 0, baseline)
     title = 'System' if location == 'SYSTEM' else escape(location)
     criterion = f'<p>{escape(rows.status.iloc[0])}</p>' if purpose == 'Reservoir elevation' else ''
-    curve = duration.to_html(full_html=False, include_plotlyjs=False)
-    return (f'<article><h3>{title}</h3>{criterion}'
-            f'<div data-view="box">{body}</div><div data-view="duration" hidden>{curve}</div></article>')
+    charts = distribution_charts(samples, labels, purpose, period, units)
+    if daily_flows:
+        samples = pd.DataFrame({trial: daily_flows[trial][location] for trial in labels})
+        charts += distribution_charts(samples, labels, purpose, period, units, daily=True)
+    return f'<article><h3>{title}</h3>{criterion}{charts}</article>'
 
 
-def comparison_panels(summary, labels):
+def comparison_panels(summary, labels, daily_flows=None):
     options, panels = [], []
     width = min(780, max(340, 160 + 52 * len(labels)))
     for i, ((purpose, metric, period), rows) in enumerate(metric_groups(summary)):
         title, heading = metric_heading(purpose, metric, period)
-        options.append(f'<option value="{i}">{title}</option>')
+        daily = daily_flows if (purpose, metric) == ('Flood Control', 'Peak daily routed flow') else None
+        daily_flag = ' data-daily="true"' if daily else ''
+        if daily:
+            title = 'Flood Control / Routed flow at control points'
+            heading = (f'<div data-annual-heading>{heading}</div>'
+                       '<div data-daily-heading hidden><h2 style="font-size:1.8rem;margin-bottom:.25em">'
+                       'Daily routed flow at control points</h2>'
+                       '<p>Daily views use individual days shared by the included runs. '
+                       'For long records, duration plots display up to 1,200 ranked points per run. '
+                       'Box statistics use every matched day.</p></div>')
+        options.append(f'<option value="{i}"{daily_flag}>{title}</option>')
         locations = list(rows.groupby(['location', 'units']))
         locations.sort(key=lambda item: (item[0][0] != 'SYSTEM', item[0]))
-        body = ''.join(location_panel(group, labels, purpose, period, location, units)
+        body = ''.join(location_panel(group, labels, purpose, period, location, units, daily)
                        for (location, units), group in locations)
         charts = (f'<div class="reservoir-grid" style="--panel-width:{width}px">{body}</div>'
                   if body else '<p>No comparison data are available.</p>')
@@ -127,18 +156,26 @@ def comparison_panels(summary, labels):
             'gap:16px;align-items:start}.reservoir-grid article{min-width:0;border:1px solid #ddd;padding:8px;'
             'overflow-x:auto}.reservoir-grid h3{margin:4px 0;font-size:1.1rem}'
             'table{border-collapse:collapse}td,th{padding:.35em}</style>'
-            '<p>Boxes and points use complete years shared by the trials with data for each location. '
+            '<p>Annual plots use complete years shared by the trials with data for each location. '
             'Click a trial in a legend to hide or show it.</p>'
             '<label for="metric">Metric</label> <select id="metric">' + ''.join(options)
             + '</select> <label for="plot-view">View</label> <select id="plot-view">'
               '<option value="box">Box plots and statistics</option>'
-              '<option value="duration">Duration plots</option></select>' + ''.join(panels)
+              '<option value="duration">Duration plots</option>'
+              '<option value="daily-box" hidden disabled>Daily box plots and statistics</option>'
+              '<option value="daily-duration" hidden disabled>Daily duration plots</option></select>' + ''.join(panels)
             + '<script>const metric=document.querySelector("#metric"),view=document.querySelector("#plot-view");'
-              'function updatePlots(){document.querySelectorAll("section").forEach(section=>'
+              'function updatePlots(){const daily=metric.selectedOptions[0].dataset.daily==="true";'
+              'if(!daily&&view.value.startsWith("daily-"))view.value=view.value.slice(6);'
+              'view.querySelectorAll("option[value^=daily-]").forEach(option=>option.hidden=option.disabled=!daily);'
+              'const dailyView=view.value.startsWith("daily-");'
+              'document.querySelectorAll("[data-daily-heading]").forEach(heading=>heading.hidden=!dailyView);'
+              'document.querySelectorAll("[data-annual-heading]").forEach(heading=>heading.hidden=dailyView);'
+              'document.querySelectorAll("section").forEach(section=>'
               'section.hidden=section.id!=="metric-"+metric.value);'
               'document.querySelectorAll("[data-view]").forEach(panel=>panel.hidden=panel.dataset.view!==view.value);'
               'document.querySelectorAll("section:not([hidden]) [data-view]:not([hidden]) .js-plotly-plot")'
-              '.forEach(plot=>Plotly.Plots.resize(plot))}metric.onchange=view.onchange=updatePlots;</script>')
+              '.forEach(plot=>Plotly.Plots.resize(plot))}metric.onchange=view.onchange=updatePlots;updatePlots();</script>')
 
 
 def main():
@@ -169,7 +206,7 @@ def main():
     labels = {0: 'Baseline'}
     configurations = {0: baseline_name}
     links, summaries = [], []
-    overlay_records, overlay_targets, settings_models = {}, {}, {}
+    overlay_records, overlay_targets, settings_models, daily_flows = {}, {}, {}, {}
     for trial, (case, name) in cases.items():
         print(f'{case[2]} | {name} | {Path(case[1]).name} | {Path(case[0]).name}', flush=True)
         prior = staging / f'trial{trial}'
@@ -179,10 +216,12 @@ def main():
                         '--calendar-first-year', str(days.year.min()), '--calendar-last-year', str(days.year.max()),
                         '--output', str(prior)], check=True)
         pair = output / f'trial{trial}'
-        records, targets, models = build(
+        records, targets, models, control_point_flows = build(
             prior, pair, args.targets, stacked_url='../annual_reservoir_overlays.html',
             settings_url=f'../model_settings.html#trial-{trial}')
         label = f'Trial {trial}'
+        daily_flows.setdefault(0, control_point_flows['Baseline'])
+        daily_flows[trial] = control_point_flows['Alternative']
         settings_models.setdefault('Baseline', models['Baseline'])
         settings_models[label] = models['Alternative']
         overlay_records.setdefault('Baseline', records['Baseline'])
@@ -221,7 +260,7 @@ def main():
                     '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'
                     '<details><summary>Individual trial reports and duration plots</summary><ul>'
                     + ''.join(links) + '</ul></details>' + excluded
-                    + comparison_panels(summary, labels), encoding='utf-8')
+                    + comparison_panels(summary, labels, daily_flows), encoding='utf-8')
     print(page)
 
 
