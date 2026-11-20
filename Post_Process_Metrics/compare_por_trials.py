@@ -241,7 +241,7 @@ def main():
     configuration_list = '<h2>Configurations</h2><ul>' + ''.join(
         f'<li><strong>{label}</strong> — {escape(configurations[trial])}</li>'
         for trial, label in labels.items()) + '</ul>'
-    write_csv_overlays(output/'annual_reservoir_overlays.html', overlay_records, overlay_targets,
+    write_csv_overlays(output/'annual_reservoir_overlays.html', overlay_records, overlay_targets, args.targets,
                        trial_controls=True)
     write_model_settings(output/'model_settings.html', settings_models)
     stacked_link = ('<p><a href="annual_reservoir_overlays.html" target="_blank" rel="noopener">'

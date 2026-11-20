@@ -1,5 +1,6 @@
 """Render two POR plot pages from the selected CSV exports and configuration."""
 import argparse
+from datetime import datetime
 from html import escape
 import io
 import json
@@ -477,10 +478,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         records[label], values = {}, {}
         metrics.append(values)
         config = compute.get('baseline_configuration') or {}
-        relative = config.get('resolved', {}).get('table_paths', {}).get('firoSpaceConfigCSV')
-        embedded = config.get('tables', {}).get(relative)
-        if embedded:
-            targets[label] = pd.read_csv(io.StringIO(embedded), comment='#').set_index(['Month', 'Day'])
+        targets[label] = captured_firo_target(compute)
 
         for column in daily:
             if '__' not in column:
@@ -618,31 +616,82 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         + metric_panels(summary, labels), encoding='utf-8')
 
     if stacked_url is None:
-        write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets)
+        write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets, target_directory)
     print(output/'index.html')
     return records, targets, models, control_point_flows
 
 
-def write_csv_overlays(output, records, targets, *, trial_controls=False):
+def captured_firo_target(compute):
+    config = compute.get('baseline_configuration') or {}
+    resolved = config.get('resolved') or {}
+    effective = compute.get('effective_alternative_configuration') or {}
+    active = effective.get('firoActive')
+    if not isinstance(active, bool):
+        active = (resolved.get('rules') or {}).get('firo_space', {}).get('settings', {}).get('active')
+    relative = (resolved.get('table_paths') or {}).get('firoSpaceConfigCSV')
+    embedded = (config.get('tables') or {}).get(relative)
+    if active is False:
+        return 'FIRO off', None
+    if active is not True:
+        return 'FIRO activation unavailable', None
+    if not embedded:
+        return 'FIRO schedule unavailable', None
+    table = pd.read_csv(io.StringIO(embedded.lstrip('\ufeff')), comment='#').set_index(['Month', 'Day'])
+    return 'FIRO enabled', table
+
+
+def conservation_rule_curve(target_directory):
+    if target_directory is None:
+        return None, None
+    scripts = target_directory.parent
+    sources = (scripts/'RTSPython/CON_SEASON_RULE_CURVES.csv',
+               scripts/'rts-setup-package/ExternalPython/CON_SEASON_RULE_CURVES.csv')
+    for path in sources:
+        if path.is_file():
+            table = pd.read_csv(path, encoding='utf-8-sig')
+            # The reference uses model years 3000/3001, outside older pandas ranges.
+            dates = [datetime.strptime(value, '%d%b%Y') for value in table.pop('date')]
+            table.index = pd.MultiIndex.from_tuples([(date.month, date.day) for date in dates])
+            table.columns = table.columns.str.strip().str.casefold()
+            if table.groupby(level=[0, 1]).nunique().gt(1).any().any():
+                raise ValueError(f'Conflicting daily rule curve values in {path}')
+            annual = table.groupby(level=[0, 1]).first()
+            if (2, 29) not in annual.index and (2, 28) in annual.index and (3, 1) in annual.index:
+                annual.loc[(2, 29), :] = (annual.loc[(2, 28)] + annual.loc[(3, 1)]) / 2
+            return path, annual
+    return None, None
+
+
+def write_csv_overlays(output, records, targets, target_directory=None, *, trial_controls=False):
     project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
     ramps = pd.read_csv(ROOT/'data/boat_ramp_elevations.csv')
+    rule_path, rule_curve = conservation_rule_curve(target_directory)
 
-    def firo_references(reservoir, *_):
-        curves = []
+    def references(reservoir, *_):
+        curves, notes = [], []
+        dates = overlays.CALENDAR
+        if rule_curve is not None and reservoir.casefold() in rule_curve:
+            schedule = rule_curve[reservoir.casefold()].reindex([(day.month, day.day) for day in dates])
+            curves.append(('Conservation rule curve (CSV reference)', schedule, '#394556'))
+        else:
+            notes.append('Conservation rule curve CSV reference unavailable')
         for i, label in enumerate(records):
-            table = targets.get(label)
-            if table is not None and reservoir in table:
-                dates = overlays.CALENDAR
+            status, table = targets[label]
+            if table is None:
+                notes.append(f'{label}: {status}')
+            elif reservoir in table:
                 keys = [(day.month, 28 if (day.month, day.day) == (2, 29) else day.day) for day in dates]
                 schedule = table[reservoir].reindex(keys).set_axis(dates)
                 if schedule.notna().any():
                     color = overlays.CASE_COLORS[i % len(overlays.CASE_COLORS)]
                     curves.append((f'{label} configured FIRO target', schedule, color))
-        return curves, [] if curves else ['Captured FIRO schedule unavailable']
+        return curves, notes
 
+    rule_note = (f'Conservation rule curve reference: {rule_path}. February 29 is interpolated '
+                 'when absent from the reference.' if rule_path else None)
     overlays.write_annual_overlays(
         output, records, ramps, Path('per-compute JSON'), project_data, {}, {},
-        reference_curves=firo_references, trial_controls=trial_controls)
+        reference_curves=references, trial_controls=trial_controls, rule_note=rule_note)
 
 
 if __name__ == '__main__':

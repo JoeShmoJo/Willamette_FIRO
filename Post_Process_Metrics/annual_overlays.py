@@ -30,7 +30,7 @@ def water_year_overlay(series):
             np.insert(years.to_numpy(), starts, 0))
 
 
-def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False):
+def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, native_rule_curves=True):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=.10,
                         subplot_titles=('Pool elevation and references', 'Daily flow'))
     missing = []
@@ -40,6 +40,8 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False):
         ('flow-out', 'Outflow', 2, 'solid', True, .34),
         ('elev-zone', 'Rule curve', 1, 'dash', True, .85),
     ]
+    if not native_rule_curves:
+        definitions.pop()
     for i, (label, series_by_parameter) in enumerate(cases.items()):
         color = CASE_COLORS[i % len(CASE_COLORS)]
         for parameter, title, row, dash, visible, opacity in definitions:
@@ -68,7 +70,7 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False):
                           row=row, col=1)
 
     for label, target, color in firo_curves:
-        group = label.removesuffix(' configured FIRO target') if trial_controls else None
+        group = label.removesuffix(' configured FIRO target') if trial_controls and label.endswith(' configured FIRO target') else None
         fig.add_trace(go.Scatter(x=CALENDAR_MS, y=target, name=label, mode='lines',
                                  line=dict(color=color, width=2, dash='dashdot'), legendgroup=group), row=1, col=1)
     if pd.notna(crest):
@@ -129,7 +131,7 @@ def firo_overlays(reservoir, labels, firo_path, evidence):
 
 
 def write_annual_overlays(output, results, ramps, firo_path, project_data, markers, fparts, *,
-                          reference_curves=None, trial_controls=False):
+                          reference_curves=None, trial_controls=False, rule_note=None):
     with project_data.open(encoding='utf-8-sig') as stream:
         header = next((i for i, line in enumerate(stream) if line.startswith('Variable,')), None)
     if header is None:
@@ -171,7 +173,7 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
                 available_years.update(dates.year + (dates.month >= 10).astype(int))
         fig, missing = reservoir_figure({label: cases.get(label, {}) for label in results},
                                         ramp_rows, crest.get(reservoir.casefold()), curves,
-                                        trial_controls=trial_controls)
+                                        trial_controls=trial_controls, native_rule_curves=reference_curves is None)
         if missing:
             notes.append(f'Unavailable: {", ".join(missing)}')
         note = f'<p>{escape(". ".join(notes))}.</p>' if notes else ''
@@ -193,9 +195,13 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         run_controls = '<fieldset><legend>Show runs</legend>' + ' '.join(
             f'<label><input type="checkbox" data-run="{escape(label, quote=True)}" checked> {escape(label)}</label>'
             for label in results) + '</fieldset>'
-    data_note = (f'Pool series come from CSV exports. FIRO lines show captured configured schedules. '
-                 'Daily activation and rule curves are unavailable.' if reference_curves else
-                 f'Rule curves come from DSS Elev-ZONE. {firo_note}')
+    if reference_curves:
+        data_note = ('Pool series come from the trial CSV exports. FIRO target lines require captured '
+                     'enablement and a captured schedule. This does not establish daily rule activation.')
+        if rule_note:
+            data_note += ' ' + rule_note + ' This reference does not come from the selected compute.'
+    else:
+        data_note = f'Rule curves come from DSS Elev-ZONE. {firo_note}'
     output.write_text(
         '<!doctype html><html lang="en"><meta charset="utf-8"><title>Annual reservoir overlays</title>'
         '<style>body{font:15px system-ui;margin:2rem;color:#182534}'
@@ -208,7 +214,7 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         '<p>Each line overlays daily values for one water year. Hover to see its year. '
         'Click a legend item to show or hide it. Inflow starts hidden. Choose a year to highlight '
         'its traces, and use Up/Down while the year selector has focus.</p>'
-        f'<p>{data_note}</p>'
+        f'<p>{escape(data_note)}</p>'
         f'<p>FIRO source: {escape(firo_sources)}<br>Spillway crests: {escape(str(project_data))}</p>'
         '<nav>' + ''.join(links) + '</nav>'
         '<div id="overlay-controls"><label for="overlay-year">Water year</label>'
