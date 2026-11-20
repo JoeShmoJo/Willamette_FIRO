@@ -51,7 +51,7 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, 
     ]
     if not native_rule_curves:
         definitions.pop()
-        definitions.insert(0, ('stor-above-min-con', 'Storage above Min Con', 1, 'dash', True, .34))
+        definitions.insert(0, ('stor-above-min-con', 'Storage above Min Con', 1, 'longdash', True, .34))
     for i, (label, series_by_parameter) in enumerate(cases.items()):
         color = CASE_COLORS[i % len(CASE_COLORS)]
         for parameter, title, row, dash, visible, opacity in definitions:
@@ -80,9 +80,14 @@ def reservoir_figure(cases, ramps, crest, firo_curves, *, trial_controls=False, 
                           row=row, col=1, secondary_y=storage_axis and parameter in ('elev', 'elev-zone'))
 
     for label, target, color in firo_curves:
-        group = label.removesuffix(' configured FIRO target') if trial_controls and label.endswith(' configured FIRO target') else None
-        fig.add_trace(go.Scatter(x=calendar_ms, y=target, name=label, mode='lines',
-                                 line=dict(color=color, width=2, dash='dashdot'), legendgroup=group), row=1, col=1, secondary_y=storage_axis)
+        is_firo = label.endswith(' configured FIRO target')
+        group = label.removesuffix(' configured FIRO target') if trial_controls and is_firo else None
+        hover = ('%{text}: %{y:,.2f} ft<extra>%{fullData.name} · Recurring schedule</extra>'
+                 if is_firo else '%{text}: %{y:,.2f} ft<extra>%{fullData.name}</extra>')
+        fig.add_trace(go.Scatter(
+            x=calendar_ms, y=target, text=calendar.strftime('%b %d').tolist(), name=label, mode='lines',
+            line=dict(color=color, width=2, dash='dot' if is_firo else 'dashdot'),
+            legendgroup=group, hovertemplate=hover), row=1, col=1, secondary_y=storage_axis)
     if pd.notna(crest):
         fig.add_trace(go.Scatter(x=calendar_ms[[0, -1]], y=[crest, crest], mode='lines',
                                  name=f'Spillway crest ({crest:g} ft)',
@@ -230,7 +235,9 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
             for label in results) + '</fieldset>'
     if reference_curves:
         data_note = ('Pool series come from the trial CSV exports. FIRO target lines require captured '
-                     'enablement and a captured schedule. This does not establish daily rule activation. '
+                     'enablement and a captured schedule. Dotted FIRO targets repeat by month and day. '
+                     'They stay fixed when you change the selected plot year. '
+                     'Long dashes show daily storage above Min Con. Bold daily traces show the selected plot year. '
                      'Plot years run August 1 through July 31 and are labeled by the ending year. '
                      'The selector starts at the latest complete plot year when available. '
                      'Partial years are labeled and show only the dates available. '
