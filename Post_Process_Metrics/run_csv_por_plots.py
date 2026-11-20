@@ -18,6 +18,75 @@ LEVELS = dict(action_cfs='Days above action / bankfull flow',
               flood_cfs='Days above flood flow', major_flood_cfs='Days above major flood flow')
 
 
+BIOP = 'ESA flow compliance / BiOp component'
+COMBINED = 'ESA flow compliance / BiOp plus withdrawals'
+FLOW_COMPLIANCE = {
+    BIOP: ('biop_component.html', 'BiOp minimum-flow component',
+           'Daily outflow screened against the fixed BiOp minimum-flow schedule.'),
+    COMBINED: ('combined_minimum_flow.html', 'Combined minimum flow',
+               'Daily outflow screened against each compute’s captured minimum-flow plus withdrawal schedules. '
+               'Missing captured schedules leave that trial unavailable. This screen does not reproduce '
+               'native timestep rule adjustments or verify that the rule was active.'),
+}
+HOLIDAYS = ('Memorial Day', 'Labor Day')
+
+
+def metric_window(purpose, metric, year):
+    if metric.endswith(HOLIDAYS[0]):
+        return pd.date_range(end=f'{year}-05-31', periods=1, freq='W-MON')
+    if metric.endswith(HOLIDAYS[1]):
+        return pd.date_range(start=f'{year}-09-01', periods=1, freq='W-MON')
+    if purpose == 'Recreation':
+        return pd.date_range(f'{year}-02-01', f'{year}-12-01')
+    return pd.date_range(f'{year-1}-10-01', f'{year}-09-30')
+
+
+def captured_combined_schedule(config):
+    paths = config.get('resolved', {}).get('table_paths', {})
+    tables = config.get('tables', {})
+    texts = [tables.get(paths.get(name)) for name in ('minFlowConfigCSV', 'withdrawalConfigCSV')]
+    if not all(texts):
+        return None
+    calendar = pd.date_range('2001-01-01', '2001-12-31')
+    expected = set(zip(calendar.month, calendar.day))
+    schedules = []
+    for text in texts:
+        table = pd.read_csv(io.StringIO(text.lstrip('\ufeff')), comment='#').set_index(['Month', 'Day'])
+        if not table.index.is_unique or set(table.index) != expected:
+            return None
+        schedules.append(table.select_dtypes(include='number'))
+    return schedules[0].add(schedules[1], fill_value=0)
+
+
+def compliance_series(schedule, daily, dates):
+    targets = schedule.reindex([
+        (day.month, 28 if (day.month, day.day) == (2, 29) else day.day) for day in dates
+    ]).set_axis(dates)
+    for reservoir, target in targets.items():
+        outlet = 'Foster' if reservoir == 'Green Peter' else reservoir
+        column = f'{outlet}__Flow-OUT'
+        if column not in daily and not target.gt(0).any():
+            continue
+        flow = daily[column].reindex(dates)
+        yield reservoir, (target.gt(0) & flow.lt(target - target.mul(.02).clip(lower=5))
+                          ).astype(float).where(flow.notna() | ~target.gt(0))
+
+
+def write_compliance_pages(output, summary, render):
+    links = []
+    for purpose, (filename, title, explanation) in FLOW_COMPLIANCE.items():
+        table = summary[summary.purpose.eq(purpose)]
+        content = render(table) if not table.empty else '<p>No comparison data are available.</p>'
+        (output / filename).write_text(
+            f'<!doctype html><meta charset="utf-8"><title>{title}</title><h1>{title}</h1>'
+            '<p><a href="index.html">All POR metrics</a></p>'
+            f'<p>{explanation} Counts use a tolerance of the greater of 5 cfs or 2% of target. '
+            'The Green Peter target is evaluated at Foster. System counts count a day once.</p>'
+            + content, encoding='utf-8')
+        links.append(f'<a href="{filename}">{title}</a>')
+    return '<p>' + ' | '.join(links) + '</p>'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('prior', type=Path, help='Existing CSV comparison folder')
@@ -337,7 +406,8 @@ def build(prior, output, target_directory=None, fits_files=None):
     labels = ('Baseline', 'Alternative')
     ramps = pd.read_csv(ROOT/'data/boat_ramp_elevations.csv')
     thresholds = pd.read_csv(ROOT/'data/flood_flow_thresholds.csv').query("location != 'Eugene'")
-    schedules = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv', comment='#')
+    biop_schedule = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv',
+                                comment='#').set_index(['Month', 'Day'])
     records, targets, metrics, routed, models = {}, {}, [], {}, {}
     years = sorted(annual.year.unique())
     dates = pd.date_range(f'{years[0]-1}-10-01', f'{years[-1]}-12-01')
@@ -355,7 +425,7 @@ def build(prior, output, target_directory=None, fits_files=None):
         routed[label] = daily[['Salem__Flow', 'Albany__Flow']]
         records[label], values = {}, {}
         metrics.append(values)
-        config = compute.get('baseline_configuration', {})
+        config = compute.get('baseline_configuration') or {}
         relative = config.get('resolved', {}).get('table_paths', {}).get('firoSpaceConfigCSV')
         embedded = config.get('tables', {}).get(relative)
         if embedded:
@@ -370,8 +440,9 @@ def build(prior, output, target_directory=None, fits_files=None):
                 records[label]['', reservoir+'-Pool', parameter] = (
                     values_series, 'ft' if parameter == 'Elev' else 'cfs')
             elif parameter == 'Stor':
-                values['Water Supply', reservoir, 'Minimum total pool storage', 'acre-ft', 'min'] = values_series
                 values['Water Supply', reservoir, 'Maximum daily pool storage', 'acre-ft', 'max'] = values_series
+                for holiday in HOLIDAYS:
+                    values['Recreation', reservoir, f'Pool storage on {holiday}', 'acre-ft', 'max'] = values_series
 
         for station in thresholds.itertuples(index=False):
             flow = daily[f'{station.location}__Flow'].reindex(dates)
@@ -386,15 +457,13 @@ def build(prior, output, target_directory=None, fits_files=None):
             pool = daily[f'{reservoir}__Elev'].reindex(dates)
             count = sum(pool.gt(level).astype(float) for level in group.elevation_ft)
             values['Recreation', reservoir, 'Pool elevation above ramp', 'ramp-days', 'sum'] = count.where(pool.notna())
-        schedule = schedules.set_index(['Month', 'Day']).reindex([
-            (date.month, 28 if (date.month, date.day) == (2, 29) else date.day) for date in dates])
-        schedule.index = dates
-        for reservoir, target in schedule.items():
-            outlet = 'Foster' if reservoir == 'Green Peter' else reservoir
-            flow = daily[f'{outlet}__Flow-OUT'].reindex(dates)
-            values['ESA flow compliance', reservoir, 'Days below reservoir BiOp schedule', 'days', 'sum'] = (
-                (target.gt(0) & flow.lt(target - target.mul(.02).clip(lower=5)))
-                .astype(float).where(flow.notna()))
+            for holiday in HOLIDAYS:
+                values['Recreation', reservoir, f'Ramps below pool on {holiday}', 'ramps', 'max'] = count.where(pool.notna())
+        schedules = {BIOP: biop_schedule, COMBINED: captured_combined_schedule(config)}
+        for purpose, schedule in schedules.items():
+            if schedule is not None:
+                for reservoir, count in compliance_series(schedule, daily, dates):
+                    values[purpose, reservoir, 'Days below minimum-flow target', 'days', 'sum'] = count
 
     # Sum matched reservoirs each day. Count coincident flood or BiOp threshold
     # events once; a missing member leaves the system value unknown.
@@ -402,14 +471,14 @@ def build(prior, output, target_directory=None, fits_files=None):
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         purpose, _, metric, units, reducer = key
         if (purpose in ('Water Supply', 'Recreation') or metric in LEVELS.values()
-                or metric == 'Days below reservoir BiOp schedule'):
+                or purpose in FLOW_COMPLIANCE):
             groups.setdefault((purpose, 'SYSTEM', metric, units, reducer), []).append(key)
     for key, members in groups.items():
         for case in metrics:
             daily = pd.concat([case.get(member, pd.Series(np.nan, index=dates))
                                for member in members], axis=1)
             total = daily.sum(axis=1, min_count=len(members))
-            if key[2] in LEVELS.values() or key[2] == 'Days below reservoir BiOp schedule':
+            if key[2] in LEVELS.values() or key[0] in FLOW_COMPLIANCE:
                 total = total.gt(0).astype(float).where(total.notna())
             case[key] = total
 
@@ -437,8 +506,7 @@ def build(prior, output, target_directory=None, fits_files=None):
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         purpose, name, metric, units, reducer = key
         for year in years:
-            window = (pd.date_range(f'{year}-02-01', f'{year}-12-01') if purpose == 'Recreation'
-                      else pd.date_range(f'{year-1}-10-01', f'{year}-09-30'))
+            window = metric_window(purpose, metric, year)
             pair = pd.concat([case.get(key, missing).reindex(window) for case in metrics], axis=1)
             paired = len(pair.dropna())
             totals = [np.nan, np.nan]
@@ -448,8 +516,8 @@ def build(prior, output, target_directory=None, fits_files=None):
             rows.append(dict(purpose=purpose, location=name, metric=metric, units=units, year=year,
                              expected=len(window), paired=paired, baseline=baseline,
                              alternative=alternative, change=alternative-baseline,
-                             status='Elevation-only screen' if purpose == 'Recreation' else
-                             'BiOp schedule screen' if purpose == 'ESA flow compliance' else 'Daily POR CSV'))
+                             status='Elevation-only screen' if units in ('ramps', 'ramp-days') else
+                             'Minimum-flow schedule screen' if purpose in FLOW_COMPLIANCE else 'Daily POR CSV'))
     summary = pd.concat([annual, pd.DataFrame(rows)], ignore_index=True)
     output.mkdir(parents=True, exist_ok=False)
     summary.to_csv(output/'annual_comparison.csv', index=False)
@@ -463,6 +531,7 @@ def build(prior, output, target_directory=None, fits_files=None):
         encoding='utf-8')
     write_model_settings(output/'model_settings.html', models)
 
+    compliance_links = write_compliance_pages(output, summary, lambda table: metric_panels(table, labels))
     regime_links = write_target_pages(output, target_directory, routed, years) if target_directory else ''
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
@@ -471,9 +540,9 @@ def build(prior, output, target_directory=None, fits_files=None):
         '<a href="model_settings.html">Model settings</a> | <a href="annual_comparison.csv">Annual data</a></p>'
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
-        + regime_links +
-        '<p>Recreation uses pool elevation only. Combined Min Trib rule output and verified FIRO '
-        'ramp-days are unavailable in these inputs.</p>'
+        + regime_links + compliance_links +
+        '<p>System maximum storage is the water-year maximum of the sum of each day’s reservoir storage. '
+        'Holiday storage and ramps use the holiday date only. Ramp counts use pool elevation.</p>'
         + metric_panels(summary, labels), encoding='utf-8')
 
     def firo_references(reservoir, *_):

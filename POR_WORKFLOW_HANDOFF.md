@@ -19,7 +19,12 @@ Windows Willamette_FIRO checkout is optional. Use `main` for new runs after this
 integration. Preserve the exact path list from the last working command or read
 imports and data paths from the current entry points before narrowing it.
 
-The entry point compares trial 1 against trial 0 and trial 2 against trial 0. The
+The overview compares the completed configured ALL_D trials against trial 0.
+Without an assignment file, it discovers numbered ALL_D trial exports. Each
+trial needs an export and matching compute report. The overview lists any
+configured trials it excluded. Select a metric and location to see centered
+water-year points, box plots, and a table of distribution statistics.
+Individual trial links still open the paired plots and model settings. The
 output is under `por_csv_plots/<run-id>/index.html`. Each comparison includes
 box and duration plots, stacked annual reservoir elevation and outflow plots,
 system metrics duplicated on a system page, Salem and Albany pages for the
@@ -29,7 +34,15 @@ Flood exceedance count axes start at zero.
 
 ## Interpretation and provenance
 
-- The three CSVs must share the same daily timestamps. The pipeline interprets
+- The BiOp page uses the fixed minimum-flow component. The combined page uses
+  each compute's captured minimum-flow and withdrawal tables. It screens daily
+  outflows against the summed schedule and requires both captured tables.
+- System maximum storage takes the water-year maximum of each day's summed
+  reservoir storage. Memorial Day and Labor Day report storage and count ramps
+  strictly below the daily pool elevation, by reservoir and for the system.
+  These screens use the holiday date and pool elevation.
+
+- Included CSVs must share the same daily timestamps. The pipeline interprets
   daily midnight timestamps as interval end and shifts them back one day.
   Completeness checks retain partial years without presenting them as complete.
 - The CSV names identify their trials but contain no compute ID. The launcher
