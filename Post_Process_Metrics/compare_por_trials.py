@@ -190,6 +190,9 @@ def main():
     configuration_list = '<h2>Configurations</h2><ul>' + ''.join(
         f'<li><strong>{label}</strong> — {escape(configurations[trial])}</li>'
         for trial, label in labels.items()) + '</ul>'
+    stacked_links = '<h2>Stacked reservoir plots</h2><p>' + ' | '.join(
+        f'<a href="trial{trial}/annual_reservoir_overlays.html" target="_blank" rel="noopener">'
+        f'{labels[trial]} versus baseline (new tab)</a>' for trial in cases) + '</p>'
     compliance = write_compliance_pages(
         output, summary, lambda table: configuration_list + comparison_panels(table, labels))
     if skipped:
@@ -199,7 +202,7 @@ def main():
     page = output / 'index.html'
     page.write_text('<!doctype html><meta charset="utf-8"><title>POR trial comparison</title>'
                     '<h1>POR trial comparison</h1>' + configuration_list
-                    + compliance + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
+                    + stacked_links + compliance + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
                     '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
                     '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'
