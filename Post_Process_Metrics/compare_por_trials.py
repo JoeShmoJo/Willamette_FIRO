@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 from plotly.offline import get_plotlyjs
 from plotly.colors import qualitative
 
-from run_csv_por_plots import build, metric_groups, metric_heading, write_csv_overlays
+from run_csv_por_plots import build, metric_groups, metric_heading, write_csv_overlays, write_model_settings
 
 
 def select_case(run, trial):
@@ -169,7 +169,7 @@ def main():
     labels = {0: 'Baseline'}
     configurations = {0: baseline_name}
     links, summaries = [], []
-    overlay_records, overlay_targets = {}, {}
+    overlay_records, overlay_targets, settings_models = {}, {}, {}
     for trial, (case, name) in cases.items():
         print(f'{case[2]} | {name} | {Path(case[1]).name} | {Path(case[0]).name}', flush=True)
         prior = staging / f'trial{trial}'
@@ -179,8 +179,12 @@ def main():
                         '--calendar-first-year', str(days.year.min()), '--calendar-last-year', str(days.year.max()),
                         '--output', str(prior)], check=True)
         pair = output / f'trial{trial}'
-        records, targets = build(prior, pair, args.targets, stacked_url='../annual_reservoir_overlays.html')
+        records, targets, models = build(
+            prior, pair, args.targets, stacked_url='../annual_reservoir_overlays.html',
+            settings_url=f'../model_settings.html#trial-{trial}')
         label = f'Trial {trial}'
+        settings_models.setdefault('Baseline', models['Baseline'])
+        settings_models[label] = models['Alternative']
         overlay_records.setdefault('Baseline', records['Baseline'])
         overlay_records[label] = records['Alternative']
         if 'Baseline' in targets:
@@ -200,6 +204,7 @@ def main():
         for trial, label in labels.items()) + '</ul>'
     write_csv_overlays(output/'annual_reservoir_overlays.html', overlay_records, overlay_targets,
                        trial_controls=True)
+    write_model_settings(output/'model_settings.html', settings_models)
     stacked_link = ('<p><a href="annual_reservoir_overlays.html" target="_blank" rel="noopener">'
                     'Stacked reservoir plots for all trials (new tab)</a></p>')
     if skipped:
@@ -209,11 +214,12 @@ def main():
     page = output / 'index.html'
     page.write_text('<!doctype html><meta charset="utf-8"><title>POR trial comparison</title>'
                     '<h1>POR trial comparison</h1>' + configuration_list
-                    + stacked_link + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
+                    + stacked_link + '<p><a href="model_settings.html" target="_blank" rel="noopener">'
+                    'Configuration comparison (new tab)</a> | <a href="annual_comparison.csv">Annual comparison data</a></p>'
                     '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
                     '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'
-                    '<details><summary>Individual trial reports, duration plots and model settings</summary><ul>'
+                    '<details><summary>Individual trial reports and duration plots</summary><ul>'
                     + ''.join(links) + '</ul></details>' + excluded
                     + comparison_panels(summary, labels), encoding='utf-8')
     print(page)

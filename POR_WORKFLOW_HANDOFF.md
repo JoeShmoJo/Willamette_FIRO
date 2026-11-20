@@ -25,7 +25,8 @@ trial needs an export and matching compute report. The overview lists any
 configured trials it excluded. Select a metric to see all locations on one responsive grid. Annual points
 are centered on the boxes. The table lists the minimum, the 25th, 50th and
 75th percentiles, and the maximum.
-Individual trial links still open the paired plots and model settings. The
+Individual trial links open the paired plots. Configuration comparison opens
+one page with a separate list of differences from trial 0 for each trial. The
 output is under `por_csv_plots/<run-id>/index.html`. Each comparison includes
 box and duration plots, stacked annual reservoir elevation and outflow plots,
 system metrics duplicated on a system page, Salem and Albany pages for the

@@ -263,7 +263,7 @@ def write_target_pages(output, directory, routed, years):
 
 def model_settings(model, include_mappings=True):
     compute = model['compute']
-    baseline = compute.get('baseline_configuration', {})
+    baseline = compute.get('baseline_configuration') or {}
     resolved = baseline.get('resolved') or {}
     effective = compute.get('effective_alternative_configuration')
     snapshot = (baseline.get('pointer') or {}).get('directory')
@@ -312,10 +312,7 @@ def model_settings(model, include_mappings=True):
 
 
 def write_model_settings(path, models):
-    have_mappings = all('records' in model.get('saved_input_mappings', {}) for model in models.values())
-    baseline, alternative = [model_settings(models[label], have_mappings) for label in ('Baseline', 'Alternative')]
     missing = object()
-    changed, matching = [], []
 
     def cell(value):
         if value is missing:
@@ -325,13 +322,37 @@ def write_model_settings(path, models):
             return f'<details><summary>Show value</summary><pre>{escape(text)}</pre></details>'
         return escape(text)
 
-    for key in sorted(baseline.keys() | alternative.keys()):
-        base, alt = baseline.get(key, missing), alternative.get(key, missing)
-        same = base == alt
-        name = escape(' / '.join(key))
-        (matching if same else changed).append(
-            f'<tr><th scope="row">{name}</th><td>{cell(base)}</td>'
-            + ('' if same else f'<td>{cell(alt)}</td>') + '</tr>')
+    sections, navigation = [], []
+    for label, model in models.items():
+        if label == 'Baseline':
+            continue
+        have_mappings = all('records' in case.get('saved_input_mappings', {})
+                            for case in (models['Baseline'], model))
+        baseline = model_settings(models['Baseline'], have_mappings)
+        trial = model_settings(model, have_mappings)
+        changed, matching = [], []
+        standalone_pair = label == 'Alternative' and len(models) == 2
+        for key in sorted(baseline.keys() | trial.keys()):
+            base, alt = baseline.get(key, missing), trial.get(key, missing)
+            name = escape(' / '.join(key))
+            if base != alt:
+                changed.append(f'<tr><th scope="row">{name}</th><td>{cell(base)}</td><td>{cell(alt)}</td></tr>')
+            elif standalone_pair:
+                matching.append(f'<tr><th scope="row">{name}</th><td>{cell(base)}</td></tr>')
+        title = escape(label)
+        anchor = escape(label.lower().replace(' ', '-'), quote=True)
+        navigation.append(f'<li><a href="#{anchor}">{title} versus Baseline</a></li>')
+        differences = (
+            f'<table><thead><tr><th>Setting</th><th>Baseline</th><th>{title}</th></tr></thead><tbody>'
+            + ''.join(changed) + '</tbody></table>' if changed else
+            '<p>No differences in the captured settings shown.</p>')
+        shared = (f'<details><summary>{len(matching)} matching settings</summary><table><thead>'
+                  '<tr><th>Setting</th><th>Shared value</th></tr></thead><tbody>'
+                  + ''.join(matching) + '</tbody></table></details>') if standalone_pair else ''
+        mapping_note = ('' if have_mappings else
+                        '<p>Input mapping comparison is unavailable without both saved files.</p>')
+        sections.append(f'<section id="{anchor}"><h2>{title} versus Baseline</h2>'
+                        f'<p>{len(changed)} changed settings</p>{mapping_note}{differences}{shared}</section>')
 
     identities = []
     for label, model in models.items():
@@ -351,10 +372,6 @@ def write_model_settings(path, models):
         source = mapping.get('source')
         mapping_sources.append(f'<li>{escape(label)} | {escape(mapping.get("status", "Unavailable"))}'
                                + (f' | {escape(source)}' if source else '') + '</li>')
-    differences = (
-        '<table><thead><tr><th>Setting</th><th>Baseline</th><th>Alternative</th></tr></thead><tbody>'
-        + ''.join(changed) + '</tbody></table>' if changed else
-        '<p>No differences in the captured settings shown below.</p>')
     path.write_text(
         '<!doctype html><meta charset="utf-8"><title>Model settings</title>'
         '<style>body{font:16px system-ui;margin:2rem}table{border-collapse:collapse}'
@@ -370,11 +387,8 @@ def write_model_settings(path, models):
         '<p>Reads the currently saved ResSim trial mapping files. They may have been edited since compute. '
         'This compares the mapping references and does not open any referenced DSS data files.</p><ul>'
         + ''.join(mapping_sources) + '</ul></details>'
-        + ('' if have_mappings else '<p>Input mapping comparison is unavailable without both saved files.</p>')
-        + f'<h2>{len(changed)} changed settings</h2>' + differences
-        + f'<details><summary>{len(matching)} matching settings</summary><table><thead>'
-        '<tr><th>Setting</th><th>Shared value</th></tr></thead><tbody>'
-        + ''.join(matching) + '</tbody></table></details>', encoding='utf-8')
+        + '<nav aria-label="Trial comparisons"><ul>' + ''.join(navigation) + '</ul></nav>'
+        + ''.join(sections), encoding='utf-8')
 
 
 def metric_panels(summary, labels):
@@ -411,7 +425,7 @@ def metric_panels(summary, labels):
     )
 
 
-def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=None):
+def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=None, settings_url=None):
     source = json.loads((prior/'csv_provenance.json').read_text(encoding='utf-8-sig'))
     annual = pd.read_csv(prior/'annual_csv_comparison.csv').rename(columns={
         'reservoir':'location', 'water_year':'year', 'expected_days':'expected', 'paired_days':'paired'})
@@ -580,7 +594,9 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         '<h1>System metrics</h1><p><a href="index.html">All POR plots</a></p>'
         + (metric_panels(system, labels) if not system.empty else '<p>No system metrics are available.</p>'),
         encoding='utf-8')
-    write_model_settings(output/'model_settings.html', models)
+    if settings_url is None:
+        write_model_settings(output/'model_settings.html', models)
+    settings_href = escape(settings_url or 'model_settings.html', quote=True)
 
     regime_links = write_target_pages(output, target_directory, routed, sorted(calendar_years)) if target_directory else ''
     stacked_href = escape(stacked_url or 'annual_reservoir_overlays.html', quote=True)
@@ -588,7 +604,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
         f'<h1>POR box and duration plots</h1><p><a href="{stacked_href}">'
         'Stacked annual reservoir plots</a> | <a href="system_metrics.html">System metrics</a> | '
-        '<a href="model_settings.html">Model settings</a> | <a href="annual_comparison.csv">Annual data</a></p>'
+        f'<a href="{settings_href}">Configuration comparison</a> | <a href="annual_comparison.csv">Annual data</a></p>'
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
         + regime_links +
@@ -601,7 +617,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
     if stacked_url is None:
         write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets)
     print(output/'index.html')
-    return records, targets
+    return records, targets, models
 
 
 def write_csv_overlays(output, records, targets, *, trial_controls=False):
