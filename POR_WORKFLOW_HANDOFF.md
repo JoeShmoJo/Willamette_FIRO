@@ -22,8 +22,9 @@ imports and data paths from the current entry points before narrowing it.
 The overview compares the completed configured ALL_D trials against trial 0.
 Without an assignment file, it discovers numbered ALL_D trial exports. Each
 trial needs an export and matching compute report. The overview lists any
-configured trials it excluded. Select a metric and location to see centered
-water-year points, box plots, and a table of distribution statistics.
+configured trials it excluded. Select a metric to see all locations on one responsive grid. Annual points
+are centered on the boxes. The table lists the minimum, the 25th, 50th and
+75th percentiles, and the maximum.
 Individual trial links still open the paired plots and model settings. The
 output is under `por_csv_plots/<run-id>/index.html`. Each comparison includes
 box and duration plots, stacked annual reservoir elevation and outflow plots,
@@ -37,10 +38,15 @@ Flood exceedance count axes start at zero.
 - The BiOp page uses the fixed minimum-flow component. The combined page uses
   each compute's captured minimum-flow and withdrawal tables. It screens daily
   outflows against the summed schedule and requires both captured tables.
-- System maximum storage takes the water-year maximum of each day's summed
+- Flood metrics use October through September water years. Other annual
+  metrics use January through December calendar years. System maximum storage
+  takes the calendar-year maximum of each day's summed
   reservoir storage. Memorial Day and Labor Day report storage and count ramps
   strictly below the daily pool elevation, by reservoir and for the system.
   These screens use the holiday date and pool elevation.
+- The elevation screen counts days strictly above the Lookout Point (887.5 ft)
+  and Detroit (1,541 ft) spillway crests from BasicProjectData.csv, and Cougar’s
+  1,571 ft minimum temperature tower elevation.
 
 - Included CSVs must share the same daily timestamps. The pipeline interprets
   daily midnight timestamps as interval end and shifts them back one day.

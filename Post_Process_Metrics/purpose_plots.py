@@ -24,7 +24,7 @@ def storage_duration_plot(storage, labels):
     return fig
 
 
-def location_plot(table, labels, kind):
+def location_plot(table, labels, kind, *, percentile_boxes=False):
     locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
     samples = [table[table.location == location].sort_values('year') for location in locations]
     paired = [rows.dropna(subset=['baseline', 'alternative']) for rows in samples]
@@ -48,7 +48,18 @@ def location_plot(table, labels, kind):
         else:
             for column, label, color in zip(('baseline', 'alternative'), labels, colors):
                 style = dict(name=label, marker_color=color, legendgroup=column, showlegend=i == 0)
-                if kind == 'box':
+                if kind == 'box' and percentile_boxes:
+                    values = valid[column]
+                    q1, median, q3 = values.quantile([.25, .5, .75])
+                    trace = go.Box(x=[label], q1=[q1], median=[median], q3=[q3],
+                                   lowerfence=[values.min()], upperfence=[values.max()],
+                                   boxpoints=False, hoverinfo='skip', **style)
+                    fig.add_trace(go.Scatter(x=[label] * len(values), y=values, text=valid.year,
+                                             mode='markers', marker=dict(color=color, opacity=.6, size=5),
+                                             name=label, legendgroup=column, showlegend=False,
+                                             hovertemplate='%{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'),
+                                  row=row, col=col)
+                elif kind == 'box':
                     trace = go.Box(y=valid[column], text=valid.year, boxpoints='all', jitter=.25,
                                    hovertemplate='%{text}: %{y:,.2f}<extra>%{fullData.name}</extra>', **style)
                 else:
@@ -65,7 +76,7 @@ def location_plot(table, labels, kind):
     fig.update_annotations(font_size=14)
     fig.update_layout(template='plotly_white', height=255 * rows + 80,
                       margin=dict(t=74, b=55, l=70, r=24),
-                      legend=dict(orientation='h', y=1, yanchor='bottom', x=1, xanchor='right'))
+                      legend=dict(orientation='h', y=1, yanchor='bottom', x=1, xanchor='right', groupclick='togglegroup'))
     return fig
 
 

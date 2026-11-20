@@ -77,11 +77,12 @@ def load_case(csv_path, report_path, fpart, dates):
                     'compute_id': compute['compute_id']}
 
 
-def annual_rows(key, baseline, alternative, expected):
+def annual_rows(key, baseline, alternative, years):
     purpose, reservoir, metric, units, status, reducer = key
-    water_years = expected.index.year + (expected.index.month >= 10).astype(int)
-    for year, window in expected.groupby(water_years):
-        dates = window.index[window]
+    period = 'water year' if purpose == 'Flood Control' else 'calendar year'
+    for year in years:
+        dates = (pd.date_range(f'{year-1}-10-01', f'{year}-09-30') if period == 'water year'
+                 else pd.date_range(f'{year}-01-01', f'{year}-12-31'))
         base = baseline.reindex(dates)
         alt = alternative.reindex(dates)
         paired = base.notna() & alt.notna()
@@ -89,7 +90,7 @@ def annual_rows(key, baseline, alternative, expected):
         if len(dates) and paired.all():
             base_value, alt_value = base.agg(reducer), alt.agg(reducer)
         yield dict(purpose=purpose, reservoir=reservoir, metric=metric, units=units, status=status,
-                   water_year=year, expected_days=len(dates), paired_days=int(paired.sum()),
+                   year=year, period=period, expected_days=len(dates), paired_days=int(paired.sum()),
                    baseline=base_value, alternative=alt_value, change=alt_value - base_value)
 
 
@@ -100,18 +101,27 @@ def main():
     parser.add_argument('--alternative', nargs=3, required=True, metavar=('CSV', 'REPORT', 'F_PART'))
     parser.add_argument('--first-year', type=int, required=True)
     parser.add_argument('--last-year', type=int, required=True)
+    parser.add_argument('--calendar-first-year', type=int)
+    parser.add_argument('--calendar-last-year', type=int)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     if args.first_year > args.last_year:
         parser.error('first year must be no later than last year')
-    dates = pd.date_range(f'{args.first_year-1}-10-01', f'{args.last_year}-09-30')
-    expected = pd.Series(True, index=dates)
+    water_years = range(args.first_year, args.last_year + 1)
+    first_calendar = args.calendar_first_year or args.first_year - 1
+    last_calendar = args.calendar_last_year or args.last_year
+    if first_calendar > last_calendar:
+        parser.error('first calendar year must be no later than last calendar year')
+    calendar_years = range(first_calendar, last_calendar + 1)
+    dates = pd.date_range(min(f'{args.first_year-1}-10-01', f'{first_calendar}-01-01'),
+                          max(f'{args.last_year}-09-30', f'{last_calendar}-12-31'))
     missing = pd.Series(np.nan, index=dates)
     cases = [load_case(Path(csv), Path(report), fpart, dates)
              for csv, report, fpart in (args.baseline, args.alternative)]
     (baseline, base_source), (alternative, alt_source) = cases
     rows = [row for key in sorted(baseline.keys() | alternative.keys())
-            for row in annual_rows(key, baseline.get(key, missing), alternative.get(key, missing), expected)]
+            for row in annual_rows(key, baseline.get(key, missing), alternative.get(key, missing),
+                                   water_years if key[0] == 'Flood Control' else calendar_years)]
     if not rows:
         raise ValueError('No supported metrics found in either report')
     args.output.mkdir(parents=True, exist_ok=True)

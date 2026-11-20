@@ -36,9 +36,9 @@ def metric_window(purpose, metric, year):
         return pd.date_range(end=f'{year}-05-31', periods=1, freq='W-MON')
     if metric.endswith(HOLIDAYS[1]):
         return pd.date_range(start=f'{year}-09-01', periods=1, freq='W-MON')
-    if purpose == 'Recreation':
-        return pd.date_range(f'{year}-02-01', f'{year}-12-01')
-    return pd.date_range(f'{year-1}-10-01', f'{year}-09-30')
+    if purpose == 'Flood Control':
+        return pd.date_range(f'{year-1}-10-01', f'{year}-09-30')
+    return pd.date_range(f'{year}-01-01', f'{year}-12-31')
 
 
 def captured_combined_schedule(config):
@@ -222,7 +222,7 @@ def write_target_pages(output, directory, routed, years):
                 classification = ', '.join(f'{value:g}' for value in group['WY_type'])
                 rows = []
                 for year in years:
-                    dates = pd.date_range(f'{year-1}-10-01', f'{year}-09-30')
+                    dates = metric_window(BIOP, '', year)
                     calendar = np.array([pd.Timestamp(2000, day.month, day.day).dayofyear for day in dates])
                     target = pd.Series(values[np.searchsorted(breakpoints, calendar, side='right')-1], index=dates)
                     eligible = target[target.gt(0)]
@@ -234,7 +234,7 @@ def write_target_pages(output, directory, routed, years):
                 table = pd.DataFrame(rows)
                 panels.append(f'<h2>{site} | Water-year-type table rows {escape(classification)}</h2>')
                 for kind in ('box', 'duration'):
-                    fig = location_plot(table, labels, kind)
+                    fig = location_plot(table, labels, kind, percentile_boxes=True)
                     peak = table[['baseline', 'alternative']].max().max()
                     fig.update_yaxes(range=[0, max(1, 1.05*peak)] if pd.notna(peak) else [0, 1],
                                      dtick=1 if pd.isna(peak) or peak <= 10 else None)
@@ -244,7 +244,7 @@ def write_target_pages(output, directory, routed, years):
             f'<!doctype html><meta charset="utf-8"><title>{regime_name}</title>'
             f'<h1>Salem and Albany | {regime_name}</h1><a href="index.html">POR plots</a>'
             '<p>Days with routed flow strictly below a positive configured target. Each distinct schedule '
-            'is applied to both cases and every year. These are fixed-schedule comparisons.</p>'
+            'is applied to both cases across each calendar year. These are fixed-schedule comparisons.</p>'
             + ''.join(panels), encoding='utf-8')
         links.append(f'<a href="{filename}">{regime_name}</a>')
     return '<p>Salem and Albany target comparisons | ' + ' | '.join(links) + '</p>'
@@ -371,7 +371,7 @@ def metric_panels(summary, labels):
     for n, ((purpose, metric), table) in enumerate(summary.groupby(['purpose', 'metric'])):
         title = escape(f'{purpose} / {metric}')
         options.append(f'<option value="{n}">{title}</option>')
-        figures = [location_plot(table, labels, kind) for kind in ('box', 'duration')]
+        figures = [location_plot(table, labels, kind, percentile_boxes=True) for kind in ('box', 'duration')]
         # Set an explicit range even for all-zero traces.
         if purpose == 'Flood Control' and table.units.isin(['days', 'reservoir-days']).all():
             locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
@@ -398,6 +398,8 @@ def build(prior, output, target_directory=None, fits_files=None):
     source = json.loads((prior/'csv_provenance.json').read_text(encoding='utf-8-sig'))
     annual = pd.read_csv(prior/'annual_csv_comparison.csv').rename(columns={
         'reservoir':'location', 'water_year':'year', 'expected_days':'expected', 'paired_days':'paired'})
+    if 'period' not in annual:
+        annual['period'] = 'water year'
     annual['purpose'] = annual.metric.str.startswith('Estimated powerhouse').map(
         {True:'Hydropower', False:'Flood Control'})
     annual.loc[annual.purpose.eq('Flood Control'), 'metric'] = 'Days above Max Evac'
@@ -409,8 +411,21 @@ def build(prior, output, target_directory=None, fits_files=None):
     biop_schedule = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv',
                                 comment='#').set_index(['Month', 'Day'])
     records, targets, metrics, routed, models = {}, {}, [], {}, {}
-    years = sorted(annual.year.unique())
-    dates = pd.date_range(f'{years[0]-1}-10-01', f'{years[-1]}-12-01')
+    project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
+    with project_data.open(encoding='utf-8-sig') as stream:
+        header = next(i for i, line in enumerate(stream) if line.startswith('Variable,'))
+    projects = pd.read_csv(project_data, skiprows=header, encoding='utf-8-sig')
+    crests = projects.set_index('Variable').loc['SpillwayCrestElev']
+    elevation_criteria = {
+        'Lookout Point': ('Days above spillway crest', float(crests['Lookout Point'])),
+        'Detroit': ('Days above spillway crest', float(crests['Detroit'])),
+        'Cougar': ('Days above minimum temperature tower elevation', 1571.0),
+    }
+    water_years = set()
+    calendar_years = set()
+    first = int(annual.year.min())
+    last = int(annual.year.max())
+    dates = pd.date_range(f'{first-1}-01-01', f'{last+1}-12-31')
 
     for label in labels:
         case = source[label.lower()]
@@ -422,6 +437,8 @@ def build(prior, output, target_directory=None, fits_files=None):
             raise ValueError(f'{label}: expected unique daily midnight timestamps')
         daily.index = stamps - pd.Timedelta(days=1)
         daily = daily.apply(pd.to_numeric, errors='coerce').where(lambda x: np.isfinite(x) & x.gt(-900))
+        water_years.update(daily.index.year + (daily.index.month >= 10).astype(int))
+        calendar_years.update(daily.index.year)
         routed[label] = daily[['Salem__Flow', 'Albany__Flow']]
         records[label], values = {}, {}
         metrics.append(values)
@@ -443,6 +460,13 @@ def build(prior, output, target_directory=None, fits_files=None):
                 values['Water Supply', reservoir, 'Maximum daily pool storage', 'acre-ft', 'max'] = values_series
                 for holiday in HOLIDAYS:
                     values['Recreation', reservoir, f'Pool storage on {holiday}', 'acre-ft', 'max'] = values_series
+
+        for reservoir, (metric, elevation) in elevation_criteria.items():
+            pool = daily.get(f'{reservoir}__Elev')
+            if pool is not None:
+                pool = pool.reindex(dates)
+                key = ('Reservoir elevation', reservoir, metric, 'days', 'sum')
+                values[key] = pool.gt(elevation).astype(float).where(pool.notna())
 
         for station in thresholds.itertuples(index=False):
             flow = daily[f'{station.location}__Flow'].reindex(dates)
@@ -505,7 +529,8 @@ def build(prior, output, target_directory=None, fits_files=None):
     missing = pd.Series(np.nan, index=dates)
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         purpose, name, metric, units, reducer = key
-        for year in years:
+        flood = purpose == 'Flood Control'
+        for year in sorted(water_years if flood else calendar_years):
             window = metric_window(purpose, metric, year)
             pair = pd.concat([case.get(key, missing).reindex(window) for case in metrics], axis=1)
             paired = len(pair.dropna())
@@ -514,6 +539,7 @@ def build(prior, output, target_directory=None, fits_files=None):
                 totals = pair.quantile(.1).tolist() if reducer == 'p10' else pair.agg(reducer).tolist()
             baseline, alternative = totals
             rows.append(dict(purpose=purpose, location=name, metric=metric, units=units, year=year,
+                             period='water year' if flood else 'calendar year',
                              expected=len(window), paired=paired, baseline=baseline,
                              alternative=alternative, change=alternative-baseline,
                              status='Elevation-only screen' if units in ('ramps', 'ramp-days') else
@@ -532,7 +558,7 @@ def build(prior, output, target_directory=None, fits_files=None):
     write_model_settings(output/'model_settings.html', models)
 
     compliance_links = write_compliance_pages(output, summary, lambda table: metric_panels(table, labels))
-    regime_links = write_target_pages(output, target_directory, routed, years) if target_directory else ''
+    regime_links = write_target_pages(output, target_directory, routed, sorted(calendar_years)) if target_directory else ''
     (output/'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>POR comparison</title>'
         '<h1>POR box and duration plots</h1><p><a href="annual_reservoir_overlays.html">'
@@ -541,8 +567,10 @@ def build(prior, output, target_directory=None, fits_files=None):
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
         + regime_links + compliance_links +
-        '<p>System maximum storage is the water-year maximum of the sum of each day’s reservoir storage. '
+        '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the sum of each day’s reservoir storage. '
         'Holiday storage and ramps use the holiday date only. Ramp counts use pool elevation.</p>'
+        '<p>Elevation counts use daily pool elevation strictly above the Lookout Point and Detroit '
+        'spillway crests or Cougar’s 1,571 ft minimum temperature tower elevation.</p>'
         + metric_panels(summary, labels), encoding='utf-8')
 
     def firo_references(reservoir, *_):
@@ -561,7 +589,7 @@ def build(prior, output, target_directory=None, fits_files=None):
         overlays.firo_overlays = firo_references
         overlay_path = output/'annual_reservoir_overlays.html'
         overlays.write_annual_overlays(overlay_path, records, ramps, Path('per-compute JSON'),
-            ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv', {}, {})
+            project_data, {}, {})
         content = overlay_path.read_text(encoding='utf-8')
         overlay_path.write_text(content.replace('Rule curves come from DSS Elev-ZONE. '
             'The FIRO line is the recurring target schedule from the reference CSV. '

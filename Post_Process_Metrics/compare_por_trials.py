@@ -58,52 +58,66 @@ def timestamps(case):
     return index
 
 
+def location_panel(rows, labels, purpose, period, location, units):
+    samples = rows.pivot(index='year', columns='trial', values='alternative').reindex(columns=list(labels)[1:])
+    baseline = rows.groupby('year').baseline.first()
+    samples.insert(0, 0, baseline)
+    available = samples.loc[:, samples.notna().any()]
+    common = available.dropna().index if 0 in available else []
+    fig = go.Figure()
+    stats = []
+    for index, (trial, label) in enumerate(labels.items()):
+        values = samples.loc[common, trial].dropna()
+        if values.empty:
+            stats.append([label, 0] + [None] * 5)
+            continue
+        q1, median, q3 = values.quantile([.25, .5, .75])
+        minimum, maximum = values.min(), values.max()
+        stats.append([label, len(values), minimum, q1, median, q3, maximum])
+        color = qualitative.Plotly[index % len(qualitative.Plotly)]
+        tag = f'Trial {trial}' if trial else 'Baseline (-0)'
+        fig.add_trace(go.Box(x=[tag], q1=[q1], median=[median], q3=[q3], lowerfence=[minimum],
+                             upperfence=[maximum], name=label, marker_color=color,
+                             legendgroup=tag, boxpoints=False, hoverinfo='skip'))
+        fig.add_trace(go.Scatter(x=[tag] * len(values), y=values.tolist(), text=values.index.tolist(),
+                                 name=label, marker=dict(color=color, opacity=.6, size=5),
+                                 mode='markers', legendgroup=tag, showlegend=False,
+                                 hovertemplate=period.title() + ' %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
+    fig.update_layout(template='plotly_white', yaxis_title=units,
+                      legend=dict(groupclick='togglegroup', orientation='h', y=-.25),
+                      height=390, margin=dict(t=12, b=100))
+    fig.update_xaxes(tickangle=-35 if len(labels) > 4 else 0, automargin=True)
+    if purpose == 'Flood Control' and units in ('days', 'reservoir-days'):
+        fig.update_yaxes(rangemode='tozero')
+    table = pd.DataFrame(stats, columns=['Run', 'Years', 'Minimum', '25th percentile',
+                                         '50th percentile', '75th percentile', 'Maximum'])
+    body = fig.to_html(full_html=False, include_plotlyjs=False)
+    body += '<details><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
+    title = 'System' if location == 'SYSTEM' else escape(location)
+    return f'<article><h2>{title}</h2>{body}</article>'
+
+
 def comparison_panels(summary, labels):
     options, panels = [], []
-    for i, ((purpose, metric, location, units), rows) in enumerate(
-            summary.groupby(['purpose', 'metric', 'location', 'units'])):
-        title = escape(f'{purpose} / {metric} / {location}')
+    width = min(780, max(340, 160 + 52 * len(labels)))
+    for i, ((purpose, metric, period), rows) in enumerate(
+            summary.groupby(['purpose', 'metric', 'period'])):
+        title = escape(f'{purpose} / {metric} ({period})')
         options.append(f'<option value="{i}">{title}</option>')
-        samples = rows.pivot(index='year', columns='trial', values='alternative').reindex(columns=list(labels)[1:])
-        baseline = rows.groupby('year').baseline.first()
-        samples.insert(0, 0, baseline)
-        available = samples.loc[:, samples.notna().any()]
-        common = available.dropna().index if 0 in available else []
-        fig = go.Figure()
-        stats = []
-        for trial, label in labels.items():
-            values = samples.loc[common, trial].dropna()
-            if values.empty:
-                stats.append([label, 0] + [None] * 7)
-                continue
-            q1, median, q3 = values.quantile([.25, .5, .75])
-            iqr = q3 - q1
-            lower = values[values >= q1 - 1.5 * iqr].min()
-            upper = values[values <= q3 + 1.5 * iqr].max()
-            stats.append([label, len(values), values.min(), lower, q1, median, q3, upper, values.max()])
-            color = qualitative.Plotly[list(labels).index(trial) % len(qualitative.Plotly)]
-            tag = f'Trial {trial}' if trial else 'Baseline (-0)'
-            fig.add_trace(go.Box(x=[tag], q1=[q1], median=[median], q3=[q3], lowerfence=[lower],
-                                 upperfence=[upper], name=label, marker_color=color,
-                                 legendgroup=tag, boxpoints=False))
-            fig.add_trace(go.Scatter(x=[tag] * len(values), y=values.tolist(), text=values.index.tolist(),
-                                     name=label, marker=dict(color=color, opacity=.6, size=5),
-                                     mode='markers', legendgroup=tag, showlegend=False,
-                                     hovertemplate='WY %{text}: %{y:,.2f}<extra>%{fullData.name}</extra>'))
-        fig.update_layout(template='plotly_white', yaxis_title=units,
-                          legend=dict(groupclick='togglegroup'), height=385, margin=dict(t=20))
-        if purpose == 'Flood Control' and units in ('days', 'reservoir-days'):
-            fig.update_yaxes(rangemode='tozero')
-        table = pd.DataFrame(stats, columns=['Run', 'Years', 'Minimum', 'Lower whisker', 'Q1',
-                                             'Median', 'Q3', 'Upper whisker', 'Maximum'])
-        body = fig.to_html(full_html=False, include_plotlyjs=False)
-        body += table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}')
-        panels.append(f'<section id="metric-{i}"{" hidden" if i else ""}>{body}</section>')
-    return ('<script src="plotly.min.js"></script><style>table{border-collapse:collapse}td,th{padding:.35em}</style>'
-            '<p>Boxes and points use complete years shared by the trials with data for this metric. '
-            'Trials with zero years have no box. Points represent individual water years. '
-            'Click a trial in the legend to hide or show it.</p>'
-            '<label for="metric">Metric and location</label> <select id="metric">' + ''.join(options)
+        locations = list(rows.groupby(['location', 'units']))
+        locations.sort(key=lambda item: (item[0][0] != 'SYSTEM', item[0]))
+        body = ''.join(location_panel(group, labels, purpose, period, location, units)
+                       for (location, units), group in locations)
+        panels.append(f'<section id="metric-{i}"{" hidden" if i else ""}>'
+                      f'<div class="reservoir-grid" style="--panel-width:{width}px">{body}</div></section>')
+    return ('<script src="plotly.min.js"></script><style>'
+            '.reservoir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--panel-width)),1fr));'
+            'gap:16px;align-items:start}.reservoir-grid article{min-width:0;border:1px solid #ddd;padding:8px;'
+            'overflow-x:auto}.reservoir-grid h2{margin:4px 0;font-size:1.1rem}'
+            'table{border-collapse:collapse}td,th{padding:.35em}</style>'
+            '<p>Boxes and points use complete years shared by the trials with data for each location. '
+            'Click a trial in a legend to hide or show it.</p>'
+            '<label for="metric">Metric</label> <select id="metric">' + ''.join(options)
             + '</select>' + ''.join(panels)
             + '<script>document.querySelector("#metric").onchange=e=>{document.querySelectorAll("section")'
               '.forEach(s=>s.hidden=s.id!=="metric-"+e.target.value);document.querySelectorAll('
@@ -143,6 +157,7 @@ def main():
         subprocess.run([sys.executable, str(Path(__file__).with_name('compare_por_csv.py')),
                         '--baseline', *baseline, '--alternative', *case,
                         '--first-year', str(water_years.min()), '--last-year', str(water_years.max()),
+                        '--calendar-first-year', str(days.year.min()), '--calendar-last-year', str(days.year.max()),
                         '--output', str(prior)], check=True)
         pair = output / f'trial{trial}'
         build(prior, pair, args.targets)
@@ -162,8 +177,9 @@ def main():
     page.write_text('<!doctype html><meta charset="utf-8"><title>POR trial comparison</title>'
                     '<h1>POR trial comparison</h1><p>' + escape(labels[0]) + '</p>'
                     + compliance + '<p><a href="annual_comparison.csv">Annual comparison data</a></p>'
-                    '<p>System maximum storage is the water-year maximum of the daily sum across reservoirs. '
+                    '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
+                    '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'
                     '<details><summary>Individual trial reports, duration plots and model settings</summary><ul>'
                     + ''.join(links) + '</ul></details>' + excluded
                     + comparison_panels(summary, labels), encoding='utf-8')
