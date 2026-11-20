@@ -15,8 +15,7 @@ import annual_overlays as overlays
 from purpose_plots import location_plot
 
 ROOT = Path(__file__).resolve().parent
-LEVELS = dict(action_cfs='Days above action / bankfull flow',
-              flood_cfs='Days above flood flow', major_flood_cfs='Days above major flood flow')
+BANKFULL_METRIC = 'Days above bankfull flow'
 
 
 BIOP = 'ESA flow compliance / BiOp component'
@@ -30,6 +29,83 @@ FLOW_COMPLIANCE = {
                'native timestep rule adjustments or verify that the rule was active.'),
 }
 HOLIDAYS = ('Memorial Day', 'Labor Day')
+
+
+def bankfull_thresholds(model, thresholds, target_directory):
+    captured = model.get('bankfull_cfs') or {}
+    options = {}
+    for operation in model.get('operations', []):
+        definitions = operation.get('rule_inventory', {}).get('definitions', {})
+        for rule in definitions.values():
+            name = rule.get('name') or ''
+            release = rule.get('release_definition') or {}
+            units = release.get('units') or release.get('y_units') or ''
+            if units.casefold() != 'cfs':
+                continue
+            kind = release.get('kind')
+            if kind == 'constant':
+                values = [release.get('value')]
+            elif kind == 'seasonal_record':
+                values = release.get('values', [])
+            elif kind == 'paired_values':
+                values = [value for point in release.get('points', []) for value in point.get('y', [])]
+            else:
+                continue
+            if not values or not all(isinstance(value, (int, float)) and np.isfinite(value) and value > 0
+                                     for value in values) or len(set(values)) != 1:
+                continue
+            for site in thresholds.location:
+                if re.search(rf'\b{re.escape(site)}\s+bank\s*full(?:\s+max)?$', name, re.I):
+                    options.setdefault(site, set()).add(values[0])
+    script = ''
+    if target_directory is not None:
+        path = target_directory.parent/'Plots_Jython/Willamett_FRM plots_ McKenzieAndBelowAndFlows.py'
+        if path.is_file():
+            script = path.read_text(encoding='utf-8-sig', errors='replace')
+    identifiers = {'Harrisburg': 'HARO', 'Jefferson': 'JFFO', 'Salem': 'SALO', 'Albany': 'ALBO'}
+    result = {}
+    for station in thresholds.itertuples(index=False):
+        site = station.location
+        value = captured.get(site)
+        if isinstance(value, (int, float)) and np.isfinite(value) and value > 0:
+            result[site] = (value, 'compute JSON bankfull_cfs')
+            continue
+        candidates = options.get(site, set())
+        if len(candidates) == 1:
+            value = next(iter(candidates))
+            if np.isfinite(value) and value > 0:
+                result[site] = (value, 'compute JSON bankfull rule')
+                continue
+        identifier = identifiers.get(site)
+        match = re.search(rf'^\s*{identifier}BF\.value\s*=\s*["\'](\d+(?:\.\d+)?)["\']', script, re.M) if identifier else None
+        if match:
+            result[site] = (float(match[1]), 'watershed FRM plotting script')
+        else:
+            result[site] = (station.action_cfs, 'report action/bankfull CSV')
+    return result
+
+
+def minimum_conservation_storage(model, rule_curve):
+    if rule_curve is None:
+        return {}
+    values = {}
+    for operation in model.get('operations', []):
+        name = operation['reservoir']
+        key = name.casefold()
+        if key not in rule_curve or rule_curve[key].dropna().empty:
+            continue
+        rating = operation.get('rating_tables', {}).get('elevation_storage') or {}
+        if rating.get('columns') != ['elevation_ft', 'storage_acre_ft']:
+            continue
+        rows = np.asarray(rating.get('rows', []), dtype=float)
+        if rows.ndim != 2 or rows.shape[1] != 2 or len(rows) < 2 or not np.isfinite(rows).all():
+            continue
+        elevations, storage = rows.T
+        minimum = rule_curve[key].min()
+        if (np.diff(elevations) <= 0).any() or (np.diff(storage) < 0).any() or not elevations[0] <= minimum <= elevations[-1]:
+            continue
+        values[name] = np.interp(minimum, elevations, storage)
+    return values
 
 
 def metric_window(purpose, metric, year):
@@ -392,7 +468,7 @@ def write_model_settings(path, models):
         + ''.join(sections), encoding='utf-8')
 
 
-def metric_panels(summary, labels):
+def metric_panels(summary, labels, bankfull=None):
     options, panels = [], []
     plotly_included = False
     for n, ((purpose, metric, period), table) in enumerate(metric_groups(summary)):
@@ -402,7 +478,9 @@ def metric_panels(summary, labels):
         if table.empty:
             panels.append(start + '<p>No comparison data are available.</p></section>')
             continue
-        figures = [location_plot(table, labels, kind, percentile_boxes=True) for kind in ('box', 'duration')]
+        limits = bankfull if metric == 'Peak daily routed flow' else None
+        figures = [location_plot(table, labels, kind, percentile_boxes=True, bankfull=limits)
+                   for kind in ('box', 'duration')]
         # Set an explicit range even for all-zero traces.
         if purpose == 'Flood Control' and table.units.isin(['days', 'reservoir-days']).all():
             locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
@@ -443,7 +521,8 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
     biop_schedule = pd.read_csv(ROOT/'model_metadata/scripts/externalRules/MinFlowConfig.csv',
                                 comment='#').set_index(['Month', 'Day'])
     records, targets, metrics, routed, models = {}, {}, [], {}, {}
-    control_point_flows = {}
+    control_point_flows, bankfull = {}, {}
+    _, rule_curve = conservation_rule_curve(target_directory)
     project_data = ROOT/'model_metadata/scripts/externalSVs/BasicProjectData.csv'
     with project_data.open(encoding='utf-8-sig') as stream:
         header = next(i for i, line in enumerate(stream) if line.startswith('Variable,'))
@@ -464,6 +543,8 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         case = source[label.lower()]
         models[label] = model = read_compute_report(case, label, (fits_files or {}).get(label))
         compute = model['compute']
+        bankfull[label] = bankfull_thresholds(model, thresholds, target_directory)
+        min_con = minimum_conservation_storage(model, rule_curve)
         daily = pd.read_csv(case['csv'])
         stamps = pd.DatetimeIndex(pd.to_datetime(daily.pop('Timestamp'), errors='raise'))
         if stamps.hasnans or stamps.has_duplicates or not stamps.equals(stamps.normalize()):
@@ -489,9 +570,11 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
                 records[label]['', reservoir+'-Pool', parameter] = (
                     values_series, 'ft' if parameter == 'Elev' else 'cfs')
             elif parameter == 'Stor':
-                values['Water Supply', reservoir, 'Maximum daily pool storage', 'acre-ft', 'max'] = values_series
+                above = (values_series - min_con.get(reservoir, np.nan)).clip(lower=0)
+                records[label]['', reservoir+'-Pool', 'Stor-above-min-con'] = (above, 'acre-ft')
+                values['Water Supply', reservoir, 'Maximum daily storage above Min Con', 'acre-ft', 'max'] = above
                 for holiday in HOLIDAYS:
-                    values['Recreation', reservoir, f'Pool storage on {holiday}', 'acre-ft', 'max'] = values_series
+                    values['Recreation', reservoir, f'Storage above Min Con on {holiday}', 'acre-ft', 'max'] = above
 
         for reservoir, (_, elevation) in elevation_criteria.items():
             pool = daily.get(f'{reservoir}__Elev')
@@ -503,9 +586,9 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         for station in thresholds.itertuples(index=False):
             flow = control_point_flows[label][station.location].reindex(dates)
             values['Flood Control', station.location, 'Peak daily routed flow', 'cfs', 'max'] = flow
-            for field, metric in LEVELS.items():
-                values['Flood Control', station.location, metric, 'days', 'sum'] = flow.gt(
-                    getattr(station, field)).astype(float).where(flow.notna())
+            threshold, _ = bankfull[label][station.location]
+            values['Flood Control', station.location, BANKFULL_METRIC, 'days', 'sum'] = (
+                flow.gt(threshold).astype(float).where(flow.notna()))
         for site in ('Albany', 'Salem'):
             values['Water Quality', site, '10th percentile daily routed flow', 'cfs', 'p10'] = daily[
                 f'{site}__Flow'].reindex(dates)
@@ -526,7 +609,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
     groups = {}
     for key in sorted(metrics[0].keys() | metrics[1].keys()):
         purpose, _, metric, units, reducer = key
-        if (purpose in ('Water Supply', 'Recreation') or metric in LEVELS.values()
+        if (purpose in ('Water Supply', 'Recreation') or metric == BANKFULL_METRIC
                 or purpose in FLOW_COMPLIANCE):
             groups.setdefault((purpose, 'SYSTEM', metric, units, reducer), []).append(key)
     for key, members in groups.items():
@@ -534,7 +617,7 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
             daily = pd.concat([case.get(member, pd.Series(np.nan, index=dates))
                                for member in members], axis=1)
             total = daily.sum(axis=1, min_count=len(members))
-            if key[2] in LEVELS.values() or key[0] in FLOW_COMPLIANCE:
+            if key[2] == BANKFULL_METRIC or key[0] in FLOW_COMPLIANCE:
                 total = total.gt(0).astype(float).where(total.notna())
             case[key] = total
 
@@ -573,6 +656,11 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
             if purpose == 'Reservoir elevation':
                 criterion, elevation = elevation_criteria[name]
                 status = f'{criterion} ({elevation:,.1f} ft)'
+            elif metric == BANKFULL_METRIC and name != 'SYSTEM':
+                status = '; '.join(f'{label}: {bankfull[label][name][0]:,.0f} cfs ({bankfull[label][name][1]})'
+                                   for label in labels)
+            elif 'above Min Con' in metric:
+                status = 'Storage above the lowest rule curve elevation, floored at zero. Requires a captured elevation-storage rating.'
             elif units in ('ramps', 'ramp-days'):
                 status = 'Elevation-only screen'
             elif purpose in FLOW_COMPLIANCE:
@@ -609,16 +697,16 @@ def build(prior, output, target_directory=None, fits_files=None, *, stacked_url=
         '<p>System flood and BiOp counts count a day once across locations. Max Evac totals are '
         'reservoir-days. System storage and ramp totals require all included reservoirs.</p>'
         + regime_links +
-        '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the sum of each day’s reservoir storage. '
+        '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the same-day sum of reservoir storage above Min Con. '
         'Holiday storage and ramps use the holiday date only. Ramp counts use pool elevation.</p>'
         '<p>Elevation counts use daily pool elevation strictly above the Lookout Point and Detroit '
         'spillway crests or Cougar’s 1,571 ft minimum temperature tower elevation.</p>'
-        + metric_panels(summary, labels), encoding='utf-8')
+        + metric_panels(summary, labels, bankfull), encoding='utf-8')
 
     if stacked_url is None:
         write_csv_overlays(output/'annual_reservoir_overlays.html', records, targets, target_directory)
     print(output/'index.html')
-    return records, targets, models, control_point_flows
+    return records, targets, models, control_point_flows, bankfull
 
 
 def captured_firo_target(compute):
@@ -669,7 +757,7 @@ def write_csv_overlays(output, records, targets, target_directory=None, *, trial
 
     def references(reservoir, *_):
         curves, notes = [], []
-        dates = overlays.CALENDAR
+        dates = overlays.CSV_CALENDAR
         if rule_curve is not None and reservoir.casefold() in rule_curve:
             schedule = rule_curve[reservoir.casefold()].reindex([(day.month, day.day) for day in dates])
             curves.append(('Conservation rule curve (CSV reference)', schedule, '#394556'))

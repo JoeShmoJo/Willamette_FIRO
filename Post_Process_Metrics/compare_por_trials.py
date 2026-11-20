@@ -58,7 +58,7 @@ def timestamps(case):
     return index
 
 
-def distribution_charts(samples, labels, purpose, period, units, *, daily=False):
+def distribution_charts(samples, labels, purpose, period, units, *, daily=False, bankfull=None):
     available = samples.loc[:, samples.notna().any()]
     common = available.dropna().index if 0 in available else []
     fig = go.Figure()
@@ -67,15 +67,16 @@ def distribution_charts(samples, labels, purpose, period, units, *, daily=False)
     for index, (trial, label) in enumerate(labels.items()):
         values = samples.loc[common, trial].dropna()
         if values.empty:
-            stats.append([label, 0] + [None] * 5)
+            stats.append([label, 0] + [None] * 6)
             continue
         q1, median, q3 = values.quantile([.25, .5, .75])
         minimum, maximum = values.min(), values.max()
-        stats.append([label, len(values), minimum, q1, median, q3, maximum])
+        mean = values.mean()
+        stats.append([label, len(values), minimum, q1, median, q3, maximum, mean])
         color = qualitative.Plotly[index % len(qualitative.Plotly)]
         fig.add_trace(go.Box(x=[label], q1=[q1], median=[median], q3=[q3], lowerfence=[minimum],
                              upperfence=[maximum], name=label, marker_color=color,
-                             legendgroup=label, boxpoints=False, hoverinfo='skip'))
+                             legendgroup=label, mean=[mean], boxmean=True, boxpoints=False, hoverinfo='skip'))
         if not daily:
             fig.add_trace(go.Scatter(x=[label] * len(values), y=values.tolist(), text=values.index.tolist(),
                                      name=label, marker=dict(color=color, opacity=.6, size=5),
@@ -105,8 +106,18 @@ def distribution_charts(samples, labels, purpose, period, units, *, daily=False)
             chart.update_yaxes(rangemode='tozero')
     fig.update_xaxes(tickangle=-35 if len(labels) > 4 else 0, automargin=True)
     duration.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%')
+    if bankfull:
+        distinct = {}
+        for label, (value, _) in bankfull.items():
+            distinct.setdefault(value, []).append(label)
+        for value, runs in distinct.items():
+            name = 'Bankfull' if len(distinct) == 1 else 'Bankfull · ' + ', '.join(runs)
+            duration.add_trace(go.Scatter(
+                x=[0, 100], y=[value, value], mode='lines', name=f'{name} ({value:,.0f} cfs)',
+                line=dict(color='#4b5563', dash='dash'),
+                hovertemplate='%{fullData.name}<extra></extra>'))
     table = pd.DataFrame(stats, columns=['Run', 'Days' if daily else 'Years', 'Minimum', '25th percentile',
-                                         '50th percentile', '75th percentile', 'Maximum'])
+                                         '50th percentile', '75th percentile', 'Maximum', 'Mean'])
     body = fig.to_html(full_html=False, include_plotlyjs=False)
     body += '<details open><summary>Box plot statistics</summary>' + table.to_html(index=False, na_rep='—', float_format=lambda value: f'{value:,.2f}') + '</details>'
     curve = duration.to_html(full_html=False, include_plotlyjs=False)
@@ -115,20 +126,21 @@ def distribution_charts(samples, labels, purpose, period, units, *, daily=False)
             f'<div data-view="{prefix}duration" hidden>{curve}</div>')
 
 
-def location_panel(rows, labels, purpose, period, location, units, daily_flows):
+def location_panel(rows, labels, purpose, period, location, units, daily_flows, bankfull):
     samples = rows.pivot(index='year', columns='trial', values='alternative').reindex(columns=list(labels)[1:])
     baseline = rows.groupby('year').baseline.first()
     samples.insert(0, 0, baseline)
     title = 'System' if location == 'SYSTEM' else escape(location)
     criterion = f'<p>{escape(rows.status.iloc[0])}</p>' if purpose == 'Reservoir elevation' else ''
-    charts = distribution_charts(samples, labels, purpose, period, units)
+    thresholds = {labels[trial]: bankfull[trial][location] for trial in labels} if daily_flows and bankfull else None
+    charts = distribution_charts(samples, labels, purpose, period, units, bankfull=thresholds)
     if daily_flows:
         samples = pd.DataFrame({trial: daily_flows[trial][location] for trial in labels})
-        charts += distribution_charts(samples, labels, purpose, period, units, daily=True)
+        charts += distribution_charts(samples, labels, purpose, period, units, daily=True, bankfull=thresholds)
     return f'<article><h3>{title}</h3>{criterion}{charts}</article>'
 
 
-def comparison_panels(summary, labels, daily_flows=None):
+def comparison_panels(summary, labels, daily_flows=None, bankfull=None):
     options, panels = [], []
     width = min(780, max(340, 160 + 52 * len(labels)))
     for i, ((purpose, metric, period), rows) in enumerate(metric_groups(summary)):
@@ -146,7 +158,7 @@ def comparison_panels(summary, labels, daily_flows=None):
         options.append(f'<option value="{i}"{daily_flag}>{title}</option>')
         locations = list(rows.groupby(['location', 'units']))
         locations.sort(key=lambda item: (item[0][0] != 'SYSTEM', item[0]))
-        body = ''.join(location_panel(group, labels, purpose, period, location, units, daily)
+        body = ''.join(location_panel(group, labels, purpose, period, location, units, daily, bankfull)
                        for (location, units), group in locations)
         charts = (f'<div class="reservoir-grid" style="--panel-width:{width}px">{body}</div>'
                   if body else '<p>No comparison data are available.</p>')
@@ -206,7 +218,7 @@ def main():
     labels = {0: 'Baseline'}
     configurations = {0: baseline_name}
     links, summaries = [], []
-    overlay_records, overlay_targets, settings_models, daily_flows = {}, {}, {}, {}
+    overlay_records, overlay_targets, settings_models, daily_flows, bankfull = {}, {}, {}, {}, {}
     for trial, (case, name) in cases.items():
         print(f'{case[2]} | {name} | {Path(case[1]).name} | {Path(case[0]).name}', flush=True)
         prior = staging / f'trial{trial}'
@@ -216,12 +228,14 @@ def main():
                         '--calendar-first-year', str(days.year.min()), '--calendar-last-year', str(days.year.max()),
                         '--output', str(prior)], check=True)
         pair = output / f'trial{trial}'
-        records, targets, models, control_point_flows = build(
+        records, targets, models, control_point_flows, pair_bankfull = build(
             prior, pair, args.targets, stacked_url='../annual_reservoir_overlays.html',
             settings_url=f'../model_settings.html#trial-{trial}')
         label = f'Trial {trial}'
         daily_flows.setdefault(0, control_point_flows['Baseline'])
         daily_flows[trial] = control_point_flows['Alternative']
+        bankfull.setdefault(0, pair_bankfull['Baseline'])
+        bankfull[trial] = pair_bankfull['Alternative']
         settings_models.setdefault('Baseline', models['Baseline'])
         settings_models[label] = models['Alternative']
         overlay_records.setdefault('Baseline', records['Baseline'])
@@ -255,12 +269,12 @@ def main():
                     '<h1>POR trial comparison</h1>' + configuration_list
                     + stacked_link + '<p><a href="model_settings.html" target="_blank" rel="noopener">'
                     'Configuration comparison (new tab)</a> | <a href="annual_comparison.csv">Annual comparison data</a></p>'
-                    '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum across reservoirs. '
+                    '<p>Flood metrics use water years. Other metrics use calendar years. System maximum storage is the calendar-year maximum of the daily sum of storage above Min Con across reservoirs. '
                     'Holiday storage and ramp counts use the holiday date only.</p>'
                     '<p>Elevation criteria use Lookout Point and Detroit spillway crests and Cougar’s 1,571 ft threshold.</p>'
                     '<details><summary>Individual trial reports and duration plots</summary><ul>'
                     + ''.join(links) + '</ul></details>' + excluded
-                    + comparison_panels(summary, labels, daily_flows), encoding='utf-8')
+                    + comparison_panels(summary, labels, daily_flows, bankfull), encoding='utf-8')
     print(page)
 
 

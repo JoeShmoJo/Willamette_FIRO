@@ -42,9 +42,15 @@ Flood exceedance count axes start at zero.
 - Flood metrics use October through September water years. Other annual
   metrics use January through December calendar years. System maximum storage
   takes the calendar-year maximum of each day's summed
-  reservoir storage. Memorial Day and Labor Day report storage and count ramps
+  storage above Min Con. Each reservoir's Min Con is the lowest conservation
+  rule curve elevation, converted to storage with its captured elevation–storage
+  rating. Negative values are floored at zero. Memorial Day and Labor Day report storage and count ramps
   strictly below the daily pool elevation, by reservoir and for the system.
   These screens use the holiday date and pool elevation.
+- Stacked plots use August–July display years, with storage above Min Con on
+  the left and elevation on the right. Control-point exceedances use bankfull.
+  Thresholds prefer the compute JSON, then the watershed plotting script for
+  Harrisburg, Jefferson, Salem and Albany, then the report CSV.
 - The elevation screen counts days strictly above the Lookout Point (887.5 ft)
   and Detroit (1,541 ft) spillway crests from BasicProjectData.csv, and Cougar’s
   1,571 ft minimum temperature tower elevation.

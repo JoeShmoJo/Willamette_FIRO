@@ -24,7 +24,7 @@ def storage_duration_plot(storage, labels):
     return fig
 
 
-def location_plot(table, labels, kind, *, percentile_boxes=False):
+def location_plot(table, labels, kind, *, percentile_boxes=False, bankfull=None):
     locations = sorted(table.location.unique(), key=lambda location: (location == 'SYSTEM', location))
     samples = [table[table.location == location].sort_values('year') for location in locations]
     paired = [rows.dropna(subset=['baseline', 'alternative']) for rows in samples]
@@ -53,7 +53,7 @@ def location_plot(table, labels, kind, *, percentile_boxes=False):
                     q1, median, q3 = values.quantile([.25, .5, .75])
                     trace = go.Box(x=[label], q1=[q1], median=[median], q3=[q3],
                                    lowerfence=[values.min()], upperfence=[values.max()],
-                                   boxpoints=False, hoverinfo='skip', **style)
+                                   mean=[values.mean()], boxmean=True, boxpoints=False, hoverinfo='skip', **style)
                     fig.add_trace(go.Scatter(x=[label] * len(values), y=values, text=valid.year,
                                              mode='markers', marker=dict(color=color, opacity=.6, size=5),
                                              name=label, legendgroup=column, showlegend=False,
@@ -71,6 +71,16 @@ def location_plot(table, labels, kind, *, percentile_boxes=False):
                                        **style)
                 fig.add_trace(trace, row=row, col=col)
             if kind == 'duration':
+                if bankfull:
+                    limits = {}
+                    for label in labels:
+                        if locations[i] in bankfull[label]:
+                            value, _ = bankfull[label][locations[i]]
+                            limits.setdefault(value, []).append(label)
+                    for value, cases in limits.items():
+                        label = 'Bankfull' if len(limits) == 1 else 'Bankfull · ' + ', '.join(cases)
+                        fig.add_hline(y=value, line_dash='dash', line_color='#4b5563',
+                                      annotation_text=f'{label} ({value:,.0f} cfs)', row=row, col=col)
                 fig.update_xaxes(title_text='Exceedance (%)', range=[0, 100], ticksuffix='%', row=row, col=col)
         fig.update_yaxes(title_text=units, automargin=True, row=row, col=col)
     fig.update_annotations(font_size=14)
