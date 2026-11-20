@@ -179,6 +179,7 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
     year_label = 'Plot year' if reference_curves else 'Water year'
     reservoir_options, sections = [], []
     available_years = set()
+    shared_elevation_dates = None
     for i, (reservoir, cases) in enumerate(sorted(by_reservoir.items())):
         reservoir_options.append(f'<option value="reservoir-{i}">{escape(reservoir)}</option>')
         ramp_rows = ramps[ramps.reservoir.str.casefold() == reservoir.casefold()]
@@ -187,6 +188,9 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
             if 'elev' in parameters:
                 dates = parameters['elev'].dropna().index
                 available_years.update(dates.year + (dates.month >= calendar[0].month).astype(int))
+                if reference_curves and not dates.empty:
+                    shared_elevation_dates = (dates.unique() if shared_elevation_dates is None else
+                                              shared_elevation_dates.intersection(dates))
         fig, missing = reservoir_figure({label: cases.get(label, {}) for label in results},
                                         ramp_rows, crest.get(reservoir.casefold()), curves,
                                         trial_controls=trial_controls, native_rule_curves=reference_curves is None,
@@ -206,7 +210,19 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         firo_note = ('The FIRO line is the recurring target schedule from the reference CSV. '
                      'It does not establish whether FIRO was active in either run.')
         firo_sources = str(firo_path)
-    year_options = ''.join(f'<option value="{year}">{year}</option>' for year in sorted(available_years))
+    complete_years = available_years
+    if reference_curves and shared_elevation_dates is not None:
+        complete_years = set()
+        for year in available_years:
+            start = pd.Timestamp(year - 1, 8, 1)
+            end = pd.Timestamp(year, 8, 1)
+            if ((shared_elevation_dates >= start) & (shared_elevation_dates < end)).sum() == (end - start).days:
+                complete_years.add(year)
+    default_year = max(complete_years or available_years, default=None)
+    year_options = ''.join(
+        f'<option value="{year}"{" selected" if year == default_year else ""}>'
+        f'{year}{" (partial)" if year not in complete_years else ""}</option>'
+        for year in sorted(available_years))
     run_controls = ''
     if trial_controls:
         run_controls = '<fieldset><legend>Show runs</legend>' + ' '.join(
@@ -216,6 +232,8 @@ def write_annual_overlays(output, results, ramps, firo_path, project_data, marke
         data_note = ('Pool series come from the trial CSV exports. FIRO target lines require captured '
                      'enablement and a captured schedule. This does not establish daily rule activation. '
                      'Plot years run August 1 through July 31 and are labeled by the ending year. '
+                     'The selector starts at the latest complete plot year when available. '
+                     'Partial years are labeled and show only the dates available. '
                      'Min Con is the lowest reference rule curve elevation.')
         if rule_note:
             data_note += ' ' + rule_note + ' This reference does not come from the selected compute.'
@@ -353,7 +371,6 @@ selected.addEventListener("change", updateYear);
 background.addEventListener("change", () => charts.forEach(updateBackground));
 runToggles.forEach((input, label) => input.addEventListener("change", () =>
   charts.forEach(chart => updateRun(chart, label, input.checked))));
-yearPicker.selectedIndex = yearPicker.options.length - 1;
 updateYear();
 
 async function mount(chart) {
