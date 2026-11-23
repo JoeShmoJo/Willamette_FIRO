@@ -126,6 +126,15 @@ def export_wat_curve(destination, code, projects, all_names, dates, offsets, bui
         total = base.to_numpy() + offset
         values = np.full(len(dates), np.nan)
         values[active] = np.interp(total[active], rating.storage_kaf, rating.elevation_ft)
+        if code == "M":
+            max_storage = builder.elevation_to_storage_kaf(project.max_con_elev_ft, rating)
+            flat = active & np.isclose(total, max_storage, rtol=0, atol=1e-8)
+            values[flat] = project.max_con_elev_ft
+            next_to_target = np.r_[active[1:], False] | np.r_[False, active[:-1]]
+            contact = ~active & next_to_target & np.isclose(
+                rule, project.max_con_elev_ft, rtol=0, atol=1e-8,
+            )
+            values[contact] = project.max_con_elev_ft
         if not np.allclose(
             np.interp(values[active], rating.elevation_ft, rating.storage_kaf),
             total[active], rtol=0, atol=TOLERANCE,
@@ -236,13 +245,99 @@ def optimize(projects, units, relationships, builder, rules, ratings, code, incr
     }
 
 
+def fill_constant_offsets(headroom, physical_caps, members, limits):
+    """Raise constant offsets together and stop contributors at binding times."""
+    factors = np.zeros_like(physical_caps, dtype=float)
+    active = physical_caps > 0
+
+    def loads(trial):
+        return np.minimum(headroom, physical_caps * trial) @ members.T
+
+    while active.any():
+        low = factors[active][0]
+        high = 1.0
+        trial = factors.copy()
+        trial[active] = high
+        if (loads(trial) <= limits + 1e-9).all():
+            factors = trial
+            break
+
+        # Clipping at MaxCon makes the shared loads piecewise linear and
+        # nondecreasing as the unfrozen reservoir factors rise together.
+        for _ in range(50):
+            middle = (low + high) / 2
+            trial[active] = middle
+            if (loads(trial) <= limits + 1e-9).all():
+                low = middle
+            else:
+                high = middle
+        factors[active] = low
+        binding = limits - loads(factors) <= TOLERANCE
+        # A pool already at MaxCon at the binding time cannot increase
+        # loading there, so that pool can keep growing at other times.
+        growing = (headroom > physical_caps * factors + 1e-8) & active
+        frozen = ((binding.T.astype(int) @ growing.astype(int) > 0) & members).any(axis=0)
+        if not frozen.any():
+            raise RuntimeError("Constant-offset filling did not identify the next binding reservoir")
+        active &= ~frozen
+
+    offsets = np.minimum(headroom, physical_caps * factors)
+    if (loads(factors) > limits + TOLERANCE).any():
+        raise RuntimeError("Constant-offset curves exceed a shared limit")
+    return factors, offsets
+
+
+def run_max_offset(projects, units, relationships, builder, rules, ratings, destination, wat_csvs):
+    hours = np.arange(len(builder.DATES) * HOURS_PER_DAY)
+    daily_hours = hours[::HOURS_PER_DAY]
+    daily_headroom = []
+    for key, project in projects.iterrows():
+        rating = ratings[key]
+        rule_storage = np.interp(rules[key], rating.elevation_ft, rating.storage_kaf)
+        max_storage = builder.elevation_to_storage_kaf(project.max_con_elev_ft, rating)
+        daily_headroom.append(np.maximum(max_storage - rule_storage, 0))
+
+    headroom = np.column_stack([np.interp(hours, daily_hours, room) for room in daily_headroom])
+    groups = shared_limits(projects, units, relationships)
+    limits = np.array([limit for _, _, limit, _ in groups])
+    membership = np.stack([members for _, _, _, members in groups])
+    caps = projects.physical_cap_kaf.to_numpy()
+    factors, offsets = fill_constant_offsets(headroom, caps, membership, limits)
+    report = projects[["project_name", "physical_cap_kaf"]].copy()
+    report["retained_offset_fraction"] = factors
+    report["constant_offset_kaf"] = caps * factors
+    report["peak_kaf"] = offsets.max(axis=0)
+    report["kaf_days"] = np.trapz(offsets, dx=1 / HOURS_PER_DAY, axis=0)
+    report.to_csv(destination / "max_offset_reservoirs.csv")
+    time = builder.DATES[0] + pd.to_timedelta(hours, unit="h")
+    loads = offsets @ membership.T
+    rows = []
+    for i, (key, name, limit, _) in enumerate(groups):
+        peak = int(loads[:, i].argmax())
+        rows.append((key, name, limit, loads[peak, i], time[peak]))
+    pd.DataFrame(rows, columns=[
+        "limit_id", "location", "limit_kaf", "peak_kaf", "peak_time",
+    ]).to_csv(destination / "max_offset_limits.csv", index=False)
+    export_wat_curve(wat_csvs, "M", projects, projects.project_name, builder.DATES,
+                     offsets, builder, rules, ratings)
+    print(report[["project_name", "constant_offset_kaf", "kaf_days"]].to_string(
+        index=False, float_format=lambda value: f"{value:,.2f}",
+    ))
+    print(f"Total: {report.kaf_days.sum():,.2f} KAF-days")
+    print(f"Reports: {destination.resolve()}")
+    print(f"Progressive WAT CSV: {(wat_csvs / 'FIRO_SPACEConfig_Progressive_M.csv').resolve()}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/k_scaling_comparison")
     parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
     parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
     parser.add_argument("--wat-csvs", type=Path, help="Export seven progressive WAT curves using whole-day K")
+    parser.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
     args = parser.parse_args()
+    if args.max_offset and args.wat_csvs is None:
+        parser.error("--max-offset requires --wat-csvs")
     if args.samples < 1:
         parser.error("--samples must be positive")
     allocator = load_module("01_allocate_static_firo_space.py")
@@ -260,6 +355,9 @@ def main():
     if any(issue["severity"] == "ERROR" for issue in issues):
         raise ValueError(f"Invalid model inputs: {issues}")
     args.output.mkdir(parents=True, exist_ok=True)
+    if args.max_offset:
+        run_max_offset(projects, units, relationships, builder, rules, ratings, args.output, args.wat_csvs)
+        return
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
     if args.all_components or args.wat_csvs is not None:
         cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases

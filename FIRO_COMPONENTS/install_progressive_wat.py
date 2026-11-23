@@ -1,4 +1,4 @@
-"""Register seven progressive FIRO cases in a closed WAT study."""
+"""Register progressive FIRO cases in a closed WAT study."""
 
 import argparse
 import csv
@@ -44,7 +44,7 @@ def read_curve(source, expected, names):
     return source.read_bytes()
 
 
-def prepare(root, study, curves):
+def prepare(root, study, curves, components):
     original = study.read_bytes()
     newline = b"\r\n" if b"\r\n" in original else b"\n"
     managers = [match[0] for match in MANAGER.finditer(original)]
@@ -71,7 +71,7 @@ def prepare(root, study, curves):
     template_files = {relative: (root / relative).read_bytes() for relative in FILES}
     pending = {}
     new_study = original
-    for code in COMPONENTS:
+    for code in components:
         name = f"PGFIRO_{code}"
         simulation = f"{name}-{PERIOD}"
         curve = f"FIRO_SPACEConfig_Progressive_{code}.csv"
@@ -128,9 +128,9 @@ def prepare(root, study, curves):
     return original, new_study, pending
 
 
-def install(root, curves):
+def install(root, curves, components=COMPONENTS):
     study = root / f"{root.name}.sty"
-    original, registration, pending = prepare(root, study, curves)
+    original, registration, pending = prepare(root, study, curves, components)
     additions = {}
     for path, content in pending.items():
         if not path.parent.is_dir():
@@ -172,7 +172,7 @@ def install(root, curves):
     if backup:
         print(f"Study backup: {backup}")
     print(f"Companion files created: {len(created)}")
-    for code in COMPONENTS:
+    for code in components:
         print(f"WAT simulation: PGFIRO_{code}-{PERIOD} (ALL_D)")
 
 
@@ -180,8 +180,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("watershed", type=Path)
     parser.add_argument("curves", type=Path)
+    parser.add_argument("--max-offset", action="store_true", help="Install only the PGFIRO_M benchmark")
     args = parser.parse_args()
-    install(args.watershed.resolve(), args.curves.resolve())
+    install(args.watershed.resolve(), args.curves.resolve(), "M" if args.max_offset else COMPONENTS)
 
 
 if __name__ == "__main__":

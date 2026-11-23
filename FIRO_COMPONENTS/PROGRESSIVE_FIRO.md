@@ -78,3 +78,21 @@ Check that it uses `ALL_D` and that the initialization log names the matching
 `FIRO_SPACEConfig_Progressive_*.csv`. The sizing constraints use unrouted
 storage offsets. Flood performance is evaluated in the routed compute.
 Scaling the storage offsets can change the exact shifted shape of J or K.
+
+## Constant-offset benchmark
+
+The `PGFIRO_M` benchmark adds a constant storage offset to each reservoir's
+ordinary rule curve, with the target capped at MaxCon. This makes a flat
+MaxCon segment that joins the ordinary rule curve. The offset is constant in
+storage units; its elevation difference can vary with the reservoir rating.
+
+Progressive filling adjusts the constant offset for each reservoir before
+the MaxCon cap is applied. When a control point binds at a time when a
+reservoir is already at MaxCon, a larger offset cannot increase that
+reservoir's contribution there. The reservoir can continue growing where
+all constraints permit. The solve checks individual reservoir limits,
+downstream points, and the combined Lookout Point–Hills Creek cap.
+
+Run `compare_k_scaling.py --max-offset --wat-csvs DIRECTORY`, then
+`install_progressive_wat.py WATERSHED DIRECTORY --max-offset` to add only
+`PGFIRO_M-POR_1935-2019`. The benchmark uses all 11 modeled reservoirs.
