@@ -159,8 +159,9 @@ uses the capped after-reallocation storage converted to elevation using the
 same rating table as the model. Dates with no positive offset are blank so
 the FIRO-space rule stands down. The CSVs are written to
 `outputs/wat_components/`, with `Month,Day` and one column per modeled
-reservoir. H leaves the columns blank for reservoirs without a defined
-spillway crest. F and G are deferred in the component definitions.
+reservoir. See [component definitions](HOW_OPTIMIZATION_WORKS.md#component-definitions)
+for the geometry and applicable fallbacks. H applies only to Green Peter,
+Detroit, and Lookout Point. F and G are deferred.
 
 For each WAT case, reuse `ALL_D` and `POR_1935-2019`. Place the corresponding
 CSV under the watershed's `scripts/externalRules/` and set
@@ -170,9 +171,11 @@ companion files.
 
 Add `--review` to build a local interactive review from the same single-component
 cases. Open `outputs/wat_components/diagnostics/review/index.html`. The plots
-include rule-curve elevation overlays using the exact targets in the WAT CSVs.
-The existing diagnostics show component shapes, reservoir use relative to assigned and physical draft
-limits, and downstream space use. The before/after selector compares the two
+include rule-curve overlays using the exact targets in the WAT CSVs. The right
+ticks are evenly spaced elevations; the aligned left labels are storage in KAF
+from each reservoir's rating. Each component links directly to reservoir draft
+and downstream space use. The utilization plots compare daily offsets against
+both assigned and physical reservoir limits and the downstream space limit. The before/after selector compares the two
 allocation passes. The WAT CSVs use the after-reallocation case. The downstream
 plots screen unrouted daily storage offsets and do not represent routed ResSim
 flows. Keep the generated `diagnostics` and `final` folders together so links work.

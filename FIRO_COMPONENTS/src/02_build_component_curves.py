@@ -998,20 +998,24 @@ def build_component_e(
             best_peak_offset_kaf = peak_offset_kaf
             best_score_kaf_days = score_kaf_days
 
-    if best_curve is None:
-        parameters = {
-            "parameter_1_name": "maxcon_arrival_date",
-            "parameter_1_value": "",
+    if best_curve is None or best_peak_offset_kaf <= 1e-8:
+        # The uncapped straight leg can be infeasible on a curved rating/rule
+        # combination. Retain the geometry where possible under the daily cap.
+        best_arrival_date = DATES[inflection_index + 1]
+        candidate = flat_curve(best_arrival_date, merge_date, max_con_storage)
+        candidate.loc[inflection_date] = rule_storage.loc[inflection_date]
+        active = candidate.notna()
+        candidate.loc[active] = np.maximum(
+            rule_storage.loc[active],
+            np.minimum(candidate.loc[active], rule_storage.loc[active] + allocation_kaf),
+        )
+        return candidate, {
+            "parameter_1_name": "maxcon_arrival_candidate",
+            "parameter_1_value": best_arrival_date.strftime("%Y-%m-%d"),
             "parameter_2_name": "peak_offset_kaf",
-            "parameter_2_value": 0.0,
-            "geometry_assumption": (
-                "NO_FEASIBLE_E_GEOMETRY: No elevation-linear "
-                "RefillSlopeChange-to-MaxCon path remained above the "
-                "rule curve while staying within the allocated FIRO cap."
-            ),
+            "parameter_2_value": float((candidate - rule_storage).max()),
+            "geometry_assumption": "CAP_LIMITED_E: MaxCon upper target clipped to the daily allocation.",
         }
-
-        return empty_curve, parameters
 
     parameters = {
         "parameter_1_name": "maxcon_arrival_date",
@@ -1080,7 +1084,13 @@ def build_component_k(
     else:
         merge_date = nearest_model_date(merge_date)
 
+    min_con_storage = elevation_to_storage_kaf(project["min_con_elev_ft"], rating)
     start_index = date_index(start_refill)
+    minimum_days = np.flatnonzero(
+        np.isclose(rule_storage.iloc[:start_index + 1], min_con_storage, rtol=0, atol=1e-6)
+    )
+    if minimum_days.size:
+        start_index = int(minimum_days[-1])
     merge_index = date_index(merge_date)
 
     empty_curve = pd.Series(
@@ -1118,38 +1128,17 @@ def build_component_k(
             dtype=float,
         )
 
-        shifted_storage = []
-
-        for current_index in range(
-            start_index,
-            merge_index + 1,
-        ):
-            source_index = min(
-                current_index + shift_days,
-                merge_index,
-            )
-
-            if source_index >= merge_index:
-                shifted_storage.append(max_con_storage)
-            else:
-                shifted_storage.append(
-                    elevation_to_storage_kaf(
-                        rule_elev.iloc[source_index],
-                        rating,
-                    )
-                )
-
-        candidate_curve.iloc[
-            start_index:merge_index + 1
-        ] = shifted_storage
-
-        candidate_segment = candidate_curve.iloc[
-            start_index:merge_index + 1
-        ]
-
-        rule_segment = rule_storage.iloc[
-            start_index:merge_index + 1
-        ]
+        first_index = start_index - shift_days
+        if first_index < 0:
+            continue
+        # Shift the MinCon vertex along with the rising limb.
+        source_indices = np.minimum(np.arange(first_index, merge_index + 1) + shift_days, merge_index)
+        shifted_storage = rule_storage.iloc[source_indices].to_numpy(copy=True)
+        shifted_storage[0] = min_con_storage
+        shifted_storage[source_indices == merge_index] = max_con_storage
+        candidate_curve.iloc[first_index:merge_index + 1] = shifted_storage
+        candidate_segment = candidate_curve.iloc[first_index:merge_index + 1]
+        rule_segment = rule_storage.iloc[first_index:merge_index + 1]
 
         offsets = (
             candidate_segment.to_numpy()
@@ -1185,7 +1174,7 @@ def build_component_k(
 
     early_maxcon_date = DATES[
         max(
-            start_index,
+            start_index - best_shift_days,
             merge_index - best_shift_days,
         )
     ]
@@ -1452,29 +1441,27 @@ def build_component_i(
         )
     )
 
+    april_peak_offset_kaf = max(0, april_target_storage - april_rule_storage)
+
     if mincon_start_date is None:
-        mincon_start_date = drawdown_ends
-        start_status = "FALLBACK_DRAWDOWN_END"
-
-    april_peak_offset_kaf = max(
-        0,
-        april_target_storage - april_rule_storage,
-    )
-
-    curve = piecewise_curve([
-        (
-            mincon_start_date,
-            min_con_storage,
-        ),
-        (
-            april_1,
-            april_target_storage,
-        ),
-        (
-            hit_refill,
-            rule_storage.loc[hit_refill],
-        ),
-    ])
+        # A clipped straight leg can sit at a constant offset above the flat
+        # winter rule curve. Increase the offset gradually toward April 1.
+        winter = rule_storage.loc[drawdown_ends:april_1]
+        minimum_days = winter.index[np.isclose(winter, min_con_storage, rtol=0, atol=1e-6)]
+        mincon_start_date = minimum_days[-1] if len(minimum_days) else drawdown_ends
+        lower_leg = rule_storage.loc[mincon_start_date:april_1]
+        curve = piecewise_curve([
+            (april_1, april_target_storage),
+            (hit_refill, rule_storage.loc[hit_refill]),
+        ])
+        curve.loc[lower_leg.index] = lower_leg + np.linspace(0, april_peak_offset_kaf, len(lower_leg))
+        start_status = "GRADUAL_OFFSET_REFILL_FALLBACK"
+    else:
+        curve = piecewise_curve([
+            (mincon_start_date, min_con_storage),
+            (april_1, april_target_storage),
+            (hit_refill, rule_storage.loc[hit_refill]),
+        ])
 
     active = curve.notna()
 
@@ -1515,9 +1502,8 @@ def build_component_j(
 
         J(t) = RC(t - j_delay_days)
 
-    It remains active from DrawdownBegins through the delayed occurrence
-    of HitRefill. A may be above J for part of this period, but J remains
-    geometrically continuous and is not manually truncated or reconnected.
+    It follows the delayed falling limb from DrawdownBegins to the
+    shifted MinCon touchdown.
     """
     max_con_elev = project["max_con_elev_ft"]
 
@@ -1578,16 +1564,15 @@ def build_component_j(
         -1,
         -1,
     ):
-        delayed_hit_refill = nearest_model_date(
-            hit_refill
-            + pd.Timedelta(days=candidate_delay)
+        candidate_touchdown = nearest_model_date(
+            baseline_mincon_date + pd.Timedelta(days=candidate_delay)
         )
 
         shifted_elev = rule_elev.shift(candidate_delay)
 
         candidate_dates = DATES[
             date_index(drawdown_begins):
-            date_index(delayed_hit_refill) + 1
+            date_index(candidate_touchdown) + 1
         ]
 
         candidate_elev = shifted_elev.loc[
@@ -1625,9 +1610,8 @@ def build_component_j(
             max_offset_kaf = positive_max_offset
             break
 
-    delayed_hit_refill = nearest_model_date(
-        hit_refill
-        + pd.Timedelta(days=effective_delay_days)
+    touchdown = nearest_model_date(
+        baseline_mincon_date + pd.Timedelta(days=effective_delay_days)
     )
 
     delayed_rule_elev = rule_elev.shift(
@@ -1637,7 +1621,7 @@ def build_component_j(
     curve = empty_curve()
 
     start_idx = date_index(drawdown_begins)
-    end_idx = date_index(delayed_hit_refill)
+    end_idx = date_index(touchdown)
 
     for date_value in DATES[
         start_idx:end_idx + 1
@@ -1654,12 +1638,14 @@ def build_component_j(
             rating,
         )
 
+    curve.loc[touchdown] = elevation_to_storage_kaf(project["min_con_elev_ft"], rating)
+
     parameters = {
         "parameter_1_name": "j_effective_delay_days",
         "parameter_1_value": effective_delay_days,
-        "parameter_2_name": "delayed_hit_refill_date",
+        "parameter_2_name": "mincon_touchdown_date",
         "parameter_2_value": (
-            delayed_hit_refill.strftime("%Y-%m-%d")
+            touchdown.strftime("%Y-%m-%d")
         ),
         "geometry_assumption": (
             "Single continuous rule curve shifted horizontally; "

@@ -65,20 +65,24 @@ and MAX_FIRO_SPACE/out/ReservoirEvacLimits.csv, respectively.
 The budget limits additional storage above the ordinary rule curve. It is not
 a separate budget assigned to every component and then added together.
 
+### Component definitions
+
 | Component | How its parameters are chosen |
 | --- | --- |
 | A: flat winter pool | Set the pool from minimum conservation storage plus the allocation; find its intersections with the falling and rising rule curve. This is a calculated shape, not a general optimizer. |
 | C: straight refill | Calculate a start date using the allocation and prescribed refill geometry; connect minimum conservation elevation to the rule curve at the slope-change date. |
-| E: rise to maximum conservation | Test candidate daily arrival dates at maximum conservation. Reject curves below the rule curve, above maximum conservation, or above the allocation cap. Choose the largest feasible peak additional space; use total KAF-days as the tie-breaker. |
-| H: refill through spillway crest | Calculate an inflection around spillway crest and the allocation; search for the earliest permissible minimum-conservation start for the prescribed lower leg. |
-| I: refill through April 1 | Set an April 1 target from rule-curve storage plus the allocation, capped at maximum conservation; search for the earliest permissible minimum-conservation start. |
-| J: delayed rule curve | Calculate a nominal delay, then test whole-day delays from that value downward. Keep the first delay whose peak positive offset fits the allocation. This is the largest feasible delay within that search window. |
-| K: advanced refill limb | Test positive whole-day advances of the rising rule curve and keep the candidate with the largest feasible peak offset. Equal peaks retain the first encountered candidate. |
+| E: rise to maximum conservation | From the refill slope change, test straight elevation legs to MaxCon and select the largest feasible peak, with KAF-days as the tie-breaker. When the straight leg yields no positive feasible curve, use the MaxCon target clipped to the daily storage cap over the same refill window. |
+| H: refill through spillway crest | Use the crest as the refill inflection. This component is scoped to Green Peter, Detroit, and Lookout Point. |
+| I: refill through April 1 | Set an April 1 target from rule-curve storage plus the allocation, capped at MaxCon. Use the earliest feasible straight storage leg from MinCon. If that leg is infeasible, ramp up the additional storage from the last winter MinCon day to April 1. |
+| J: delayed drawdown | Shift the falling rule limb later. Use the largest feasible delay up to the nominal delay and end the limb at MinCon. |
+| K: advanced refill limb | Shift the rising rule limb earlier, including its MinCon start. Choose the candidate with the largest feasible peak offset and hold at MaxCon until the ordinary rule curve catches up. Equal peaks retain the first encountered candidate. |
 
 For H and I, the start-date search requires the lower leg to stay on/above the
 rule curve without exceeding the inflection-point offset. Prescribed fallback
 behavior is used if the intended geometry cannot be constructed. Parameter
-tables and quality outputs record geometry assumptions and exceptions.
+tables and quality outputs record geometry assumptions and exceptions. F and G have no
+approved geometry in the current model. The single-component WAT exports cover
+the 11 modeled reservoirs. Dexter and Big Cliff are pass-through reservoirs.
 
 KAF-days measures how much additional space exists and how long it lasts:
 10 KAF for 20 days is 200 KAF-days. E uses that measure only to break ties in

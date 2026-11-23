@@ -14,8 +14,15 @@ import pandas as pd
 from run import ROOT
 
 
+H_PROJECTS = {"GREEN_PETER", "DETROIT", "LOOKOUT_POINT"}
+
+
 def export_curves(model, destination, codes, projects, builder, ratings):
     exports = {}
+    capped_components = pd.read_csv(
+        model / "outputs/diagnostics/scenarios/after/35_component_daily_curves_capped.csv",
+        parse_dates=["date"],
+    )
     days = pd.date_range("2001-01-01", "2001-12-31")
     calendar = pd.MultiIndex.from_arrays([days.month, days.day], names=["Month", "Day"])
     project_names = projects.set_index("project_id")["project_name"]
@@ -25,10 +32,7 @@ def export_curves(model, destination, codes, projects, builder, ratings):
         curves["Month"] = curves["date"].dt.month
         curves["Day"] = curves["date"].dt.day
         coverage = curves.groupby("project_id").size()
-        expected = set(project_names.index)
-        if code == "H":
-            # H needs a spillway crest. Keep the unavailable projects as blank columns.
-            expected -= set(projects.loc[projects["spillway_crest_elev_ft"].isna(), "project_id"])
+        expected = H_PROJECTS if code == "H" else set(project_names.index)
         if set(coverage.index) != expected or not coverage.eq(len(days)).all():
             raise ValueError(f"Component {code} lacks a full year for its applicable projects")
         # Leave days controlled by the ordinary rule curve blank in ResSim.
@@ -46,9 +50,29 @@ def export_curves(model, destination, codes, projects, builder, ratings):
             if not np.allclose(recovered, storage, atol=1e-6, rtol=0):
                 raise ValueError(f"Component {code}, {project}: elevation conversion changed storage")
             curves.loc[elevations.index, "target"] = elevations
+        if code in {"J", "K"}:
+            # Keep the zero-offset MinCon contact visible and in the WAT target.
+            component = capped_components.loc[
+                (capped_components["alternative_id"] == alternative_id)
+                & capped_components["component_storage_kaf"].notna()
+            ].sort_values("date")
+            groups = component.groupby("project_id")
+            contacts = groups.tail(1) if code == "J" else groups.head(1)
+            min_con = projects.set_index("project_id")["min_con_elev_ft"]
+            for contact in contacts.itertuples():
+                at_contact = curves["project_id"].eq(contact.project_id) & curves["date"].eq(contact.date)
+                if active.loc[at_contact].any():
+                    continue
+                elevation = min_con.loc[contact.project_id]
+                storage = builder.elevation_to_storage_kaf(elevation, ratings[contact.project_id])
+                if abs(storage - contact.rule_storage_kaf) <= 1e-6:
+                    curves.loc[at_contact, "target"] = elevation
+
         wide = curves.pivot(index=["Month", "Day"], columns="project_id", values="target")
         if not wide.index.equals(calendar):
             raise ValueError(f"Component {code} lacks the expected non-leap calendar")
+        if set(wide.columns[wide.notna().any()]) != expected:
+            raise ValueError(f"Component {code} lacks active targets for its applicable projects")
         exports[code] = wide.reindex(columns=project_names.index).rename(columns=project_names)
 
     destination.mkdir(parents=True, exist_ok=True)
@@ -61,7 +85,7 @@ def export_curves(model, destination, codes, projects, builder, ratings):
     return exports
 
 
-def write_elevation_review(review, projects, rule_curves, exports):
+def write_elevation_review(review, projects, rule_curves, exports, ratings):
     """Overlay the actual WAT elevation targets on the model's rule curves."""
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -82,13 +106,16 @@ def write_elevation_review(review, projects, rule_curves, exports):
             raise ValueError(f"Missing rule-curve elevations for {name}")
 
     links = []
-    for code, targets in exports.items():
+    for alternative_id, (code, targets) in enumerate(exports.items(), start=1):
         titles = [name if targets[name].notna().any() else f"{name} (no FIRO target)"
                   for name in project_names]
         rows = (len(titles) + 2) // 3
-        figure = make_subplots(rows=rows, cols=3, subplot_titles=titles)
+        figure = make_subplots(
+            rows=rows, cols=3, subplot_titles=titles, horizontal_spacing=0.13,
+            specs=[[{"secondary_y": True} for _ in range(3)] for _ in range(rows)],
+        )
         target_legend = True
-        for index, name in enumerate(project_names):
+        for index, (project_id, name) in enumerate(project_names.items()):
             row, col = divmod(index, 3)
             panel = {"row": row + 1, "col": col + 1}
             rule = elevations[name]
@@ -97,32 +124,56 @@ def write_elevation_review(review, projects, rule_curves, exports):
                 x=days, y=rule, name="Rule curve", mode="lines",
                 line={"color": "#303b4a"}, legendgroup="rule", showlegend=index == 0,
                 hovertemplate="Rule curve %{y:.2f} ft<extra></extra>",
-            ), **panel)
+            ), secondary_y=True, **panel)
             if target.notna().any():
                 figure.add_trace(go.Scatter(
                     x=days, y=target, name="WAT FIRO target", mode="lines",
                     line={"color": "#087f8c", "width": 3}, connectgaps=False,
                     legendgroup="target", showlegend=target_legend,
                     hovertemplate="WAT FIRO target %{y:.2f} ft<extra></extra>",
-                ), **panel)
+                ), secondary_y=True, **panel)
                 target_legend = False
             figure.update_xaxes(dtick="M3", tickformat="%b", hoverformat="%b %d", **panel)
-            figure.update_yaxes(ticksuffix=" ft", **panel)
+            lower, upper = min(rule.min(), target.min()), max(rule.max(), target.max())
+            spacing = max((upper - lower) / 5, 1)
+            magnitude = 10 ** np.floor(np.log10(spacing))
+            interval = next(step * magnitude for step in (1, 2, 5, 10) if step * magnitude >= spacing)
+            first = np.floor(lower / interval) * interval
+            last = max(first + interval, np.ceil(upper / interval) * interval)
+            ticks = np.arange(first, last + interval / 2, interval)
+            rating = ratings[project_id]
+            mapped = np.interp(ticks, rating.elevation_ft, rating.storage_kaf)
+            storage_labels = [
+                f"{value:,.1f}" if rating.elevation_ft.min() <= tick <= rating.elevation_ft.max() else ""
+                for tick, value in zip(ticks, mapped)
+            ]
+            limits = [first, last]
+            figure.update_yaxes(range=limits, tickvals=ticks, ticksuffix=" ft", secondary_y=True, **panel)
+            elevation_axis = figure.get_subplot(row + 1, col + 1, secondary_y=True).yaxis.plotly_name
+            figure.update_yaxes(range=limits, matches=elevation_axis.replace("axis", ""),
+                                tickvals=ticks, ticktext=storage_labels, ticksuffix=" KAF",
+                                showgrid=False, secondary_y=False, **panel)
         figure.update_layout(
             title=f"Component {code} · rule curves and WAT FIRO targets",
             template="plotly_white", height=260 * rows + 80,
-            legend={"orientation": "h", "y": 1.04},
+            legend={"orientation": "h", "y": 1.09},
+            margin={"l": 90, "r": 75, "t": 115, "b": 65},
         )
         filename = f"component_{code}.html"
         figure.write_html(directory / filename, include_plotlyjs="directory")
-        links.append(f'<li><a href="{filename}">Component {code}</a></li>')
+        utilization = f"../utilization_ribbon_overview/alternative_{alternative_id:02d}_utilization_ribbon_overview.html"
+        links.append(
+            f'<li>Component {code} · <a href="{filename}">Rule curves and FIRO targets</a>'
+            f' · <a href="{utilization}">Reservoir draft and downstream space use</a></li>'
+        )
 
     (directory / "index.html").write_text(
         '<!doctype html><meta charset="utf-8"><title>FIRO rule-curve overlays</title>'
         '<h1>Rule curves and WAT FIRO targets</h1>'
         '<p>The dark line is the model rule curve. The teal line is the target '
         'from the exported WAT CSV after reallocation. Gaps indicate days '
-        'without a WAT FIRO target. Elevations are in feet.</p>'
+        'without a WAT FIRO target. Right ticks are evenly spaced elevations in feet. '
+        'Left labels give the rated storage in thousand acre-feet at those same elevations.</p>'
         '<ul>' + "".join(links) + '</ul><p><a href="../index.html">Back to review</a></p>',
         encoding="utf-8",
     )
@@ -178,6 +229,7 @@ def main():
             }
             for alternative_id, code in enumerate(codes, start=1)
             for project in projects["project_id"]
+            if code != "H" or project in H_PROJECTS
         ]
         pd.DataFrame(selections).to_csv(allocator.ALTERNATIVE_SELECTIONS_FILE, index=False)
         stage = "all" if args.review else "model"
@@ -193,7 +245,7 @@ def main():
             raise ValueError(f"Invalid curve inputs: {issues}")
         exports = export_curves(model, args.output, codes, projects, builder, ratings)
         if args.review:
-            write_elevation_review(model / "outputs/diagnostics/review", projects, rule_curves, exports)
+            write_elevation_review(model / "outputs/diagnostics/review", projects, rule_curves, exports, ratings)
             # Keep the relative links between the review and its curve tables.
             for directory in ("diagnostics", "final"):
                 shutil.copytree(model / "outputs" / directory, args.output / directory, dirs_exist_ok=True)

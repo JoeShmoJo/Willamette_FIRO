@@ -208,6 +208,9 @@ def build_overview(
             go.Scatter(
                 x=project_data["date"],
                 y=project_data["combined_offset_kaf"],
+                customdata=project_data[[
+                    "assigned_allocation_utilization_percent", "physical_capacity_utilization_percent"
+                ]].to_numpy(),
                 mode="lines",
                 showlegend=False,
                 line=dict(
@@ -217,7 +220,9 @@ def build_overview(
                 hovertemplate=(
                     f"<b>{limit_row.project_name}</b><br>"
                     "Date: %{x|%d %b %Y}<br>"
-                    "Daily FIRO space: %{y:.2f} KAF"
+                    "Daily FIRO space: %{y:.2f} KAF<br>"
+                    "Assigned allocation used: %{customdata[0]:.1f}%<br>"
+                    "Physical draft capacity used: %{customdata[1]:.1f}%"
                     "<extra></extra>"
                 ),
             ),
@@ -267,7 +272,7 @@ def build_overview(
 
         figure.update_yaxes(
             title_text="KAF",
-            range=[0.0, max(physical_capacity_kaf, 0.1)],
+            range=[0.0, 1.05 * max(physical_capacity_kaf, project_data["combined_offset_kaf"].max(), 0.1)],
             row=row_number,
             col=1,
         )
@@ -297,6 +302,7 @@ def build_overview(
                 y=cp_data[
                     "unrouted_control_point_loading_kaf"
                 ],
+                customdata=cp_data["control_point_utilization_percent"],
                 mode="lines",
                 showlegend=False,
                 line=dict(
@@ -306,7 +312,8 @@ def build_overview(
                 hovertemplate=(
                     f"<b>{limit_row.control_point_name}</b><br>"
                     "Date: %{x|%d %b %Y}<br>"
-                    "Daily unrouted FIRO loading: %{y:.2f} KAF"
+                    "Daily unrouted FIRO loading: %{y:.2f} KAF<br>"
+                    "Downstream space used: %{customdata:.1f}%"
                     "<extra></extra>"
                 ),
             ),
@@ -336,7 +343,7 @@ def build_overview(
 
         figure.update_yaxes(
             title_text="KAF",
-            range=[0.0, max(capacity_kaf, 0.1)],
+            range=[0.0, 1.05 * max(capacity_kaf, cp_data["unrouted_control_point_loading_kaf"].max(), 0.1)],
             row=row_number,
             col=1,
         )
