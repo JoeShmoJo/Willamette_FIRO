@@ -180,9 +180,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("watershed", type=Path)
     parser.add_argument("curves", type=Path)
-    parser.add_argument("--max-offset", action="store_true", help="Install only the PGFIRO_M benchmark")
+    single_case = parser.add_mutually_exclusive_group()
+    single_case.add_argument("--max-offset", dest="components", action="store_const", const="M",
+                             help="Install only the PGFIRO_M benchmark")
+    single_case.add_argument("--only-h", dest="components", action="store_const", const="H",
+                             help="Install only PGFIRO_H")
+    parser.set_defaults(components=COMPONENTS)
     args = parser.parse_args()
-    install(args.watershed.resolve(), args.curves.resolve(), "M" if args.max_offset else COMPONENTS)
+    install(args.watershed.resolve(), args.curves.resolve(), args.components)
 
 
 if __name__ == "__main__":

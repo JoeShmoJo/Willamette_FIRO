@@ -96,7 +96,10 @@ def select_local_curve(builder, project, rule, rating, hours, code, samples):
     best_area = 0.0
     best_budget = 0.0
     daily_hours = np.arange(len(rule)) * HOURS_PER_DAY
-    for budget in np.linspace(project.physical_cap_kaf / samples, project.physical_cap_kaf, samples):
+    budgets = [project.physical_cap_kaf] if code == "H" else np.linspace(
+        project.physical_cap_kaf / samples, project.physical_cap_kaf, samples,
+    )
+    for budget in budgets:
         curve, _ = builder.build_component(code, project, budget, rule, storage, rating)
         if curve is None:
             continue
@@ -140,6 +143,14 @@ def export_wat_curve(destination, code, projects, all_names, dates, offsets, bui
             total[active], rtol=0, atol=TOLERANCE,
         ):
             raise ValueError(f"Rating round trip changed the scaled {code} curve at {project.project_name}")
+        if code == "H":
+            indices = np.flatnonzero(active)
+            for contact, elevation in (
+                (indices[0] - 1, project.min_con_elev_ft),
+                (indices[-1] + 1, project.max_con_elev_ft),
+            ):
+                if 0 <= contact < len(dates) and np.isclose(rule.iloc[contact], elevation, rtol=0, atol=TOLERANCE):
+                    values[contact] = elevation
         if code in {"J", "K"}:
             indices = np.flatnonzero(active)
             contact = indices[-1] + 1 if code == "J" else indices[0] - 1
@@ -229,6 +240,8 @@ def optimize(projects, units, relationships, builder, rules, ratings, code, incr
     ]).to_csv(destination / f"{case}_limits.csv", index=False)
 
     if wat_csvs is not None and (code != "K" or increment == HOURS_PER_DAY):
+        if code == "H" and not np.allclose(progressive, 1, rtol=0, atol=1e-8):
+            raise ValueError("H requires a joint timing solution to keep the spillway crest within shared limits")
         export_wat_curve(wat_csvs, code, projects, all_names, builder.DATES, scaled, builder, rules, ratings)
 
     return {
@@ -334,7 +347,9 @@ def main():
     parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
     parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
     parser.add_argument("--wat-csvs", type=Path, help="Export seven progressive WAT curves using whole-day K")
-    parser.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
+    single_case = parser.add_mutually_exclusive_group()
+    single_case.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
+    single_case.add_argument("--only-h", action="store_true", help="Run only the H spillway-crest component")
     args = parser.parse_args()
     if args.max_offset and args.wat_csvs is None:
         parser.error("--max-offset requires --wat-csvs")
@@ -359,7 +374,9 @@ def main():
         run_max_offset(projects, units, relationships, builder, rules, ratings, args.output, args.wat_csvs)
         return
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
-    if args.all_components or args.wat_csvs is not None:
+    if args.only_h:
+        cases = [("H", HOURS_PER_DAY)]
+    elif args.all_components or args.wat_csvs is not None:
         cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases
     summary = pd.DataFrame([
         optimize(projects, units, relationships, builder, rules, ratings, code, increment, args.samples,

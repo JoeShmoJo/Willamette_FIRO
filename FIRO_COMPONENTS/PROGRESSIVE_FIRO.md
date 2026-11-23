@@ -105,3 +105,19 @@ generating A, C, E, H, I, J, K, and M. Open the resulting
 double-click to isolate it. The left axis shows storage above MinCon using
 the rating at the same evenly spaced right-axis elevation ticks. The dashed
 line marks the 887.5 ft spillway crest.
+
+## Early spillway geometry for H
+
+H tests crest dates in order. A date is feasible when the storage difference
+from the rule curve at the crest fits the project limit and both straight
+elevation legs fit on every day. The upper leg goes from the crest to the
+first normal MaxCon refill day. For the earliest feasible crest, the lower
+leg starts as early as possible while the ordinary curve is at MinCon.
+The builder checks storage using the reservoir rating and reports when no
+two-leg curve fits. It does not use a winter-pool fallback.
+
+The H export uses the project physical limit when choosing dates. It checks
+the shared limits before export, since scaling below full size would move
+the crest vertex. Run `compare_k_scaling.py --only-h --wat-csvs DIRECTORY`
+to regenerate only H. For a new H case, add `--only-h` to the installer.
+For an existing case, back up and replace only its progressive H CSV.

@@ -1293,106 +1293,66 @@ def build_component_h(
         }
 
     min_con_elev = project["min_con_elev_ft"]
+    max_con_elev = project["max_con_elev_ft"]
+    drawdown_ends = date_index(mmdd_to_model_date(project["drawdown_ends_mmdd"]))
+    refill_start = date_index(mmdd_to_model_date(project["start_refill_mmdd"]))
+    hit_refill = date_index(mmdd_to_model_date(project["hit_refill_mmdd"]))
+    elevations = rule_elev.to_numpy()
+    storage = rule_storage.to_numpy()
+    tolerance = 1e-6
 
-    min_con_storage = elevation_to_storage_kaf(
-        min_con_elev,
-        rating,
+    # Join the first MaxCon day of ordinary refill, even when the configured
+    # HitRefill date falls a day later on the same plateau.
+    maxima = np.flatnonzero(
+        np.isclose(elevations[refill_start:hit_refill + 1], max_con_elev, rtol=0, atol=tolerance)
     )
+    starts = np.flatnonzero(
+        np.isclose(elevations[drawdown_ends:refill_start + 1], min_con_elev, rtol=0, atol=tolerance)
+    ) + drawdown_ends
+    rating_elevation = rating["elevation_ft"].to_numpy()
+    rating_storage = rating["storage_kaf"].to_numpy()
 
-    spillway_storage = elevation_to_storage_kaf(
-        spillway_crest,
-        rating,
-    )
+    if maxima.size and starts.size and min_con_elev < spillway_crest < max_con_elev:
+        merge = refill_start + int(maxima[0])
+        crest_storage = np.interp(spillway_crest, rating_elevation, rating_storage)
+        for crest in range(int(starts[0]) + 1, merge):
+            crest_offset = crest_storage - storage[crest]
+            if not -tolerance <= crest_offset <= allocation_kaf + tolerance:
+                continue
 
-    target_storage = spillway_storage - allocation_kaf
+            upper_elevation = np.linspace(spillway_crest, max_con_elev, merge - crest + 1)
+            upper = np.interp(upper_elevation, rating_elevation, rating_storage)
+            upper_offset = upper - storage[crest:merge + 1]
+            if (upper_offset < -tolerance).any() or (upper_offset > allocation_kaf + tolerance).any():
+                continue
 
-    target_elev = storage_kaf_to_elevation(
-        target_storage,
-        rating,
-    )
+            for start in starts[starts < crest]:
+                lower_elevation = np.linspace(min_con_elev, spillway_crest, crest - start + 1)
+                lower = np.interp(lower_elevation, rating_elevation, rating_storage)
+                lower_offset = lower - storage[start:crest + 1]
+                if (lower_offset < -tolerance).any() or (lower_offset > allocation_kaf + tolerance).any():
+                    continue
+                curve = empty_curve()
+                curve.iloc[start:merge + 1] = np.r_[lower[:-1], upper]
+                return curve, {
+                    "parameter_1_name": "mincon_start_date",
+                    "parameter_1_value": DATES[start].strftime("%Y-%m-%d"),
+                    "parameter_2_name": "spillway_crest_date",
+                    "parameter_2_value": DATES[crest].strftime("%Y-%m-%d"),
+                    "geometry_assumption": (
+                        "Earliest feasible spillway crest, then earliest feasible MinCon start; "
+                        f"straight elevation legs; MaxCon merge={DATES[merge]:%Y-%m-%d}."
+                    ),
+                }
 
-    drawdown_ends = mmdd_to_model_date(
-        project["drawdown_ends_mmdd"]
-    )
-
-    hit_refill = mmdd_to_model_date(
-        project["hit_refill_mmdd"]
-    )
-
-    crest_date = find_crossing_date(
-        rule_elev,
-        target_elev,
-        drawdown_ends,
-        hit_refill,
-        "rising",
-    )
-
-    if crest_date is None:
-        crest_date = hit_refill
-        crest_status = "FALLBACK_HIT_REFILL"
-    else:
-        crest_status = "RULE_CURVE_CROSSING"
-
-    mincon_start_date, start_status = (
-        find_earliest_valid_mincon_start(
-            rule_storage=rule_storage,
-            mincon_storage_kaf=min_con_storage,
-            inflection_date=crest_date,
-            inflection_storage_kaf=spillway_storage,
-            lower_bound_date=drawdown_ends,
-        )
-    )
-
-    if mincon_start_date is None:
-        mincon_start_date = drawdown_ends
-        start_status = "FALLBACK_DRAWDOWN_END"
-
-    peak_offset_kaf = max(
-        0,
-        spillway_storage - rule_storage.loc[crest_date],
-    )
-
-    curve = piecewise_curve([
-        (
-            mincon_start_date,
-            min_con_storage,
-        ),
-        (
-            crest_date,
-            spillway_storage,
-        ),
-        (
-            hit_refill,
-            rule_storage.loc[hit_refill],
-        ),
-    ])
-
-    active = curve.notna()
-
-    curve.loc[active] = np.maximum(
-        rule_storage.loc[active],
-        np.minimum(
-            curve.loc[active],
-            rule_storage.loc[active] + peak_offset_kaf,
-        ),
-    )
-
-    parameters = {
+    return empty_curve(), {
         "parameter_1_name": "mincon_start_date",
-        "parameter_1_value": (
-            mincon_start_date.strftime("%Y-%m-%d")
-        ),
+        "parameter_1_value": "",
         "parameter_2_name": "spillway_crest_date",
-        "parameter_2_value": (
-            crest_date.strftime("%Y-%m-%d")
-        ),
-        "geometry_assumption": (
-            "Variable MinCon start -> spillway crest -> HitRefill/rule; "
-            f"start={start_status}; crest={crest_status}."
-        ),
+        "parameter_2_value": "",
+        "geometry_assumption": "NO_FEASIBLE_H_GEOMETRY: No two-leg refill fits the project storage limit.",
     }
 
-    return curve, parameters
 
 def build_component_i(
     project,
