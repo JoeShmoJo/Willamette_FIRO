@@ -112,7 +112,41 @@ def select_local_curve(builder, project, rule, rating, hours, code, samples):
     return best, best_budget, best_area
 
 
-def optimize(projects, units, relationships, builder, rules, ratings, code, increment, samples, destination):
+def export_wat_curve(destination, code, projects, all_names, dates, offsets, builder, rules, ratings):
+    """Convert the solved midnight offsets to the WAT generic-year elevation CSV."""
+    targets = pd.DataFrame(index=dates, columns=all_names, dtype=float)
+    for index, (project_id, project) in enumerate(projects.iterrows()):
+        rating = ratings[project_id]
+        rule = rules[project_id]
+        base = rule.map(lambda elevation: builder.elevation_to_storage_kaf(elevation, rating))
+        offset = offsets[::HOURS_PER_DAY, index]
+        active = offset > 1e-8
+        if not active.any():
+            raise ValueError(f"No daily WAT targets for {code}, {project.project_name}")
+        total = base.to_numpy() + offset
+        values = np.full(len(dates), np.nan)
+        values[active] = np.interp(total[active], rating.storage_kaf, rating.elevation_ft)
+        if not np.allclose(
+            np.interp(values[active], rating.elevation_ft, rating.storage_kaf),
+            total[active], rtol=0, atol=TOLERANCE,
+        ):
+            raise ValueError(f"Rating round trip changed the scaled {code} curve at {project.project_name}")
+        if code in {"J", "K"}:
+            indices = np.flatnonzero(active)
+            contact = indices[-1] + 1 if code == "J" else indices[0] - 1
+            if 0 <= contact < len(dates) and np.isclose(
+                rule.iloc[contact], project.min_con_elev_ft, rtol=0, atol=TOLERANCE
+            ):
+                values[contact] = project.min_con_elev_ft
+        targets[project.project_name] = values
+    targets.index = pd.MultiIndex.from_arrays([dates.month, dates.day], names=["Month", "Day"])
+    destination.mkdir(parents=True, exist_ok=True)
+    targets.sort_index().to_csv(destination / f"FIRO_SPACEConfig_Progressive_{code}.csv")
+
+
+def optimize(projects, units, relationships, builder, rules, ratings, code, increment, samples, destination,
+             wat_csvs=None):
+    all_names = projects.project_name
     if code == "H":
         projects = projects.loc[projects.index.isin(H_PROJECTS)]
     # Evaluate both alternatives on the same hourly grid so the comparison
@@ -185,6 +219,9 @@ def optimize(projects, units, relationships, builder, rules, ratings, code, incr
         "common_peak_kaf", "progressive_peak_kaf", "progressive_peak_time",
     ]).to_csv(destination / f"{case}_limits.csv", index=False)
 
+    if wat_csvs is not None and (code != "K" or increment == HOURS_PER_DAY):
+        export_wat_curve(wat_csvs, code, projects, all_names, builder.DATES, scaled, builder, rules, ratings)
+
     return {
         "component": code,
         "advance_increment_hours": increment if code == "K" else "",
@@ -204,6 +241,7 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/k_scaling_comparison")
     parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
     parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
+    parser.add_argument("--wat-csvs", type=Path, help="Export seven progressive WAT curves using whole-day K")
     args = parser.parse_args()
     if args.samples < 1:
         parser.error("--samples must be positive")
@@ -223,15 +261,18 @@ def main():
         raise ValueError(f"Invalid model inputs: {issues}")
     args.output.mkdir(parents=True, exist_ok=True)
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
-    if args.all_components:
+    if args.all_components or args.wat_csvs is not None:
         cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases
     summary = pd.DataFrame([
-        optimize(projects, units, relationships, builder, rules, ratings, code, increment, args.samples, args.output)
+        optimize(projects, units, relationships, builder, rules, ratings, code, increment, args.samples,
+                 args.output, args.wat_csvs)
         for code, increment in cases
     ])
     summary.to_csv(args.output / "summary.csv", index=False)
     print(summary.to_string(index=False, float_format=lambda value: f"{value:,.4f}"))
     print(f"Reports: {args.output.resolve()}")
+    if args.wat_csvs is not None:
+        print(f"Progressive WAT CSVs: {args.wat_csvs.resolve()}")
 
 
 if __name__ == "__main__":

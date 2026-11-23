@@ -225,3 +225,5 @@ the remaining reservoirs together until they reach another limit. The reports
 show common and progressive fractions, KAF-days, peak space, and shared
 control-point loads. The original total-area linear program is retained as
 a comparison column. All runs use unrouted storage offsets.
+
+See [Progressive FIRO scaling](PROGRESSIVE_FIRO.md) for the worked example and WAT installation workflow.
