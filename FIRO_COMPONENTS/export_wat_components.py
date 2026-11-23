@@ -107,7 +107,7 @@ def reservoir_allocation_summary(project, unit, peak, point_ids):
     ]
     reasons = []
     if binding:
-        reasons.append("Downstream allocation at limit: " + ", ".join(binding))
+        reasons.append("Allocation constrained by fully assigned downstream space at " + ", ".join(binding))
     if unit.effective_physical_cap_kaf - unit.redistributed_firo_space_kaf <= 1e-6:
         reasons.append("Physical limit reached" if unit.active_member_count == 1 else
                        f"Combined physical limit reached: {escape(unit.decision_unit_name)}")
@@ -117,6 +117,8 @@ def reservoir_allocation_summary(project, unit, peak, point_ids):
         reasons.append(f"Shares a budget with {escape(unit.decision_unit_name)} "
                        f"({project.project_split_fraction:.1%} of the combined allocation).")
     peak_note = f" · {used / assigned:.1%} used on {peak.date:%b %d}" if assigned > 0 else ""
+    if assigned - used > 1e-6:
+        reasons.append(f"Curve peaks {assigned - used:,.2f} KAF below its allocation.")
     return (
         f'<dl class="budget">{cards}</dl>'
         '<div class="gauge" aria-hidden="true">'
@@ -124,6 +126,46 @@ def reservoir_allocation_summary(project, unit, peak, point_ids):
         f'<span class="assigned" style="left:{assigned / scale:.5%}"></span></div>'
         f'<p class="note">Bar: peak use. Marker: final allocation. Full scale: physical limit{peak_note}.</p>'
         f'<p class="note">{" · ".join(reasons)}</p>'
+    )
+
+
+def control_point_breakdown(point, peak, upstream, on_peak_day, individual_peaks):
+    """Separate unused reservoir shares from peaks that occur on different dates."""
+    rows = []
+    assigned = upstream.redistributed_project_firo_space_kaf
+    individual = individual_peaks.loc[upstream.index, "combined_offset_kaf"]
+    concurrent = on_peak_day.loc[upstream.index, "combined_offset_kaf"]
+    if not np.isclose(concurrent.sum(), peak.unrouted_control_point_loading_kaf, rtol=0, atol=1e-6):
+        raise ValueError(f"Reservoir contributions do not match {point.control_point_name} daily loading")
+    if not np.isclose(assigned.sum(), point.allocated_firo_space_kaf, rtol=0, atol=1e-6):
+        raise ValueError(f"Reservoir allocations do not match the allocation at {point.control_point_name}")
+
+    for project_id in upstream.sort_values("project_name").index:
+        project = upstream.loc[project_id]
+        own_peak = individual_peaks.loc[project_id]
+        share = assigned.loc[project_id]
+        used = concurrent.loc[project_id]
+        rows.append(
+            f'<tr><th scope="row">{escape(project.project_name)}</th>'
+            f'<td>{share:,.2f}</td><td>{own_peak.combined_offset_kaf:,.2f} ({own_peak.date:%b %d})</td>'
+            f'<td>{used:,.2f}</td><td>{max(0, share - used):,.2f}</td></tr>'
+        )
+    unused = max(0, assigned.sum() - individual.sum())
+    timing = max(0, individual.sum() - concurrent.sum())
+    available = max(0, point.space_limit_kaf - assigned.sum())
+    return (
+        '<details><summary>What accounts for the gap?</summary>'
+        f'<p>On <strong>{peak.date:%b %d}</strong>, the combined curve use peaked at '
+        f'<strong>{concurrent.sum():,.2f} KAF</strong> of this point’s '
+        f'<strong>{point.space_limit_kaf:,.2f} KAF</strong> limit.</p>'
+        '<ul>'
+        f'<li>Space never assigned: <strong>{available:,.2f} KAF</strong>.</li>'
+        f'<li>Assigned space the individual reservoir curves never reach: <strong>{unused:,.2f} KAF</strong>.</li>'
+        f'<li>Space lost when individual peaks do not coincide: <strong>{timing:,.2f} KAF</strong>.</li>'
+        '</ul><div class="table-scroll"><table><thead><tr><th>Upstream reservoir</th>'
+        '<th>Assigned (KAF)</th><th>Own peak (KAF and date)</th>'
+        f'<th>Use on {peak.date:%b %d} (KAF)</th><th>Unused share that day (KAF)</th>'
+        '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div></details>'
     )
 
 
@@ -154,7 +196,10 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
     projects_by_case = pd.read_csv(model / "43_redistributed_physical_project_allocations.csv").groupby("alternative_id")
     units_by_case = pd.read_csv(model / "41_redistributed_decision_unit_allocations.csv").groupby("alternative_id")
     points_by_case = pd.read_csv(model / "46_control_point_utilization_redistributed.csv").groupby("alternative_id")
+    relationships = pd.read_csv(model / "21_static_control_point_relationships.csv")
+    upstream_units = relationships.groupby("control_point_id")["decision_unit_id"].agg(set)
     reservoir_daily = pd.read_csv(after / "01_reservoir_daily_capacity_status.csv", parse_dates=["date"])
+    reservoir_dates = reservoir_daily.set_index(["alternative_id", "date", "project_id"]).sort_index()
     point_daily = pd.read_csv(after / "02_control_point_daily_capacity_status.csv", parse_dates=["date"])
     reservoir_peak = reservoir_daily.loc[
         reservoir_daily.groupby(["alternative_id", "project_id"])["combined_offset_kaf"].idxmax()
@@ -171,13 +216,19 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
         point_rows = []
         for point in points.itertuples():
             peak = point_peak.loc[alternative_id, point.control_point_id]
-            at_limit = "At limit" if point.unused_control_point_space_kaf <= 1e-6 else ""
+            at_limit = "Fully assigned" if point.unused_control_point_space_kaf <= 1e-6 else ""
+            upstream = allocations.loc[allocations.decision_unit_id.isin(upstream_units.loc[point.control_point_id])]
+            breakdown = control_point_breakdown(
+                point, peak, upstream, reservoir_dates.loc[(alternative_id, peak.date)],
+                reservoir_peak.loc[alternative_id],
+            )
             point_rows.append(
                 f'<tr id="{point_ids[point.control_point_name]}"><th scope="row">{escape(point.control_point_name)}</th>'
                 f'<td>{point.space_limit_kaf:,.2f}</td><td>{point.allocated_firo_space_kaf:,.2f}</td>'
                 f'<td>{point.utilization_fraction:.1%}</td>'
                 f'<td>{peak.unrouted_control_point_loading_kaf:,.2f} ({peak.control_point_utilization_percent:.1f}%)</td>'
                 f'<td>{peak.date:%b %d}</td><td>{at_limit}</td></tr>'
+                f'<tr class="breakdown"><td colspan="7">{breakdown}</td></tr>'
             )
         panels = []
         for project_id, name in project_names.items():
@@ -256,6 +307,8 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             'table{border-collapse:collapse;width:100%;margin-bottom:20px}'
             'th,td{padding:6px 12px;border-bottom:1px solid #dce2e8;text-align:left}'
             'tr:target{background:#fff1c8}.table-scroll{overflow-x:auto}'
+            '.breakdown>td{padding:6px 12px 12px 24px}.breakdown table{margin-bottom:0}'
+            'summary{cursor:pointer}'
             '</style></head><body><p><a href="index.html">All components</a></p>'
             f'<h1>Component {code} rule curves and WAT FIRO targets</h1>'
             f'<p>System allocation: {initial:,.2f} → {final:,.2f} KAF '
@@ -270,9 +323,13 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             'combined unrouted storage offset on a single day.</p>'
             '<div class="table-scroll"><table><thead><tr><th>Control point</th><th>Limit (KAF)</th>'
             '<th>Assigned (KAF)</th><th>Assigned %</th><th>Daily peak (KAF and %)</th>'
-            '<th>Peak date</th><th>Static status</th></tr></thead><tbody>'
+            '<th>Peak date</th><th>Allocation status</th></tr></thead><tbody>'
             + "".join(point_rows) + '</tbody></table></div>'
-            '<script>window.addEventListener("load", () => {'
+            '<script>function openPoint(){'
+            'const row=document.getElementById(location.hash.slice(1));'
+            'if(row && row.matches("tr[id^=point-]")) row.nextElementSibling.querySelector("details").open=true;'
+            '}window.addEventListener("hashchange",openPoint);'
+            'window.addEventListener("load", () => {openPoint();'
             'document.querySelectorAll(".js-plotly-plot").forEach(plot => Plotly.Plots.resize(plot));'
             '});</script></body></html>',
             encoding="utf-8",

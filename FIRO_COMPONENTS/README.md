@@ -185,3 +185,9 @@ peak daily FIRO use, and physical limit. Links identify any shared downstream
 allocations that are at their limit. The downstream table compares static assigned
 space with peak daily use. The system summary records the redistribution gain and
 whether the proportional refinement was retained.
+
+Expand **What accounts for the gap?** in a downstream row to see how much
+capacity was never assigned, how much of the assigned space the individual
+curves never reach, and the additional gap from different peak dates. The table
+shows each upstream reservoir's own peak and its use on the control point's
+peak day. These are unrouted storage offsets above the ordinary rule curve.
