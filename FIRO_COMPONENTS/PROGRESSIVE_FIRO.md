@@ -96,3 +96,12 @@ downstream points, and the combined Lookout Point–Hills Creek cap.
 Run `compare_k_scaling.py --max-offset --wat-csvs DIRECTORY`, then
 `install_progressive_wat.py WATERSHED DIRECTORY --max-offset` to add only
 `PGFIRO_M-POR_1935-2019`. The benchmark uses all 11 modeled reservoirs.
+
+## Lookout Point illustration
+
+Run `python FIRO_COMPONENTS/plot_lookout_point.py --curves DIRECTORY` after
+generating A, C, E, H, I, J, K, and M. Open the resulting
+`lookout_point_firo_components.html`. Click a legend entry to toggle it or
+double-click to isolate it. The left axis shows storage above MinCon using
+the rating at the same evenly spaced right-axis elevation ticks. The dashed
+line marks the 887.5 ft spillway crest.
