@@ -1,0 +1,13 @@
+Reservoir,Limiting Factor 1,Percent 1,Limiting Factor 2,Percent 2,Limiting Factor 3,Percent 3,Limiting Factor 4,Percent 4,Limiting Factor 5,Percent 5
+Hills Creek,Salem,14.4%,Albany,17.9%,Jasper,20.1%,Harrisburg,20.6%,Normal Evac,27.1%
+Lookout Point,Salem,14.4%,Normal Evac,17.8%,Albany,17.9%,Jasper,20.1%,Harrisburg,20.6%
+Lookout Point+Hills Creek,Normal Evac,11.1%,Salem,14.4%,Albany,17.9%,Jasper,20.1%,Harrisburg,20.6%
+Fall Creek,Salem,14.4%,Albany,17.9%,Jasper,20.1%,Harrisburg,20.6%,Normal Evac,31.8%
+Dorena,Salem,14.4%,Albany,17.9%,Harrisburg,20.6%,Normal Evac,38.1%,Goshen,94.6%
+Cottage Grove,Salem,14.4%,Albany,17.9%,Harrisburg,20.6%,Normal Evac,59.8%,Goshen,94.6%
+Cougar,Salem,14.4%,Albany,17.9%,Harrisburg,20.6%,Normal Evac,33.6%,Vida,81.3%
+Blue River,Salem,14.4%,Albany,17.9%,Harrisburg,20.6%,Normal Evac,34.5%,Vida,81.3%
+Fern Ridge,Salem,14.4%,Albany,17.9%,Normal Evac,23.0%,Monroe,35.3%,,
+Green Peter,Salem,14.4%,Normal Evac,34.9%,Jefferson,47.9%,Waterloo,54.7%,,
+Foster,Salem,14.4%,Jefferson,47.9%,Waterloo,54.7%,Normal Evac,497.2%,,
+Detroit,Salem,14.4%,Normal Evac,24.5%,Mehama,39.1%,Jefferson,47.9%,,
