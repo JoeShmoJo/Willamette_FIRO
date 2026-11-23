@@ -1,6 +1,7 @@
-# Tested direct dependencies for calculations and retained reviews.
+# Direct dependencies for calculations and retained reviews.
+# Minimum plotting versions match the hydro13Nov2026 Windows environment.
 numpy==1.26.4
 pandas==2.3.3
 scipy==1.17.1
-matplotlib==3.11.2
-plotly==7.1.0
+matplotlib>=3.9.4,<=3.11.2
+plotly>=5.24.1,<=7.1.0

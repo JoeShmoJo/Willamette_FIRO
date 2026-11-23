@@ -62,6 +62,10 @@ def export_curves(model, destination, codes, projects, builder, ratings):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/wat_components")
+    parser.add_argument(
+        "--review", action="store_true",
+        help="Keep the interactive component, reservoir and control-point diagnostics",
+    )
     args = parser.parse_args()
 
     # Use the normal model in a temporary tree so the system-alternative inputs
@@ -101,7 +105,8 @@ def main():
             for project in projects["project_id"]
         ]
         pd.DataFrame(selections).to_csv(allocator.ALTERNATIVE_SELECTIONS_FILE, index=False)
-        subprocess.run([sys.executable, str(model / "run.py"), "model"], check=True)
+        stage = "all" if args.review else "model"
+        subprocess.run([sys.executable, str(model / "run.py"), stage], check=True)
         builder.PHYSICAL_ALLOCATIONS_FILE = (
             model / "outputs/diagnostics/scenarios/model/25_alternative_physical_project_allocations.csv"
         )
@@ -111,6 +116,11 @@ def main():
         if issues:
             raise ValueError(f"Invalid elevation/storage ratings: {issues}")
         export_curves(model, args.output, codes, projects, builder, ratings)
+        if args.review:
+            # Keep the relative links between the review and its curve tables.
+            for directory in ("diagnostics", "final"):
+                shutil.copytree(model / "outputs" / directory, args.output / directory, dirs_exist_ok=True)
+            print(f"WAT component review: {args.output / 'diagnostics/review/index.html'}")
 
 
 if __name__ == "__main__":

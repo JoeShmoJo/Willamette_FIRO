@@ -38,7 +38,14 @@ travel time, attenuation, local inflows or operational release simulation.
 
 ## Run
 
-From the repository root, using an activated Python environment:
+On Windows, use the existing `hydro13Nov2026` Python environment. Its NumPy,
+pandas, Matplotlib and Plotly versions are compatible with FIRO Components.
+The published JYTHON environment spec does not include SciPy. Check for
+SciPy 1.17.1 and, if needed, install only that package in the environment
+with `python -m pip install --no-deps scipy==1.17.1`.
+
+For a separate Python environment, install the requirements from the repository
+root. Run the full build from the same directory:
 
 ```sh
 python -m pip install -r FIRO_COMPONENTS/requirements.txt
@@ -160,3 +167,11 @@ CSV under the watershed's `scripts/externalRules/` and set
 `firoSpaceConfigCSV` in that WAT alternative's override file. The JYTHON
 watershed's `WAT_FIRO_ALTERNATIVES.md` describes the WAT registration and
 companion files.
+
+Add `--review` to build a local interactive review from the same single-component
+cases. Open `outputs/wat_components/diagnostics/review/index.html`. The plots
+show component shapes, reservoir use relative to assigned and physical draft
+limits, and downstream space use. The before/after selector compares the two
+allocation passes. The WAT CSVs use the after-reallocation case. The downstream
+plots screen unrouted daily storage offsets and do not represent routed ResSim
+flows. Keep the generated `diagnostics` and `final` folders together so links work.

@@ -125,7 +125,7 @@ def export_final_curves():
 Use `alternative_XX_combined_curves.csv` in this folder for the **after-reallocation** result.
 Each file contains all modeled reservoirs for one alternative, one row per reservoir per day.
 `baseline/` holds the corresponding **before-reallocation** curves for comparison.
-Alternative 5 has no selected components and therefore has no curve file.
+Only alternatives with modeled curves have a CSV.
 
 These are the final capped combined envelopes, not the individual component curves.
 - `combined_storage_kaf`: total storage coordinate of the combined envelope.

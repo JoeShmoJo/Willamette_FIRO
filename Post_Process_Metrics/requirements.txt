@@ -1,4 +1,6 @@
 -r ../FIRO_COMPONENTS/requirements.txt
+matplotlib==3.11.2
+plotly==7.1.0
 pydsstools==3.1.0
 rasterio==1.4.4
 openpyxl==3.1.5
