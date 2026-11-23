@@ -58,6 +58,81 @@ def export_curves(model, destination, codes, projects, builder, ratings):
         print(f"{path}: {len(wide)} days, {len(wide.columns)} reservoirs, "
               f"{wide.notna().sum().sum()} populated targets")
 
+    return exports
+
+
+def write_elevation_review(review, projects, rule_curves, exports):
+    """Overlay the actual WAT elevation targets on the model's rule curves."""
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    directory = review / "elevation_overlays"
+    directory.mkdir(parents=True, exist_ok=True)
+    days = pd.date_range("2001-01-01", "2001-12-31")
+    calendar = pd.MultiIndex.from_arrays([days.month, days.day], names=["Month", "Day"])
+    project_names = projects.set_index("project_id")["project_name"]
+    elevations = {}
+    for project_id, name in project_names.items():
+        rule = rule_curves[project_id].copy()
+        rule.index = pd.MultiIndex.from_arrays(
+            [rule.index.month, rule.index.day], names=calendar.names
+        )
+        elevations[name] = rule.reindex(calendar)
+        if not np.isfinite(elevations[name]).all():
+            raise ValueError(f"Missing rule-curve elevations for {name}")
+
+    links = []
+    for code, targets in exports.items():
+        titles = [name if targets[name].notna().any() else f"{name} (no FIRO target)"
+                  for name in project_names]
+        rows = (len(titles) + 2) // 3
+        figure = make_subplots(rows=rows, cols=3, subplot_titles=titles)
+        target_legend = True
+        for index, name in enumerate(project_names):
+            row, col = divmod(index, 3)
+            panel = {"row": row + 1, "col": col + 1}
+            rule = elevations[name]
+            target = targets[name]
+            figure.add_trace(go.Scatter(
+                x=days, y=rule, name="Rule curve", mode="lines",
+                line={"color": "#303b4a"}, legendgroup="rule", showlegend=index == 0,
+                hovertemplate="Rule curve %{y:.2f} ft<extra></extra>",
+            ), **panel)
+            if target.notna().any():
+                figure.add_trace(go.Scatter(
+                    x=days, y=target, name="WAT FIRO target", mode="lines",
+                    line={"color": "#087f8c", "width": 3}, connectgaps=False,
+                    legendgroup="target", showlegend=target_legend,
+                    hovertemplate="WAT FIRO target %{y:.2f} ft<extra></extra>",
+                ), **panel)
+                target_legend = False
+            figure.update_xaxes(dtick="M3", tickformat="%b", hoverformat="%b %d", **panel)
+            figure.update_yaxes(ticksuffix=" ft", **panel)
+        figure.update_layout(
+            title=f"Component {code} · rule curves and WAT FIRO targets",
+            template="plotly_white", height=260 * rows + 80,
+            legend={"orientation": "h", "y": 1.04},
+        )
+        filename = f"component_{code}.html"
+        figure.write_html(directory / filename, include_plotlyjs="directory")
+        links.append(f'<li><a href="{filename}">Component {code}</a></li>')
+
+    (directory / "index.html").write_text(
+        '<!doctype html><meta charset="utf-8"><title>FIRO rule-curve overlays</title>'
+        '<h1>Rule curves and WAT FIRO targets</h1>'
+        '<p>The dark line is the model rule curve. The teal line is the target '
+        'from the exported WAT CSV after reallocation. Gaps indicate days '
+        'without a WAT FIRO target. Elevations are in feet.</p>'
+        '<ul>' + "".join(links) + '</ul><p><a href="../index.html">Back to review</a></p>',
+        encoding="utf-8",
+    )
+    landing = review / "index.html"
+    html = landing.read_text(encoding="utf-8")
+    index = '<h2>Review Files</h2>'
+    html = html.replace(index, index + '\n<p><a href="elevation_overlays/index.html">'
+                        'Rule curves with WAT FIRO target elevations</a></p>', 1)
+    landing.write_text(html, encoding="utf-8")
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -110,13 +185,15 @@ def main():
         builder.PHYSICAL_ALLOCATIONS_FILE = (
             model / "outputs/diagnostics/scenarios/model/25_alternative_physical_project_allocations.csv"
         )
-        _, _, raw_ratings, _, _ = builder.load_inputs()
+        _, raw_rules, raw_ratings, _, _ = builder.load_inputs()
         issues = []
         ratings = builder.build_rating_lookup(raw_ratings, issues)
+        rule_curves = builder.build_rule_curve_lookup(raw_rules, issues) if args.review else None
         if issues:
-            raise ValueError(f"Invalid elevation/storage ratings: {issues}")
-        export_curves(model, args.output, codes, projects, builder, ratings)
+            raise ValueError(f"Invalid curve inputs: {issues}")
+        exports = export_curves(model, args.output, codes, projects, builder, ratings)
         if args.review:
+            write_elevation_review(model / "outputs/diagnostics/review", projects, rule_curves, exports)
             # Keep the relative links between the review and its curve tables.
             for directory in ("diagnostics", "final"):
                 shutil.copytree(model / "outputs" / directory, args.output / directory, dirs_exist_ok=True)

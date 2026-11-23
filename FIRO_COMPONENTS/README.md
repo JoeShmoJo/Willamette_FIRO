@@ -170,7 +170,8 @@ companion files.
 
 Add `--review` to build a local interactive review from the same single-component
 cases. Open `outputs/wat_components/diagnostics/review/index.html`. The plots
-show component shapes, reservoir use relative to assigned and physical draft
+include rule-curve elevation overlays using the exact targets in the WAT CSVs.
+The existing diagnostics show component shapes, reservoir use relative to assigned and physical draft
 limits, and downstream space use. The before/after selector compares the two
 allocation passes. The WAT CSVs use the after-reallocation case. The downstream
 plots screen unrouted daily storage offsets and do not represent routed ResSim
