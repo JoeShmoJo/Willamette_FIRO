@@ -18,7 +18,8 @@ Two inputs are read directly from shared sources rather than copied into this fo
 | Shared source | Replaces |
 | --- | --- |
 | shared/common_data/ElevStor.csv | 04_storage_elevation_long.csv |
-| shared/control_points_space.csv | 05_control_point_limits.csv |
+| MAX_FIRO_SPACE/out/ControlPointsSpace.csv | 05_control_point_limits.csv |
+| MAX_FIRO_SPACE/out/ReservoirEvacLimits.csv | Seven-day evacuation limits previously supplied in the local project and decision-unit tables |
 
 The paths above are relative to the repository root. Scripts normalize names,
 IDs, column headings and acre-feet-to-KAF units when loading these sources.
@@ -29,9 +30,11 @@ spreadsheet rating source, so geometry results can change. The duplicated
 04_storage_elevation_long.csv was already removed; the retired active spreadsheet
 shared/storage_elevation.xlsx is removed as part of this source change.
 
-Conservation-storage weights and evacuation caps in 01_projects_physical.csv
-remain supplied project parameters; this source switch does not recompute them
-from the rating curves. Reconciling those parameters is a separate input decision.
+Conservation-storage weights remain supplied project parameters in
+01_projects_physical.csv. The allocator reads the seven-day evacuation limits
+directly from MAX_FIRO_SPACE and caps each project and decision unit at the
+smaller of its evacuation limit and conservation storage. The separate combined
+Lookout Point + Hills Creek evacuation row applies when both projects participate.
 
 Preparation history, legacy comparisons and unresolved quality notes are in
 ../provenance/. They are not runtime input alternatives. The empty initial cap

@@ -52,7 +52,8 @@ Inputs
 ------
     data/01_projects_physical.csv
     data/02_decision_units.csv
-    ../shared/control_points_space.csv
+    ../MAX_FIRO_SPACE/out/ControlPointsSpace.csv
+    ../MAX_FIRO_SPACE/out/ReservoirEvacLimits.csv
     data/12_alternative_component_selections.csv
     data/15_network_control_points_decision_units.csv
 
@@ -97,9 +98,9 @@ DECISION_UNITS_FILE = (
     DATA_DIRECTORY / "02_decision_units.csv"
 )
 
-CONTROL_POINT_LIMITS_FILE = (
-    PROJECT_ROOT.parent / "shared" / "control_points_space.csv"
-)
+MAX_FIRO_OUTPUTS = PROJECT_ROOT.parent / "MAX_FIRO_SPACE" / "out"
+CONTROL_POINT_LIMITS_FILE = MAX_FIRO_OUTPUTS / "ControlPointsSpace.csv"
+EVACUATION_LIMITS_FILE = MAX_FIRO_OUTPUTS / "ReservoirEvacLimits.csv"
 
 ALTERNATIVE_SELECTIONS_FILE = (
     DATA_DIRECTORY / "12_alternative_component_selections.csv"
@@ -307,9 +308,26 @@ def load_inputs():
         encoding="utf-8-sig",
     )
 
+    evacuation = pd.read_csv(EVACUATION_LIMITS_FILE, encoding="utf-8-sig")
+    evacuation["Reservoir"] = evacuation["Reservoir"].str.replace(r"\s*\+\s*", "+", regex=True)
+    limits = evacuation.set_index("Reservoir", verify_integrity=True)["SevenDayEvacuationVolumeKAF"]
+    for table, name_column in [
+        (physical_projects, "project_name"),
+        (decision_units, "decision_unit_name"),
+    ]:
+        names = table[name_column].str.replace(r"\s*\+\s*", "+", regex=True)
+        values = names.map(limits)
+        invalid = values.isna() | values.lt(0) | values.eq(float("inf"))
+        if invalid.any():
+            raise ValueError(f"Missing or invalid seven-day evacuation limits for {names[invalid].tolist()}")
+        table["seven_day_evacuation_kaf"] = values
+        table["physical_cap_kaf"] = table[
+            ["seven_day_evacuation_kaf", "conservation_storage_kaf"]
+        ].min(axis=1)
+
     control_points = pd.read_csv(
         CONTROL_POINT_LIMITS_FILE, encoding="utf-8-sig"
-    ).rename(columns={"Location": "control_point_name", "SpaceLimit": "space_limit_kaf"})
+    ).rename(columns={"ControlPoint": "control_point_name", "SpaceLimit": "space_limit_kaf"})
     control_points["control_point_id"] = (
         control_points["control_point_name"].astype(str).str.upper()
         .str.replace(r"[^A-Z0-9]+", "_", regex=True).str.strip("_")
@@ -362,8 +380,6 @@ def build_control_point_relationships(
         [
             "decision_unit_id",
             "control_point_id",
-            "control_point_name",
-            "space_limit_kaf",
             "member_project_ids",
             "member_project_names",
             "member_project_count",
@@ -373,7 +389,12 @@ def build_control_point_relationships(
             "relationship_source",
             "verification_status",
         ]
-    ].copy()
+    ].merge(cp_lookup, on="control_point_id", how="left", validate="many_to_one")
+
+    missing_limits = topology["space_limit_kaf"].isna()
+    if missing_limits.any():
+        missing = topology.loc[missing_limits, "control_point_id"].unique().tolist()
+        raise ValueError(f"Missing MAX_FIRO_SPACE limits for control points: {missing}")
 
     topology["control_point_role"] = "downstream"
 
@@ -1128,6 +1149,7 @@ def main():
         PHYSICAL_PROJECTS_FILE,
         DECISION_UNITS_FILE,
         CONTROL_POINT_LIMITS_FILE,
+        EVACUATION_LIMITS_FILE,
         ALTERNATIVE_SELECTIONS_FILE,
         NETWORK_CONTROL_POINTS_FILE,
     ]:

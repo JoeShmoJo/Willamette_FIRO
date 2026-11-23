@@ -59,7 +59,8 @@ uses static volumes, not daily routed releases or component timing.
 Script 02 constructs each selected component separately, using the project's
 rule curve, elevation/storage rating, seasonal dates and allocation. Storage
 ratings are loaded from shared/common_data/ElevStor.csv; static control-point
-limits come from shared/control_points_space.csv.
+and seven-day evacuation limits come from MAX_FIRO_SPACE/out/ControlPointsSpace.csv
+and MAX_FIRO_SPACE/out/ReservoirEvacLimits.csv, respectively.
 
 The budget limits additional storage above the ordinary rule curve. It is not
 a separate budget assigned to every component and then added together.
@@ -103,17 +104,10 @@ allocation and recomputes capped combined curves and validation outputs.
 
 ## What the current results show
 
-The saved redistribution summary reports:
-
-| Case | Baseline total | Redistributed total | Meaning |
-| --- | ---: | ---: | --- |
-| Alternative 1 | 202.044 KAF | 219.193 KAF | About 17.149 KAF of additional static allocation |
-| Other modeled alternatives | About 219.193 KAF | About 219.193 KAF | Essentially no additional allocation; differences near 0.000001 KAF are numerical tolerance |
-
-These are saved allocation results, not sums of daily space or simulated
-operational benefits. All eight modeled alternatives report successful
-optimization passes in the saved summary. Alternative 5 has no component
-selection rows and is absent from the daily/model results.
+The saved redistribution summary reports the before and after static
+allocations under the current limits. Alternative 5 has no component selection
+rows and is absent from the daily/model results. These allocations are separate
+from simulated operating results and the sum of daily curve offsets.
 
 The standalone curve builder reads baseline physical allocations from output 25.
 The review runner now uses script 15 to invoke the same geometry/capping code

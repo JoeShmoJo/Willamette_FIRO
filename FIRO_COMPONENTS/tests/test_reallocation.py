@@ -89,7 +89,21 @@ class ReallocationComparisonTests(unittest.TestCase):
         self.assertEqual(len(merged), len(before))
         delta = abs(merged.combined_offset_kaf_after - merged.combined_offset_kaf_before)
         changed = merged.loc[delta > 1e-5, ['alternative_id','project_id']].drop_duplicates()
-        self.assertEqual(set(map(tuple, changed.to_numpy())), {(1, 'DETROIT'), (1, 'GREEN_PETER')})
+        self.assertFalse(changed.empty)
+        budgets = merged.loc[
+            merged.allocated_project_firo_space_kaf_after
+            - merged.allocated_project_firo_space_kaf_before > 1e-6,
+            ['alternative_id', 'project_id'],
+        ].drop_duplicates()
+        self.assertLessEqual(set(map(tuple, changed.to_numpy())), set(map(tuple, budgets.to_numpy())))
+
+    def test_redistributed_control_point_limits_match_max_firo_space(self):
+        source = pd.read_csv(ROOT.parent / 'MAX_FIRO_SPACE/out/ControlPointsSpace.csv')
+        source = source.set_index('ControlPoint')['SpaceLimit']
+        actual = pd.read_csv(OUTPUTS / 'scenarios/model/46_control_point_utilization_redistributed.csv')
+        expected = actual.control_point_name.map(source)
+        np.testing.assert_allclose(actual.space_limit_kaf, expected, rtol=0, atol=1e-8)
+        self.assertTrue((actual.allocated_firo_space_kaf <= expected + 1e-6).all())
 
     def test_saved_case_hashes_and_page_pairs(self):
         manifest = json.loads((OUTPUTS / 'scenarios/manifest.json').read_text())

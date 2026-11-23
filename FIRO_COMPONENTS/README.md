@@ -128,12 +128,33 @@ Repeated combined curves and other intermediate CSVs are not retained in the def
 `outputs/diagnostics/scenarios/manifest.json` records source/algorithm hashes.
 
 All 89 retained chart pages contain both cases, rather than linking to a separate
-set of reallocated charts. The selector redraws one chart in place. Alternative
-1 has meaningful allocation increases at Detroit and Green Peter; the other
-modeled alternatives differ only at numerical-tolerance level in the saved run.
+set of reallocated charts. The selector redraws one chart in place. Use the allocation summary to compare before and after budgets across alternatives.
 
 For the numerical regression checks after building comparisons:
 
 ```sh
 python -m unittest discover -s FIRO_COMPONENTS/tests
 ```
+
+## Export single-component WAT curves
+
+From the repository root, run:
+
+```sh
+python FIRO_COMPONENTS/export_wat_components.py
+```
+
+The exporter rebuilds an all-project scenario for each implemented code
+(A, C, E, H, I, J, K) with the current MAX_FIRO_SPACE constraints. Each CSV
+uses the capped after-reallocation storage converted to elevation using the
+same rating table as the model. Dates with no positive offset are blank so
+the FIRO-space rule stands down. The CSVs are written to
+`outputs/wat_components/`, with `Month,Day` and one column per modeled
+reservoir. H leaves the columns blank for reservoirs without a defined
+spillway crest. F and G are deferred in the component definitions.
+
+For each WAT case, reuse `ALL_D` and `POR_1935-2019`. Place the corresponding
+CSV under the watershed's `scripts/externalRules/` and set
+`firoSpaceConfigCSV` in that WAT alternative's override file. The JYTHON
+watershed's `WAT_FIRO_ALTERNATIVES.md` describes the WAT registration and
+companion files.
