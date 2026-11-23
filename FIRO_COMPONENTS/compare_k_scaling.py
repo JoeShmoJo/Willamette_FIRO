@@ -1,4 +1,4 @@
-"""Compare fixed-shape Component K scaling with day and hour refill advances."""
+"""Compare common-factor, progressive, and total-area FIRO scaling."""
 
 import argparse
 from importlib.util import module_from_spec, spec_from_file_location
@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linprog
 
+from export_wat_components import H_PROJECTS
 from run import ROOT
 
 
@@ -67,14 +68,71 @@ def shared_limits(projects, units, relationships):
     return constraints
 
 
-def optimize(projects, units, relationships, builder, rules, ratings, increment, destination):
+def progressive_filling(coefficients, budgets, floor):
+    """Raise unfrozen fractions together until the next shared limit binds."""
+    factors = np.full(coefficients.shape[1], floor, dtype=float)
+    active = factors < 1
+    while active.any():
+        rates = coefficients[:, active].sum(axis=1)
+        relevant = rates > 0
+        step = 1 - factors[active].max()
+        if relevant.any():
+            slack = budgets[relevant] - coefficients[relevant] @ factors
+            step = min(step, max(0, float((slack / rates[relevant]).min())))
+        factors[active] += step
+        binding = (budgets - coefficients @ factors <= TOLERANCE) & relevant
+        frozen = (coefficients[binding] > 0).any(axis=0) | (factors >= 1 - 1e-10)
+        if not (active & frozen).any():
+            raise RuntimeError("Progressive filling did not reach a limit")
+        active &= ~frozen
+    return factors
+
+
+def select_local_curve(builder, project, rule, rating, hours, code, samples):
+    """Search allocation inputs to the existing component builder."""
+    storage = rule.map(lambda elevation: builder.elevation_to_storage_kaf(elevation, rating))
+    maximum = builder.elevation_to_storage_kaf(project.max_con_elev_ft, rating)
+    best = None
+    best_area = 0.0
+    best_budget = 0.0
+    daily_hours = np.arange(len(rule)) * HOURS_PER_DAY
+    for budget in np.linspace(project.physical_cap_kaf / samples, project.physical_cap_kaf, samples):
+        curve, _ = builder.build_component(code, project, budget, rule, storage, rating)
+        if curve is None:
+            continue
+        # Apply the same daily allocation cap as the production curve review.
+        offset = (curve - storage).fillna(0).clip(lower=0, upper=budget)
+        offset = np.minimum(offset, (maximum - storage).clip(lower=0))
+        hourly = np.interp(hours, daily_hours, offset)
+        area = np.trapz(hourly, dx=1 / HOURS_PER_DAY)
+        if area > best_area + TOLERANCE:
+            best, best_budget, best_area = hourly, budget, area
+    if best is None:
+        raise ValueError(f"No positive {code} curve fits the local limit for {project.project_name}")
+    return best, best_budget, best_area
+
+
+def optimize(projects, units, relationships, builder, rules, ratings, code, increment, samples, destination):
+    if code == "H":
+        projects = projects.loc[projects.index.isin(H_PROJECTS)]
     # Evaluate both alternatives on the same hourly grid so the comparison
     # isolates permissible advance increments rather than sampling frequency.
     hours = np.arange(len(builder.DATES) * HOURS_PER_DAY)
-    curves, shifts, areas = zip(*[
-        local_curve(builder, project, rules[project_id], ratings[project_id], hours, increment)
-        for project_id, project in projects.iterrows()
-    ])
+    if code == "K":
+        candidates = [
+            local_curve(builder, project, rules[project_id], ratings[project_id], hours, increment)
+            for project_id, project in projects.iterrows()
+        ]
+        parameter = "local_advance_hours"
+        case = f"k_{increment}h"
+    else:
+        candidates = [
+            select_local_curve(builder, project, rules[project_id], ratings[project_id], hours, code, samples)
+            for project_id, project in projects.iterrows()
+        ]
+        parameter = "local_builder_budget_kaf"
+        case = code.lower()
+    curves, local_parameters, areas = zip(*candidates)
     offsets = np.column_stack(curves)
     groups = shared_limits(projects, units, relationships)
     coefficients = np.concatenate([offsets * members for _, _, _, members in groups])
@@ -92,43 +150,63 @@ def optimize(projects, units, relationships, builder, rules, ratings, increment,
     )
     if not result.success:
         raise RuntimeError(result.message)
-    scaled = offsets * result.x
-    if (coefficients @ result.x > budgets + TOLERANCE).any():
-        raise RuntimeError("Optimized curves exceed a shared limit")
-    if (scaled.max(axis=0) > projects.physical_cap_kaf.to_numpy() + TOLERANCE).any():
-        raise RuntimeError("Optimized curves exceed a reservoir limit")
+    progressive = progressive_filling(coefficients[relevant], budgets[relevant], floor)
+    scaled = offsets * progressive
+    if (progressive < floor - 1e-10).any() or (progressive > 1 + 1e-10).any():
+        raise RuntimeError("Progressive scaling violates the common floor or full-size bound")
+    for factors in (result.x, progressive):
+        if (coefficients @ factors > budgets + TOLERANCE).any():
+            raise RuntimeError("Optimized curves exceed a shared limit")
+        if ((offsets * factors).max(axis=0) > projects.physical_cap_kaf.to_numpy() + TOLERANCE).any():
+            raise RuntimeError("Optimized curves exceed a reservoir limit")
 
     report = projects[["project_name", "physical_cap_kaf"]].copy()
-    report["local_advance_hours"] = shifts
+    report[parameter] = local_parameters
     report["local_kaf_days"] = areas
     report["retained_fraction"] = result.x
     report["scaled_kaf_days"] = np.asarray(areas) * result.x
-    report["scaled_peak_kaf"] = scaled.max(axis=0)
-    report.to_csv(destination / f"k_{increment}h_reservoirs.csv")
+    report["scaled_peak_kaf"] = (offsets * result.x).max(axis=0)
+    report["common_fraction"] = floor
+    report["common_kaf_days"] = np.asarray(areas) * floor
+    report["progressive_fraction"] = progressive
+    report["progressive_kaf_days"] = np.asarray(areas) * progressive
+    report["progressive_peak_kaf"] = scaled.max(axis=0)
+    report.to_csv(destination / f"{case}_reservoirs.csv")
     limit_rows = []
     for key, name, limit, members in groups:
         loading = scaled[:, members].sum(axis=1)
         peak = int(loading.argmax())
-        limit_rows.append((key, name, limit, loading[peak], time[peak]))
+        common = offsets[:, members].sum(axis=1) * floor
+        optimized = (offsets * result.x)[:, members].sum(axis=1)
+        limit_rows.append((key, name, limit, optimized.max(), time[optimized.argmax()],
+                           common.max(), loading[peak], time[peak]))
     pd.DataFrame(limit_rows, columns=[
         "limit_id", "location", "limit_kaf", "peak_kaf", "peak_time",
-    ]).to_csv(destination / f"k_{increment}h_limits.csv", index=False)
+        "common_peak_kaf", "progressive_peak_kaf", "progressive_peak_time",
+    ]).to_csv(destination / f"{case}_limits.csv", index=False)
 
     return {
-        "advance_increment_hours": increment,
+        "component": code,
+        "advance_increment_hours": increment if code == "K" else "",
         "highest_common_floor": floor,
         "floor_constraint": groups[location][1] if floor < 1 else "None",
         "floor_constraint_time": time[moment] if floor < 1 else "",
         "local_total_kaf_days": sum(areas),
         "common_scale_only_kaf_days": floor * sum(areas),
         "optimized_kaf_days": -result.fun,
+        "progressive_kaf_days": report.progressive_kaf_days.sum(),
+        "reservoirs_above_floor": int((progressive > floor + 1e-8).sum()),
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/k_scaling_comparison")
+    parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
+    parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
     args = parser.parse_args()
+    if args.samples < 1:
+        parser.error("--samples must be positive")
     allocator = load_module("01_allocate_static_firo_space.py")
     builder = load_module("02_build_component_curves.py")
     projects, units, control_points, _, network = allocator.load_inputs()
@@ -144,9 +222,12 @@ def main():
     if any(issue["severity"] == "ERROR" for issue in issues):
         raise ValueError(f"Invalid model inputs: {issues}")
     args.output.mkdir(parents=True, exist_ok=True)
+    cases = [("K", HOURS_PER_DAY), ("K", 1)]
+    if args.all_components:
+        cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases
     summary = pd.DataFrame([
-        optimize(projects, units, relationships, builder, rules, ratings, increment, args.output)
-        for increment in (HOURS_PER_DAY, 1)
+        optimize(projects, units, relationships, builder, rules, ratings, code, increment, args.samples, args.output)
+        for code, increment in cases
     ])
     summary.to_csv(args.output / "summary.csv", index=False)
     print(summary.to_string(index=False, float_format=lambda value: f"{value:,.4f}"))

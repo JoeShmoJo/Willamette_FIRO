@@ -211,3 +211,17 @@ advances, final retained fractions, and loading at each shared limit.
 This comparison scales storage offsets from the selected K shapes and can
 change their exact time-shift geometry. It does not replace the standard WAT
 component CSVs.
+
+Add `--all-components` to compare A, C, E, H, I, and J in addition to the
+two K runs. For components other than K, the comparison searches 24 evenly
+spaced local storage budgets through the existing component builders and
+keeps the feasible curve with the most KAF-days among those samples. Use
+`--samples` to refine that search. H includes only Green Peter, Detroit,
+and Lookout Point.
+
+The progressive method starts at the common floor. It freezes reservoirs
+with positive offsets at each binding control point and time and raises
+the remaining reservoirs together until they reach another limit. The reports
+show common and progressive fractions, KAF-days, peak space, and shared
+control-point loads. The original total-area linear program is retained as
+a comparison column. All runs use unrouted storage offsets.
