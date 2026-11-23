@@ -5,7 +5,7 @@ shared/datasets_sharepoint/*
 **/data_temp/*
 
 #Don't output plots/tables (too big for git)
-out/
+MAX_FIRO_SPACE/out/*.pkl
 
 # ---> Python
 
