@@ -1031,26 +1031,8 @@ def build_component_e(
     return best_curve, parameters
 
 
-def build_component_k(
-    project,
-    allocation_kaf,
-    rule_elev,
-    rule_storage,
-    rating,
-):
-    """
-    K: Constant horizontal time shift of the complete rising rule-curve limb.
-
-    K is the refill analogue to J on the drawdown limb.
-
-        K(date) = rising rule curve evaluated N days later
-
-    The shift causes K to reach MaxCon early. K then remains horizontal at
-    MaxCon until the ordinary rule curve reaches MaxCon.
-
-    The selected value is the greatest feasible integer day shift that does
-    not exceed the project allocation.
-    """
+def component_k_vertices(project, rule_elev, rule_storage, rating):
+    """Return the existing K refill anchors and their storage elevations."""
     start_refill = nearest_model_date(
         mmdd_to_model_date(
             project["start_refill_mmdd"]
@@ -1091,6 +1073,33 @@ def build_component_k(
     if minimum_days.size:
         start_index = int(minimum_days[-1])
     merge_index = date_index(merge_date)
+
+    return start_index, merge_index, min_con_storage, max_con_storage
+
+
+def build_component_k(
+    project,
+    allocation_kaf,
+    rule_elev,
+    rule_storage,
+    rating,
+):
+    """
+    K: Constant horizontal time shift of the complete rising rule-curve limb.
+
+    K is the refill analogue to J on the drawdown limb.
+
+        K(date) = rising rule curve evaluated N days later
+
+    The shift causes K to reach MaxCon early. K then remains horizontal at
+    MaxCon until the ordinary rule curve reaches MaxCon.
+
+    The selected value is the greatest feasible integer day shift that does
+    not exceed the project allocation.
+    """
+    start_index, merge_index, min_con_storage, max_con_storage = component_k_vertices(
+        project, rule_elev, rule_storage, rating
+    )
 
     empty_curve = pd.Series(
         np.nan,

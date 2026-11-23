@@ -191,3 +191,23 @@ capacity was never assigned, how much of the assigned space the individual
 curves never reach, and the additional gap from different peak dates. The table
 shows each upstream reservoir's own peak and its use on the control point's
 peak day. These are unrouted storage offsets above the ordinary rule curve.
+
+### Compare proportional scaling for Component K
+
+Run `python FIRO_COMPONENTS/compare_k_scaling.py` to compare whole-day and
+whole-hour refill advances. Each run selects the local curve with the most
+KAF-days at each reservoir, then checks the selected shapes on the same hourly
+grid. The hourly grid interpolates the model's daily rule-curve storage values.
+It does not use measured hourly flows.
+
+The highest common retention floor is the smallest ratio of a shared limit to
+its combined unscaled offset over all hours, capped at one. The linear program
+then maximizes system KAF-days with that floor and separate reservoir scale
+factors. It checks all downstream control-point limits and the combined Lookout
+Point–Hills Creek cap. Results in
+`outputs/diagnostics/k_scaling_comparison/` include the limiting time, local
+advances, final retained fractions, and loading at each shared limit.
+
+This comparison scales storage offsets from the selected K shapes and can
+change their exact time-shift geometry. It does not replace the standard WAT
+component CSVs.
