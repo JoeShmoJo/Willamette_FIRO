@@ -86,6 +86,47 @@ def export_curves(model, destination, codes, projects, builder, ratings):
     return exports
 
 
+def reservoir_allocation_summary(project, unit, peak, point_ids):
+    """Explain the budget above a reservoir's final curve."""
+    baseline = project.baseline_project_firo_space_kaf
+    assigned = project.redistributed_project_firo_space_kaf
+    physical = project.project_physical_cap_kaf
+    used = peak.combined_offset_kaf
+    scale = max(physical, assigned, used, 1e-6)
+    metrics = (
+        ("Initial share", baseline),
+        ("Final allocation", assigned),
+        ("Peak curve use", used),
+        ("Physical limit", physical),
+    )
+    cards = "".join(f"<div><dt>{label}</dt><dd>{value:,.2f}</dd></div>" for label, value in metrics)
+    binding = [
+        f'<a href="#{point_ids[name]}">{escape(name)}</a>'
+        for name in str(unit.redistributed_limiting_control_points).split("|")
+        if name in point_ids
+    ]
+    reasons = []
+    if binding:
+        reasons.append("Downstream allocation at limit: " + ", ".join(binding))
+    if unit.effective_physical_cap_kaf - unit.redistributed_firo_space_kaf <= 1e-6:
+        reasons.append("Physical limit reached" if unit.active_member_count == 1 else
+                       f"Combined physical limit reached: {escape(unit.decision_unit_name)}")
+    if assigned < physical - 1e-6 and not reasons:
+        reasons.append("No linked downstream allocation is at its limit.")
+    if unit.active_member_count > 1:
+        reasons.append(f"Shares a budget with {escape(unit.decision_unit_name)} "
+                       f"({project.project_split_fraction:.1%} of the combined allocation).")
+    peak_note = f" · {used / assigned:.1%} used on {peak.date:%b %d}" if assigned > 0 else ""
+    return (
+        f'<dl class="budget">{cards}</dl>'
+        '<div class="gauge" aria-hidden="true">'
+        f'<span class="used" style="width:{used / scale:.5%}"></span>'
+        f'<span class="assigned" style="left:{assigned / scale:.5%}"></span></div>'
+        f'<p class="note">Bar: peak use. Marker: final allocation. Full scale: physical limit{peak_note}.</p>'
+        f'<p class="note">{" · ".join(reasons)}</p>'
+    )
+
+
 def write_elevation_review(review, projects, rule_curves, exports, ratings):
     """Overlay the actual WAT elevation targets on the model's rule curves."""
     import plotly.graph_objects as go
@@ -107,8 +148,36 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             raise ValueError(f"Missing rule-curve elevations for {name}")
 
     (directory / "plotly.min.js").write_text(get_plotlyjs(), encoding="utf-8")
+    model = review.parent / "scenarios/model"
+    after = review.parent / "scenarios/after/capacity_status"
+    projects_by_case = pd.read_csv(model / "43_redistributed_physical_project_allocations.csv").groupby("alternative_id")
+    units_by_case = pd.read_csv(model / "41_redistributed_decision_unit_allocations.csv").groupby("alternative_id")
+    points_by_case = pd.read_csv(model / "46_control_point_utilization_redistributed.csv").groupby("alternative_id")
+    reservoir_daily = pd.read_csv(after / "01_reservoir_daily_capacity_status.csv", parse_dates=["date"])
+    point_daily = pd.read_csv(after / "02_control_point_daily_capacity_status.csv", parse_dates=["date"])
+    reservoir_peak = reservoir_daily.loc[
+        reservoir_daily.groupby(["alternative_id", "project_id"])["combined_offset_kaf"].idxmax()
+    ].set_index(["alternative_id", "project_id"])
+    point_peak = point_daily.loc[
+        point_daily.groupby(["alternative_id", "control_point_id"])["unrouted_control_point_loading_kaf"].idxmax()
+    ].set_index(["alternative_id", "control_point_id"])
     links = []
     for alternative_id, (code, targets) in enumerate(exports.items(), start=1):
+        allocations = projects_by_case.get_group(alternative_id).set_index("project_id")
+        units = units_by_case.get_group(alternative_id).set_index("decision_unit_id")
+        points = points_by_case.get_group(alternative_id)
+        point_ids = {row.control_point_name: f"point-{row.control_point_id}" for row in points.itertuples()}
+        point_rows = []
+        for point in points.itertuples():
+            peak = point_peak.loc[alternative_id, point.control_point_id]
+            at_limit = "At limit" if point.unused_control_point_space_kaf <= 1e-6 else ""
+            point_rows.append(
+                f'<tr id="{point_ids[point.control_point_name]}"><th scope="row">{escape(point.control_point_name)}</th>'
+                f'<td>{point.space_limit_kaf:,.2f}</td><td>{point.allocated_firo_space_kaf:,.2f}</td>'
+                f'<td>{point.utilization_fraction:.1%}</td>'
+                f'<td>{peak.unrouted_control_point_loading_kaf:,.2f} ({peak.control_point_utilization_percent:.1f}%)</td>'
+                f'<td>{peak.date:%b %d}</td><td>{at_limit}</td></tr>'
+            )
         panels = []
         for project_id, name in project_names.items():
             rule = elevations[name]
@@ -156,10 +225,19 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
                 margin={"l": 77, "r": 77, "t": 58, "b": 45},
             )
             chart = figure.to_html(full_html=False, include_plotlyjs=False, config={"responsive": True})
-            note = "" if has_target else '<p class="note">No FIRO target</p>'
-            panels.append(f'<section><h2>{escape(name)}</h2>{note}{chart}</section>')
+            budget = '<p class="note">No FIRO allocation for this component</p>'
+            if project_id in allocations.index:
+                project = allocations.loc[project_id]
+                budget = reservoir_allocation_summary(
+                    project, units.loc[project.decision_unit_id],
+                    reservoir_peak.loc[alternative_id, project_id], point_ids,
+                )
+            panels.append(f'<section><h2>{escape(name)}</h2>{budget}{chart}</section>')
 
         filename = f"component_{code}.html"
+        initial = allocations.baseline_project_firo_space_kaf.sum()
+        final = allocations.redistributed_project_firo_space_kaf.sum()
+        solver = escape(str(units.optimization_solver.iloc[0]))
         (directory / filename).write_text(
             '<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -167,10 +245,31 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             '<style>body{margin:24px;font:16px system-ui;color:#243142}'
             'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,490px),1fr));gap:20px}'
             'section{min-width:0;border:1px solid #dce2e8;border-radius:8px}'
-            'section h2{margin:12px 16px 0;font-size:18px}.note{margin:4px 16px;color:#536477}'
+            'section h2{margin:12px 16px 0;font-size:18px}.note{margin:6px 16px;color:#536477;font-size:13px}'
+            '.budget{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 16px;font-size:12px}'
+            '.budget dd{margin:2px 0 0;font-size:17px;font-weight:600}'
+            '.gauge{margin:8px 16px;position:relative;height:10px;background:#e6edf1;border-radius:4px}'
+            '.used{display:block;height:100%;background:#087f8c;border-radius:4px}'
+            '.assigned{position:absolute;top:-3px;bottom:-3px;border-left:2px solid #674399}'
+            'table{border-collapse:collapse;width:100%;margin-bottom:20px}'
+            'th,td{padding:6px 12px;border-bottom:1px solid #dce2e8;text-align:left}'
+            'tr:target{background:#fff1c8}.table-scroll{overflow-x:auto}'
             '</style></head><body><p><a href="index.html">All components</a></p>'
             f'<h1>Component {code} rule curves and WAT FIRO targets</h1>'
+            f'<p>System allocation: {initial:,.2f} → {final:,.2f} KAF '
+            f'(+{final - initial:,.2f} KAF). Reservoir card values are in KAF.</p>'
+            '<details><summary>How the allocation is calculated</summary>'
+            '<p>The model starts with proportional shares, then maximizes total assigned space within '
+            'reservoir and downstream limits. A second pass tries to distribute the gains proportionally.</p>'
+            f'<p>{solver}</p></details><p><a href="#downstream">Downstream control-point limits</a></p>'
             '<main>' + "".join(panels) + '</main>'
+            '<h2 id="downstream">Downstream control-point limits</h2>'
+            '<p>Static allocation is the sum of the assigned shares. Daily peak use is the maximum '
+            'combined unrouted storage offset on a single day.</p>'
+            '<div class="table-scroll"><table><thead><tr><th>Control point</th><th>Limit (KAF)</th>'
+            '<th>Assigned (KAF)</th><th>Assigned %</th><th>Daily peak (KAF and %)</th>'
+            '<th>Peak date</th><th>Static status</th></tr></thead><tbody>'
+            + "".join(point_rows) + '</tbody></table></div>'
             '<script>window.addEventListener("load", () => {'
             'document.querySelectorAll(".js-plotly-plot").forEach(plot => Plotly.Plots.resize(plot));'
             '});</script></body></html>',

@@ -179,3 +179,9 @@ both assigned and physical reservoir limits and the downstream space limit. The 
 allocation passes. The WAT CSVs use the after-reallocation case. The downstream
 plots screen unrouted daily storage offsets and do not represent routed ResSim
 flows. Keep the generated `diagnostics` and `final` folders together so links work.
+
+Each elevation overlay also lists the reservoir's initial share, final allocation,
+peak daily FIRO use, and physical limit. Links identify any shared downstream
+allocations that are at their limit. The downstream table compares static assigned
+space with peak daily use. The system summary records the redistribution gain and
+whether the proportional refinement was retained.
