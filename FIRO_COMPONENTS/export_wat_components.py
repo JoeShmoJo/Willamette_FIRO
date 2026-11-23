@@ -1,6 +1,7 @@
 """Build one WAT FIRO-space CSV per implemented component across all projects."""
 
 import argparse
+from html import escape
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import shutil
@@ -88,7 +89,7 @@ def export_curves(model, destination, codes, projects, builder, ratings):
 def write_elevation_review(review, projects, rule_curves, exports, ratings):
     """Overlay the actual WAT elevation targets on the model's rule curves."""
     import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
+    from plotly.offline import get_plotlyjs
 
     directory = review / "elevation_overlays"
     directory.mkdir(parents=True, exist_ok=True)
@@ -105,35 +106,13 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
         if not np.isfinite(elevations[name]).all():
             raise ValueError(f"Missing rule-curve elevations for {name}")
 
+    (directory / "plotly.min.js").write_text(get_plotlyjs(), encoding="utf-8")
     links = []
     for alternative_id, (code, targets) in enumerate(exports.items(), start=1):
-        titles = [name if targets[name].notna().any() else f"{name} (no FIRO target)"
-                  for name in project_names]
-        rows = (len(titles) + 2) // 3
-        figure = make_subplots(
-            rows=rows, cols=3, subplot_titles=titles, horizontal_spacing=0.13,
-            specs=[[{"secondary_y": True} for _ in range(3)] for _ in range(rows)],
-        )
-        target_legend = True
-        for index, (project_id, name) in enumerate(project_names.items()):
-            row, col = divmod(index, 3)
-            panel = {"row": row + 1, "col": col + 1}
+        panels = []
+        for project_id, name in project_names.items():
             rule = elevations[name]
             target = targets[name]
-            figure.add_trace(go.Scatter(
-                x=days, y=rule, name="Rule curve", mode="lines",
-                line={"color": "#303b4a"}, legendgroup="rule", showlegend=index == 0,
-                hovertemplate="Rule curve %{y:.2f} ft<extra></extra>",
-            ), secondary_y=True, **panel)
-            if target.notna().any():
-                figure.add_trace(go.Scatter(
-                    x=days, y=target, name="WAT FIRO target", mode="lines",
-                    line={"color": "#087f8c", "width": 3}, connectgaps=False,
-                    legendgroup="target", showlegend=target_legend,
-                    hovertemplate="WAT FIRO target %{y:.2f} ft<extra></extra>",
-                ), secondary_y=True, **panel)
-                target_legend = False
-            figure.update_xaxes(dtick="M3", tickformat="%b", hoverformat="%b %d", **panel)
             lower, upper = min(rule.min(), target.min()), max(rule.max(), target.max())
             spacing = max((upper - lower) / 5, 1)
             magnitude = 10 ** np.floor(np.log10(spacing))
@@ -147,20 +126,56 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
                 f"{value:,.1f}" if rating.elevation_ft.min() <= tick <= rating.elevation_ft.max() else ""
                 for tick, value in zip(ticks, mapped)
             ]
-            limits = [first, last]
-            figure.update_yaxes(range=limits, tickvals=ticks, ticksuffix=" ft", secondary_y=True, **panel)
-            elevation_axis = figure.get_subplot(row + 1, col + 1, secondary_y=True).yaxis.plotly_name
-            figure.update_yaxes(range=limits, matches=elevation_axis.replace("axis", ""),
-                                tickvals=ticks, ticktext=storage_labels, ticksuffix=" KAF",
-                                showgrid=False, secondary_y=False, **panel)
-        figure.update_layout(
-            title=f"Component {code} · rule curves and WAT FIRO targets",
-            template="plotly_white", height=260 * rows + 80,
-            legend={"orientation": "h", "y": 1.09},
-            margin={"l": 90, "r": 75, "t": 115, "b": 65},
-        )
+            # Plot both curves in elevation coordinates. Mount the left axis
+            # with an invisible point and relabel it with the rating values.
+            figure = go.Figure()
+            figure.add_trace(go.Scatter(
+                x=[days[0]], y=[first], yaxis="y", mode="markers", opacity=0,
+                showlegend=False, hoverinfo="skip",
+            ))
+            figure.add_trace(go.Scatter(
+                x=days, y=rule, yaxis="y2", name="Rule curve", mode="lines",
+                line={"color": "#303b4a"},
+                hovertemplate="Rule curve %{y:.2f} ft<extra></extra>",
+            ))
+            has_target = target.notna().any()
+            if has_target:
+                figure.add_trace(go.Scatter(
+                    x=days, y=target, yaxis="y2", name="WAT FIRO target", mode="lines",
+                    line={"color": "#087f8c", "width": 3}, connectgaps=False,
+                    hovertemplate="WAT FIRO target %{y:.2f} ft<extra></extra>",
+                ))
+            axis_scale = {"range": [first, last], "tickmode": "array", "tickvals": ticks, "fixedrange": True}
+            figure.update_layout(
+                template="plotly_white", height=320, autosize=True,
+                xaxis={"dtick": "M3", "tickformat": "%b", "hoverformat": "%b %d"},
+                yaxis={**axis_scale, "side": "left", "title": "Storage (KAF)",
+                       "ticktext": storage_labels, "showgrid": False},
+                yaxis2={**axis_scale, "side": "right", "title": "Elevation (ft)", "overlaying": "y", "anchor": "x"},
+                legend={"orientation": "h", "y": 1.03, "yanchor": "bottom", "font": {"size": 11}},
+                margin={"l": 77, "r": 77, "t": 58, "b": 45},
+            )
+            chart = figure.to_html(full_html=False, include_plotlyjs=False, config={"responsive": True})
+            note = "" if has_target else '<p class="note">No FIRO target</p>'
+            panels.append(f'<section><h2>{escape(name)}</h2>{note}{chart}</section>')
+
         filename = f"component_{code}.html"
-        figure.write_html(directory / filename, include_plotlyjs="directory")
+        (directory / filename).write_text(
+            '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            f'<title>Component {code} rule curves</title><script src="plotly.min.js"></script>'
+            '<style>body{margin:24px;font:16px system-ui;color:#243142}'
+            'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,490px),1fr));gap:20px}'
+            'section{min-width:0;border:1px solid #dce2e8;border-radius:8px}'
+            'section h2{margin:12px 16px 0;font-size:18px}.note{margin:4px 16px;color:#536477}'
+            '</style></head><body><p><a href="index.html">All components</a></p>'
+            f'<h1>Component {code} rule curves and WAT FIRO targets</h1>'
+            '<main>' + "".join(panels) + '</main>'
+            '<script>window.addEventListener("load", () => {'
+            'document.querySelectorAll(".js-plotly-plot").forEach(plot => Plotly.Plots.resize(plot));'
+            '});</script></body></html>',
+            encoding="utf-8",
+        )
         utilization = f"../utilization_ribbon_overview/alternative_{alternative_id:02d}_utilization_ribbon_overview.html"
         links.append(
             f'<li>Component {code} · <a href="{filename}">Rule curves and FIRO targets</a>'
