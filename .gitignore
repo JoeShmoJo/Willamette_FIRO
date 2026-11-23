@@ -144,6 +144,5 @@ dmypy.json
 !/Archive/**/
 !/Archive/**/README.txt
 
-# Optional FIRO debug exports are rebuilt on request, not committed results.
-/FIRO_COMPONENTS/outputs/diagnostics/extra/
-/FIRO_COMPONENTS/outputs/diagnostics/plots/
+# FIRO system-alternative plots and diagnostics can be regenerated locally.
+/FIRO_COMPONENTS/outputs/diagnostics/

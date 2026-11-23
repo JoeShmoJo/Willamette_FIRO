@@ -17,9 +17,11 @@ Both `model` and `all` rebuild these final files. Alternative 5 has no curve out
 All intermediate tables, QA reports, plots and comparison data are kept separately
 in `outputs/diagnostics/`.
 
-## Start here
+## System-alternative review
 
-Open `outputs/diagnostics/review/index.html`. It links to:
+To recreate the local system-alternative plots and diagnostics, run
+`python FIRO_COMPONENTS/run.py all` from the repository root. Then open
+`outputs/diagnostics/review/index.html`. It links to:
 
 - **Utilization overview:** the default reservoir/control-point daily overview.
 - **Controller diagnostics:** constraint status and the component controlling each envelope.
