@@ -172,8 +172,8 @@ companion files.
 Add `--review` to build a local interactive review from the same single-component
 cases. Open `outputs/wat_components/diagnostics/review/index.html`. The plots
 include rule-curve overlays using the exact targets in the WAT CSVs. The right
-ticks are evenly spaced elevations; the aligned left labels are storage in KAF
-from each reservoir's rating. Each component links directly to reservoir draft
+ticks are evenly spaced elevations; the aligned left labels show storage above MinCon in KAF
+from each reservoir's rating, with zero at MinCon. Each component links directly to reservoir draft
 and downstream space use. The utilization plots compare daily offsets against
 both assigned and physical reservoir limits and the downstream space limit. The before/after selector compares the two
 allocation passes. The WAT CSVs use the after-reallocation case. The downstream

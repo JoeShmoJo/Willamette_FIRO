@@ -11,10 +11,7 @@ Each alternative page contains:
    - daily unrouted FIRO-space loading;
    - static control-point limit.
 
-3. One unified capacity-constraint ribbon:
-   - reservoir and control-point rows together.
-
-4. One envelope-controller ribbon:
+3. One envelope-controller ribbon:
    - one row per reservoir;
    - identifies Rule Curve, A, C, E, H, I, J, or K as the
      curve controlling the combined FIRO envelope on each day.
@@ -69,83 +66,6 @@ INCLUDE_PLOTLY_JS = "directory"
 # =============================================================================
 # STATUS MAPPING
 # =============================================================================
-
-def map_reservoir_status(
-    status_code: int,
-    status_label: str,
-) -> tuple[int, str]:
-    """
-    Convert reservoir status to common capacity-ribbon code.
-
-    Common ribbon codes:
-        0 = no active FIRO space
-        1 = geometry / headroom remains
-        2 = near a capacity limit
-        3 = assigned allocation binding
-        4 = physical or control-point limit binding
-    """
-    if status_code == 0:
-        return 0, "No active FIRO space"
-
-    if status_code == 1:
-        return 1, status_label
-
-    if status_code in {2, 4}:
-        return 2, status_label
-
-    if status_code == 3:
-        return 3, status_label
-
-    if status_code == 5:
-        return 4, status_label
-
-    return 1, status_label
-
-
-def map_control_point_status(
-    status_code: int,
-    status_label: str,
-) -> tuple[int, str]:
-    """
-    Convert control-point status to common capacity-ribbon code.
-    """
-    if status_code == 0:
-        return 0, "No active FIRO loading"
-
-    if status_code == 1:
-        return 1, status_label
-
-    if status_code == 2:
-        return 2, status_label
-
-    if status_code == 3:
-        return 4, status_label
-
-    return 1, status_label
-
-
-def capacity_ribbon_colors() -> list[list[object]]:
-    """
-    Common capacity ribbon:
-        gray   = no FIRO/loading
-        white  = geometry/headroom
-        amber  = near limit
-        purple = assigned allocation binding
-        red    = physical/control-point binding
-    """
-    return [
-        [0.00, "#d9d9d9"],
-        [0.19, "#d9d9d9"],
-        [0.20, "#ffffff"],
-        [0.39, "#ffffff"],
-        [0.40, "#f4c542"],
-        [0.59, "#f4c542"],
-        [0.60, "#7b4fa3"],
-        [0.79, "#7b4fa3"],
-        [0.80, "#c00000"],
-        [1.00, "#c00000"],
-    ]
-
 
 CONTROLLER_CODE = {
     "RULE_CURVE": 0,
@@ -256,13 +176,12 @@ def build_overview(
     reservoir_count = len(reservoir_limits)
     control_point_count = len(control_point_limits)
 
-    reservoir_ribbon_row = reservoir_count + control_point_count + 1
-    controller_ribbon_row = reservoir_count + control_point_count + 2
+    controller_ribbon_row = reservoir_count + control_point_count + 1
     total_rows = controller_ribbon_row
 
     subplot_titles = []
 
-    # Reservoir and control-point plots appear together before both ribbons.
+    # Reservoir and control-point plots precede the controller ribbon.
     for row in reservoir_limits.itertuples():
         subplot_titles.append(
             (
@@ -282,27 +201,24 @@ def build_overview(
         )
 
     subplot_titles.append(
-        "Unified Reservoir and Control-Point Capacity Ribbon"
-    )
-
-    subplot_titles.append(
         "Reservoir Combined-Envelope Controller Ribbon"
     )
 
     row_heights = (
         [1.0] * reservoir_count
         + [1.0] * control_point_count
-        + [0.75, 0.75]
+        + [max(1.8, reservoir_count / 5)]
     )
 
     figure = make_subplots(
         rows=total_rows,
         cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.005,
+        vertical_spacing=54 / (190 * total_rows),
         subplot_titles=subplot_titles,
         row_heights=row_heights,
     )
+    figure.update_annotations(x=0, xanchor="left", yshift=8, font_size=15)
 
     # -------------------------------------------------------------------------
     # Reservoir plots.
@@ -469,143 +385,6 @@ def build_overview(
         )
 
     # -------------------------------------------------------------------------
-    # Unified reservoir + control-point capacity ribbon.
-    # -------------------------------------------------------------------------
-
-    reservoir_ribbon = reservoir_data[
-        [
-            "project_name",
-            "date",
-            "reservoir_status_code",
-            "reservoir_status_label",
-        ]
-    ].copy()
-
-    reservoir_ribbon[
-        "location_label"
-    ] = "Reservoir | " + reservoir_ribbon["project_name"]
-
-    reservoir_ribbon[
-        ["common_status_code", "common_status_label"]
-    ] = reservoir_ribbon.apply(
-        lambda row: pd.Series(
-            map_reservoir_status(
-                int(row["reservoir_status_code"]),
-                str(row["reservoir_status_label"]),
-            )
-        ),
-        axis=1,
-    )
-
-    control_point_ribbon = control_point_data[
-        [
-            "control_point_name",
-            "date",
-            "control_point_status_code",
-            "control_point_status_label",
-        ]
-    ].copy()
-
-    control_point_ribbon[
-        "location_label"
-    ] = (
-        "Control Point | "
-        + control_point_ribbon["control_point_name"]
-    )
-
-    control_point_ribbon[
-        ["common_status_code", "common_status_label"]
-    ] = control_point_ribbon.apply(
-        lambda row: pd.Series(
-            map_control_point_status(
-                int(row["control_point_status_code"]),
-                str(row["control_point_status_label"]),
-            )
-        ),
-        axis=1,
-    )
-
-    combined_ribbon = pd.concat(
-        [
-            reservoir_ribbon[
-                [
-                    "location_label",
-                    "date",
-                    "common_status_code",
-                    "common_status_label",
-                ]
-            ],
-            control_point_ribbon[
-                [
-                    "location_label",
-                    "date",
-                    "common_status_code",
-                    "common_status_label",
-                ]
-            ],
-        ],
-        ignore_index=True,
-    )
-
-    reservoir_location_order = [
-        f"Reservoir | {name}"
-        for name in reservoir_limits["project_name"]
-    ]
-
-    control_point_location_order = [
-        f"Control Point | {name}"
-        for name in control_point_limits["control_point_name"]
-    ]
-
-    combined_location_order = (
-        reservoir_location_order
-        + control_point_location_order
-    )
-
-    capacity_status_matrix = combined_ribbon.pivot(
-        index="location_label",
-        columns="date",
-        values="common_status_code",
-    ).reindex(
-        index=combined_location_order
-    )
-
-    capacity_label_matrix = combined_ribbon.pivot(
-        index="location_label",
-        columns="date",
-        values="common_status_label",
-    ).reindex(
-        index=combined_location_order,
-        columns=capacity_status_matrix.columns,
-    )
-
-    figure.add_trace(
-        go.Heatmap(
-            x=capacity_status_matrix.columns,
-            y=capacity_status_matrix.index,
-            z=capacity_status_matrix.values,
-            customdata=capacity_label_matrix.values,
-            colorscale=capacity_ribbon_colors(),
-            zmin=-0.5,
-            zmax=4.5,
-            showscale=False,
-            hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Date: %{x|%d %b %Y}<br>"
-                "Capacity status: %{customdata}<extra></extra>"
-            ),
-        ),
-        row=reservoir_ribbon_row,
-        col=1,
-    )
-
-    figure.update_yaxes(
-        title_text="Location",
-        row=reservoir_ribbon_row,
-        col=1,
-    )
-
-    # -------------------------------------------------------------------------
     # Reservoir envelope-controller ribbon.
     # -------------------------------------------------------------------------
 
@@ -694,18 +473,13 @@ def build_overview(
             "black dotted = physical reservoir capacity or static "
             "control-point limit."
             "<br>"
-            "Capacity ribbon: gray = no FIRO/loading; "
-            "white = geometry/headroom; amber = near; "
-            "purple = assigned allocation binding; "
-            "red = physical or control-point binding."
-            "<br>"
             "Controller ribbon: gray = Rule Curve; "
             "red = A; blue = C; dark gray = E; green = H; "
             "purple = I; pink = J; orange = K."
             "</sup>"
         ),
         template="plotly_white",
-        height=max(2500, 115 * total_rows + 275),
+        height=190 * total_rows + 230,
         hovermode="x unified",
         margin=dict(l=125, r=55, t=170, b=75),
     )
@@ -773,11 +547,9 @@ a {{
 <h1>FIRO Constraint and Envelope-Controller Review</h1>
 
 <div class="note">
-Each alternative page places physical reservoirs, control points, a unified
-capacity-constraint ribbon, and a combined-envelope controller ribbon on
-one vertically scrollable page. If no reservoir or control-point row is
-purple or red on a date, the selected component geometry and seasonal timing
-are limiting FIRO space rather than a static capacity constraint.
+Each alternative page shows reservoir and control-point plots, followed by the
+controller ribbon. Hover over each plot for its capacity status, or use the
+controller ribbon to see which curve controls the reservoir envelope.
 </div>
 
 <table>

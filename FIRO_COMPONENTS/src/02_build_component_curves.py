@@ -862,11 +862,10 @@ def build_component_e(
         )
     )
 
-    inflection_date = nearest_model_date(
-        mmdd_to_model_date(
-            project["refill_slope_change_mmdd"]
-        )
-    )
+    inflection_date = mmdd_to_model_date(project["refill_slope_change_mmdd"])
+    if inflection_date is None:
+        inflection_date = mmdd_to_model_date("03-01")
+    inflection_date = nearest_model_date(inflection_date)
 
     hit_refill = nearest_model_date(
         mmdd_to_model_date(

@@ -1,22 +1,8 @@
 """
 Build combined reservoir and control-point FIRO utilization overview pages.
 
-Each alternative page includes:
-- one short reservoir plot per physical reservoir;
-- one short control-point plot per control point;
-- one combined utilization ribbon at the bottom.
-
-Ribbon utilization:
-    Green  = 0 to 25 percent of capacity
-    Blue   = greater than 25 to 50 percent
-    Orange = greater than 50 to 90 percent
-    Red    = greater than 90 percent
-
-Reservoir denominator:
-    physical FIRO / evacuation-room capacity.
-
-Control-point denominator:
-    static control-point FIRO-space limit.
+Each alternative page shows daily reservoir FIRO space and downstream
+control-point loading alongside their limits.
 
 This is a no-routing storage-space screen.
 """
@@ -69,42 +55,6 @@ def write_figure(figure: go.Figure, output_path: Path) -> None:
     )
 
 
-def utilization_category(
-    utilization_percent: float,
-) -> tuple[int, str]:
-    """
-    Return categorical utilization code and readable label.
-
-    0 = green
-    1 = blue
-    2 = orange
-    3 = red
-    """
-    if utilization_percent <= 25.0:
-        return 0, "0-25 percent of capacity"
-
-    if utilization_percent <= 50.0:
-        return 1, "26-50 percent of capacity"
-
-    if utilization_percent <= 90.0:
-        return 2, "51-90 percent of capacity"
-
-    return 3, "91-100+ percent of capacity"
-
-
-def ribbon_colors() -> list[list[object]]:
-    return [
-        [0.00, "#2ca02c"],
-        [0.24, "#2ca02c"],
-        [0.25, "#1f77b4"],
-        [0.49, "#1f77b4"],
-        [0.50, "#ff7f0e"],
-        [0.74, "#ff7f0e"],
-        [0.75, "#d62728"],
-        [1.00, "#d62728"],
-    ]
-
-
 def build_overview(
     alternative_id: int,
     alternative_name: str,
@@ -142,8 +92,7 @@ def build_overview(
     reservoir_count = len(reservoir_limits)
     control_point_count = len(control_point_limits)
 
-    ribbon_row = reservoir_count + control_point_count + 1
-    total_rows = ribbon_row
+    total_rows = reservoir_count + control_point_count
 
     subplot_titles = []
 
@@ -165,24 +114,14 @@ def build_overview(
             )
         )
 
-    subplot_titles.append(
-        "Combined Reservoir and Control-Point Utilization Ribbon"
-    )
-
-    row_heights = (
-        [1.0] * reservoir_count
-        + [1.0] * control_point_count
-        + [0.80]
-    )
-
     figure = make_subplots(
         rows=total_rows,
         cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.005,
+        vertical_spacing=54 / (190 * total_rows),
         subplot_titles=subplot_titles,
-        row_heights=row_heights,
     )
+    figure.update_annotations(x=0, xanchor="left", yshift=8, font_size=15)
 
     # -------------------------------------------------------------------------
     # Reservoir plots: daily FIRO space versus physical capacity.
@@ -348,149 +287,7 @@ def build_overview(
             col=1,
         )
 
-    # -------------------------------------------------------------------------
-    # Combined utilization ribbon.
-    # -------------------------------------------------------------------------
-
-    reservoir_ribbon = reservoir_data[
-        [
-            "project_name",
-            "date",
-            "physical_capacity_utilization_percent",
-        ]
-    ].copy()
-
-    reservoir_ribbon["location_label"] = (
-        "Reservoir | "
-        + reservoir_ribbon["project_name"]
-    )
-
-    reservoir_ribbon[
-        ["ribbon_code", "ribbon_label"]
-    ] = reservoir_ribbon.apply(
-        lambda row: pd.Series(
-            utilization_category(
-                float(
-                    row[
-                        "physical_capacity_utilization_percent"
-                    ]
-                )
-            )
-        ),
-        axis=1,
-    )
-
-    control_point_ribbon = control_point_data[
-        [
-            "control_point_name",
-            "date",
-            "control_point_utilization_percent",
-        ]
-    ].copy()
-
-    control_point_ribbon["location_label"] = (
-        "Control Point | "
-        + control_point_ribbon["control_point_name"]
-    )
-
-    control_point_ribbon[
-        ["ribbon_code", "ribbon_label"]
-    ] = control_point_ribbon.apply(
-        lambda row: pd.Series(
-            utilization_category(
-                float(
-                    row[
-                        "control_point_utilization_percent"
-                    ]
-                )
-            )
-        ),
-        axis=1,
-    )
-
-    combined_ribbon = pd.concat(
-        [
-            reservoir_ribbon[
-                [
-                    "location_label",
-                    "date",
-                    "ribbon_code",
-                    "ribbon_label",
-                ]
-            ],
-            control_point_ribbon[
-                [
-                    "location_label",
-                    "date",
-                    "ribbon_code",
-                    "ribbon_label",
-                ]
-            ],
-        ],
-        ignore_index=True,
-    )
-
-    location_order = (
-        [
-            f"Reservoir | {name}"
-            for name in reservoir_limits["project_name"]
-        ]
-        + [
-            f"Control Point | {name}"
-            for name in control_point_limits[
-                "control_point_name"
-            ]
-        ]
-    )
-
-    ribbon_matrix = combined_ribbon.pivot(
-        index="location_label",
-        columns="date",
-        values="ribbon_code",
-    ).reindex(
-        index=location_order
-    )
-
-    label_matrix = combined_ribbon.pivot(
-        index="location_label",
-        columns="date",
-        values="ribbon_label",
-    ).reindex(
-        index=location_order,
-        columns=ribbon_matrix.columns,
-    )
-
-    figure.add_trace(
-        go.Heatmap(
-            x=ribbon_matrix.columns,
-            y=ribbon_matrix.index,
-            z=ribbon_matrix.values,
-            customdata=label_matrix.values,
-            colorscale=ribbon_colors(),
-            zmin=-0.5,
-            zmax=3.5,
-            showscale=False,
-            hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Date: %{x|%d %b %Y}<br>"
-                "Utilization: %{customdata}<extra></extra>"
-            ),
-        ),
-        row=ribbon_row,
-        col=1,
-    )
-
-    figure.update_yaxes(
-        title_text="Location",
-        row=ribbon_row,
-        col=1,
-    )
-
-    figure.update_xaxes(
-        title_text="Date",
-        row=ribbon_row,
-        col=1,
-    )
+    figure.update_xaxes(title_text="Date", row=total_rows, col=1)
 
     figure.update_layout(
         title=(
@@ -500,13 +297,10 @@ def build_overview(
             "Purple dashed = assigned reservoir FIRO allocation. "
             "Black dotted = physical reservoir capacity or "
             "static control-point capacity."
-            "<br>"
-            "Ribbon: green = 0-25%; blue = 26-50%; "
-            "orange = 51-90%; red = 91-100+% of capacity."
             "</sup>"
         ),
         template="plotly_white",
-        height=max(2400, 110 * total_rows + 220),
+        height=190 * total_rows + 200,
         hovermode="x unified",
         margin=dict(l=125, r=55, t=145, b=75),
     )
@@ -531,7 +325,7 @@ def write_index(entries: list[dict]) -> None:
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>FIRO Utilization Ribbon Overview</title>
+<title>FIRO Utilization Overview</title>
 <style>
 body {{
     font-family: Arial, sans-serif;
@@ -575,9 +369,8 @@ a {{
 
 <div class="note">
 Each page places reservoir and control-point KAF plots on one vertically
-scrollable page. The bottom ribbon uses the same percentage scale for every
-reservoir and control point: green 0-25%, blue 26-50%, orange 51-90%, and
-red 91-100+% of its modeled capacity. This is a no-routing FIRO-space screen.
+scrollable page. Hover over a daily curve to see how much of its limit is
+used. Downstream loading is an unrouted FIRO-space screen.
 </div>
 
 <table>

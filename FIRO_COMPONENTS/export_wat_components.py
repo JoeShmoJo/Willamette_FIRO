@@ -137,6 +137,7 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
     days = pd.date_range("2001-01-01", "2001-12-31")
     calendar = pd.MultiIndex.from_arrays([days.month, days.day], names=["Month", "Day"])
     project_names = projects.set_index("project_id")["project_name"]
+    min_con = projects.set_index("project_id")["min_con_elev_ft"]
     elevations = {}
     for project_id, name in project_names.items():
         rule = rule_curves[project_id].copy()
@@ -190,7 +191,8 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             last = max(first + interval, np.ceil(upper / interval) * interval)
             ticks = np.arange(first, last + interval / 2, interval)
             rating = ratings[project_id]
-            mapped = np.interp(ticks, rating.elevation_ft, rating.storage_kaf)
+            min_con_storage = np.interp(min_con.loc[project_id], rating.elevation_ft, rating.storage_kaf)
+            mapped = np.interp(ticks, rating.elevation_ft, rating.storage_kaf) - min_con_storage
             storage_labels = [
                 f"{value:,.1f}" if rating.elevation_ft.min() <= tick <= rating.elevation_ft.max() else ""
                 for tick, value in zip(ticks, mapped)
@@ -218,7 +220,7 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
             figure.update_layout(
                 template="plotly_white", height=320, autosize=True,
                 xaxis={"dtick": "M3", "tickformat": "%b", "hoverformat": "%b %d"},
-                yaxis={**axis_scale, "side": "left", "title": "Storage (KAF)",
+                yaxis={**axis_scale, "side": "left", "title": "Storage above MinCon (KAF)",
                        "ticktext": storage_labels, "showgrid": False},
                 yaxis2={**axis_scale, "side": "right", "title": "Elevation (ft)", "overlaying": "y", "anchor": "x"},
                 legend={"orientation": "h", "y": 1.03, "yanchor": "bottom", "font": {"size": 11}},
@@ -287,7 +289,7 @@ def write_elevation_review(review, projects, rule_curves, exports, ratings):
         '<p>The dark line is the model rule curve. The teal line is the target '
         'from the exported WAT CSV after reallocation. Gaps indicate days '
         'without a WAT FIRO target. Right ticks are evenly spaced elevations in feet. '
-        'Left labels give the rated storage in thousand acre-feet at those same elevations.</p>'
+        'Left labels give storage above MinCon in thousand acre-feet at those same elevations.</p>'
         '<ul>' + "".join(links) + '</ul><p><a href="../index.html">Back to review</a></p>',
         encoding="utf-8",
     )

@@ -92,7 +92,7 @@ select{font-size:16px;padding:6px}#chart{width:100%}.note{max-width:1100px}</sty
 <option value="after" selected>After reallocation</option></select>
 <p>''' + escape(note) + '''</p></div>
 <p class="note">Curves are recalculated separately for each case using the same component rules.
-Limits, dates, envelope controllers and utilization ribbons follow the selected case.
+Limits, dates, and envelope controllers follow the selected case.
 This is an unrouted storage-space screen, not a release simulation.</p>
 <div id="chart"></div><script id="firo-scenarios" type="application/json">''' + figures + '''</script>
 <script>
