@@ -74,7 +74,7 @@ def installed_targets(watershed, names):
     return targets, sources
 
 
-def build_figure(project, rule, rating, colors, targets, show_axis_controls=True):
+def build_figure(project, rule, rating, colors, targets, storage_only=False):
     min_con = project.min_con_elev_ft
     min_storage = np.interp(min_con, rating.elevation_ft, rating.storage_kaf)
     storage_rating = rating.storage_kaf - min_storage
@@ -102,11 +102,19 @@ def build_figure(project, rule, rating, colors, targets, show_axis_controls=True
         add_curve([days[0], days[-1]], [crest, crest], f"Spillway crest ({crest:g} ft)",
                   {"color": "#a1aab6", "dash": "dash", "width": 1.4})
 
+    if not storage_only:
+        # Plotly renders the overlay axis when a trace references it.
+        figure.add_trace(go.Scatter(
+            x=[days[0]], y=[figure.data[0].y[0]], yaxis="y2", mode="markers",
+            customdata=figure.data[0].customdata[:1], opacity=0,
+            showlegend=False, hoverinfo="skip",
+        ))
+
     buttons = []
-    for dimension, label, origin, primary, secondary in (
-        (0, "Even storage ticks", 0, storage_rating, rating.elevation_ft),
-        (1, "Even elevation ticks", min_con, rating.elevation_ft, storage_rating),
-    ):
+    axis_modes = [(0, "Even storage ticks", 0, storage_rating, rating.elevation_ft)]
+    if not storage_only:
+        axis_modes.append((1, "Even elevation ticks", min_con, rating.elevation_ft, storage_rating))
+    for dimension, label, origin, primary, secondary in axis_modes:
         coordinates = [trace.customdata[:, dimension] for trace in figure.data]
         limits = np.concatenate(coordinates)
         low, high = np.nanmin(limits), np.nanmax(limits)
@@ -117,12 +125,21 @@ def build_figure(project, rule, rating, colors, targets, show_axis_controls=True
         positions = dict(range=[low - step / 3, high + step / 3], tickmode="array", tickvals=ticks, fixedrange=True)
         converted = np.interp(ticks, primary, secondary)
         tick_labels = [ticks, converted] if dimension == 0 else [converted, ticks]
+        storage_title = "Storage above MinCon (KAF)"
+        elevation_title = "Elevation (ft)"
+        if not storage_only:
+            storage_title += " · " + ("even ticks" if dimension == 0 else "converted ticks")
+            elevation_title += " · " + ("converted ticks" if dimension == 0 else "even ticks")
         layout = {
-            "yaxis": dict(**positions, title="Storage above MinCon (KAF)", ticktext=[f"{v:,.4g}" for v in tick_labels[0]]),
-            "yaxis2": dict(**positions, title="Elevation (ft)", ticktext=[f"{v:,.1f}".removesuffix(".0") for v in tick_labels[1]],
-                           overlaying="y", side="right", anchor="x", showgrid=False),
+            "yaxis": dict(**positions, title={"text": storage_title}, ticktext=[f"{v:,.4g}" for v in tick_labels[0]]),
         }
-        buttons.append(dict(label=label, method="update", args=[{"y": coordinates}, layout]))
+        if not storage_only:
+            layout["yaxis2"] = dict(
+                **positions, title={"text": elevation_title},
+                ticktext=[f"{v:,.1f}".removesuffix(".0") for v in tick_labels[1]],
+                overlaying="y", side="right", anchor="x", showgrid=False,
+            )
+            buttons.append(dict(label=label, method="update", args=[{"y": coordinates}, layout]))
         if dimension == 0:
             figure.update_layout(**layout)
 
@@ -130,7 +147,7 @@ def build_figure(project, rule, rating, colors, targets, show_axis_controls=True
         title={"text": project.project_name, "x": 0.04},
         template="plotly_white", height=455, hovermode="closest",
         xaxis={"dtick": "M1", "tickformat": "%b", "hoverformat": "%b %d"},
-        updatemenus=[dict(type="buttons", direction="right", x=1, xanchor="right", y=1.18, buttons=buttons, visible=show_axis_controls)],
+        updatemenus=[dict(buttons=buttons, visible=False)] if buttons else [],
         legend={"orientation": "h", "y": -0.17, "x": 0},
         margin={"l": 100, "r": 95, "t": 100, "b": 80},
     )
@@ -193,7 +210,7 @@ def write_alternative_review(output, projects, rules, ratings, colors, targets, 
     for code, table in targets.items():
         figures = []
         for key, project in projects.iterrows():
-            fig = build_figure(project, rules[key], ratings[key], colors, {code: table}, show_axis_controls=False)
+            fig = build_figure(project, rules[key], ratings[key], colors, {code: table})
             inactive = "<p>FIRO is inactive at this reservoir for this alternative.</p>" if table[project.project_name].isna().all() else ""
             figures.append("<section>" + inactive + fig.to_html(
                 full_html=False, include_plotlyjs=False, config={"responsive": True, "displaylogo": False},
@@ -253,7 +270,7 @@ def main():
         if args.review and demo == output:
             parser.error("--output must use a different filename from the demonstration")
         project = projects.loc["LOOKOUT_POINT"]
-        figure = build_figure(project, rules[project.name], ratings[project.name], colors, targets)
+        figure = build_figure(project, rules[project.name], ratings[project.name], colors, targets, storage_only=True)
         figure.write_html(demo, include_plotlyjs=True, config={"responsive": True, "displaylogo": False})
         if args.review:
             write_alternative_review(output, projects, rules, ratings, colors, targets, {}, demonstration=demo)

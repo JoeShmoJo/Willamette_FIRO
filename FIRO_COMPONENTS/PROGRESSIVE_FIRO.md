@@ -116,10 +116,8 @@ Run `compare_k_scaling.py --max-offset --wat-csvs DIRECTORY`, then
 Run `python FIRO_COMPONENTS/plot_lookout_point.py --curves DIRECTORY` after
 generating A, C, E, H, I, J, K, and M. Open the resulting
 `lookout_point_firo_components.html`. Click a legend entry to toggle it or
-double-click to isolate it. The left axis shows storage above MinCon in even increments by default.
-The toggle switches to even elevation increments on the right, with the left
-ticks calculated from the same rating. The dashed
-line marks the 887.5 ft spillway crest.
+double-click to isolate it. The vertical axis shows storage above MinCon in even increments.
+The dashed line marks the 887.5 ft spillway crest.
 
 ## Early spillway geometry for H
 
