@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from plotly.offline import get_plotlyjs
 
 from compare_k_scaling import load_module, shared_limits
-from run import ROOT
+from output_layout import PROGRESSIVE_OUTPUT
 
 
 COMPONENTS = {
@@ -239,14 +239,13 @@ def write_alternative_review(output, projects, rules, ratings, colors, targets, 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    default = ROOT / "outputs/diagnostics/progressive_wat_csvs"
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--curves", type=Path)
     source.add_argument("--watershed", type=Path, help="Read installed PGFIRO overrides and plot all reservoirs")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--review", action="store_true", help="Write one review page per generated alternative")
     args = parser.parse_args()
-    curves = args.curves or default
+    curves = args.curves or PROGRESSIVE_OUTPUT
     projects, rules, ratings, colors = load_plot_inputs()
     names = projects.project_name.tolist()
     filename = "index.html" if args.watershed or args.review else "lookout_point_firo_components.html"

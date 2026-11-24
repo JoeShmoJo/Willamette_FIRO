@@ -1,8 +1,19 @@
 # FIRO outputs
 
-- **[final/](final/README.md)** — final combined curves, one CSV per alternative. Main files are after reallocation; baseline/ contains before reallocation.
-- **diagnostics/review/index.html** — locally generated interactive review landing page. Individual component pages are generated in diagnostics/plotly_component_review/.
-- **diagnostics/scenarios/** — consolidated allocation/rebuild inputs and before/after plot-support data. These feed the review.
-- **diagnostics/extra/** — optional intermediate tables, extra QA and static plots; generated only when requested.
+The progressive WAT workflow writes eight WAT CSVs and all review plots to
+`diagnostics/shared_rule_curves/`. From the repository root, run:
 
-The diagnostics directory is generated locally. Run `python FIRO_COMPONENTS/run.py all` for final curves and the complete review without extra exports. Add `--diagnostics` to retain extras. Use `model` for numerical/final results or `review` to rebuild plots from saved inputs. A later default run removes the generated extra folder.
+```sh
+python FIRO_COMPONENTS/compare_k_scaling.py --wat-csvs
+python FIRO_COMPONENTS/compare_k_scaling.py --wat-csvs --max-offset
+python FIRO_COMPONENTS/plot_lookout_point.py --review
+```
+
+Open `diagnostics/shared_rule_curves/index.html` for the Lookout Point demo and
+the eight component pages. Keep the HTML files and `plotly.min.js` together.
+
+The optional system-alternative workflow (`run.py all`) regenerates combined
+storage curves under `final/` and its review and working tables under
+`diagnostics/`. Its before-reallocation curves go under `final/baseline/`.
+The optional fixed-allocation exporter writes under
+`diagnostics/legacy_fixed_allocation/`. These outputs are generated locally.

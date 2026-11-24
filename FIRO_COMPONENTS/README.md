@@ -8,10 +8,12 @@ see [How optimization works](HOW_OPTIMIZATION_WORKS.md).
 
 ## Final curves
 
-**Use [`outputs/final/`](outputs/final/README.md) for downstream work.** Each
+For the progressive WAT CSVs and plots, see the [output guide](outputs/README.md).
+In the optional system-alternative workflow, each
 `alternative_XX_combined_curves.csv` contains the final capped combined curves
 for all reservoirs in that alternative, after reallocation. Before-reallocation
-versions are in `outputs/final/baseline/`. The guide explains columns and units.
+versions are in `outputs/final/baseline/`. Use `combined_offset_kaf` for FIRO space
+above the rule curve and `combined_storage_kaf` for total storage.
 Both `model` and `all` rebuild these final files. Alternative 5 has no curve output.
 
 All intermediate tables, QA reports, plots and comparison data are kept separately
@@ -138,7 +140,7 @@ For the numerical regression checks after building comparisons:
 python -m unittest discover -s FIRO_COMPONENTS/tests
 ```
 
-## Export single-component WAT curves
+## Optional fixed-allocation WAT comparison
 
 From the repository root, run:
 
@@ -151,7 +153,7 @@ The exporter rebuilds an all-project scenario for each implemented code
 uses the capped after-reallocation storage converted to elevation using the
 same rating table as the model. Dates with no positive offset are blank so
 the FIRO-space rule stands down. The CSVs are written to
-`outputs/wat_components/`, with `Month,Day` and one column per modeled
+`outputs/diagnostics/legacy_fixed_allocation/`, with `Month,Day` and one column per modeled
 reservoir. See [component definitions](HOW_OPTIMIZATION_WORKS.md#component-definitions)
 for the geometry and applicable fallbacks. H applies only to Green Peter,
 Detroit, and Lookout Point. F and G are deferred.
@@ -162,7 +164,7 @@ CSV under the watershed's `scripts/externalRules/` and set
 watershed's `WAT_FIRO_ALTERNATIVES.md` describes the WAT registration and
 companion files.
 
-Add `--review` and open `outputs/wat_components/diagnostics/review/index.html`.
+Add `--review` and open `outputs/diagnostics/legacy_fixed_allocation/diagnostics/review/index.html`.
 Each alternative has one scrollable page with the exported WAT targets over
 the ordinary rule curves. Storage above MinCon is on the left and elevation
 is on the right. The page-wide selector switches the evenly spaced axis.

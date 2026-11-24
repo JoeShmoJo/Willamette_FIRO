@@ -146,5 +146,5 @@ dmypy.json
 
 # FIRO system-alternative plots and diagnostics can be regenerated locally.
 /FIRO_COMPONENTS/outputs/diagnostics/
-/FIRO_COMPONENTS/outputs/wat_components/diagnostics/
-/FIRO_COMPONENTS/outputs/wat_components/final/
+/FIRO_COMPONENTS/outputs/wat_components/
+/FIRO_COMPONENTS/outputs/final/

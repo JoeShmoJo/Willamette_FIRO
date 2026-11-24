@@ -9,6 +9,7 @@ import pandas as pd
 from scipy.optimize import linprog
 
 from export_wat_components import H_PROJECTS
+from output_layout import PROGRESSIVE_OUTPUT
 from run import ROOT
 from shape_preserving_firo import export_component
 
@@ -312,7 +313,8 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/k_scaling_comparison")
     parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
     parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
-    parser.add_argument("--wat-csvs", type=Path, help="Export shape-preserving WAT curves using whole-day K")
+    parser.add_argument("--wat-csvs", type=Path, nargs="?", const=PROGRESSIVE_OUTPUT,
+                        help="Export shape-preserving WAT curves to the default folder or a supplied path")
     single_case = parser.add_mutually_exclusive_group()
     single_case.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
     single_case.add_argument("--only-h", action="store_true", help="Run only the H spillway-crest component")

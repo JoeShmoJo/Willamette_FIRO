@@ -95,7 +95,7 @@ def export_curves(model, destination, codes, projects, builder, ratings):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "outputs/wat_components")
+    parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/legacy_fixed_allocation")
     parser.add_argument(
         "--review", action="store_true",
         help="Write one plot and constraint review page per alternative",
