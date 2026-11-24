@@ -327,6 +327,7 @@ def main():
     single_case = parser.add_mutually_exclusive_group()
     single_case.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
     single_case.add_argument("--only-h", action="store_true", help="Run only the H spillway-crest component")
+    single_case.add_argument("--only-i", action="store_true", help="Run only the I April 1 component")
     args = parser.parse_args()
     if args.max_offset and args.wat_csvs is None:
         parser.error("--max-offset requires --wat-csvs")
@@ -354,7 +355,7 @@ def main():
         args.wat_csvs.mkdir(parents=True, exist_ok=True)
         names = projects.project_name.tolist()
         results = []
-        for code in ("H" if args.only_h else "ACEHIJK"):
+        for code in ("H" if args.only_h else "I" if args.only_i else "ACEHIJK"):
             eligible = projects.loc[projects.index.isin(H_PROJECTS)] if code == "H" else projects
             groups = shared_limits(eligible, units, relationships)
             summary = export_component(code, eligible, names, groups, builder, rules, ratings,
@@ -366,8 +367,8 @@ def main():
         print(f"Shape-preserving WAT CSVs: {args.wat_csvs.resolve()}")
         return
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
-    if args.only_h:
-        cases = [("H", HOURS_PER_DAY)]
+    if args.only_h or args.only_i:
+        cases = [("H" if args.only_h else "I", HOURS_PER_DAY)]
     elif args.all_components:
         cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases
     summary = pd.DataFrame([

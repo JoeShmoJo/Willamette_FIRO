@@ -69,11 +69,11 @@ KAF-days at that floor. It checks every daily downstream and shared reservoir
 limit. There is one component per alternative and one candidate per reservoir.
 
 A changes the flat pool elevation. C changes the refill start. E changes the
-MaxCon arrival date. I varies the April 1 target and refill start. Refill legs
+MaxCon arrival date. I uses a K-style advance through April 1 and a straight
+line to ordinary MaxCon refill after that. Refill legs
 are straight in elevation, with storage calculated from the rating for the
 constraints. J and K choose exact whole-day shifts. H keeps the spillway crest
-geometry. A and I use sampled target levels; I also samples eligible MinCon start
-dates weekly. When the component is below the rule curve, the ordinary curve
+geometry. A uses sampled target levels; I, J, and K test whole-day shifts. When the component is below the rule curve, the ordinary curve
 controls. The separate `--all-components` comparison retains the proportional
 storage-scaling experiment and does not export WAT curves.
 
@@ -144,3 +144,13 @@ CSV named in each installed `PGFIRO_A` through `PGFIRO_M` case override.
 The source table lists each path and a checksum prefix. Blank targets stay
 blank. The rule curve and storage rating are the FIRO model references.
 For evidence of what a specific compute used, check its initialization log.
+
+To regenerate only the April 1 component, run
+`compare_k_scaling.py --only-i --wat-csvs DIRECTORY`, then use
+`install_progressive_wat.py WATERSHED DIRECTORY --refresh-i` to update the
+installed I CSV. The combined optimization can choose a smaller advance than
+the local maximum if nearby reservoir curves compete for shared space. The
+separate fixed-allocation comparison leaves I blank where its preset budget
+cannot fit a valid curve. The shape-preserving WAT export checks the shared
+constraints directly and finds a positive curve for all 11 reservoirs with
+the current inputs.

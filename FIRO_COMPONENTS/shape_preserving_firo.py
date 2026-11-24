@@ -85,17 +85,11 @@ def local_candidates(builder, project, rule, rating, code, samples):
             record(start, np.interp(valid, rate_storage, rate_elevation),
                    f"crest on {parameters['parameter_2_value']}")
     elif code == "I":
-        april = int(days.get_loc(builder.mmdd_to_model_date("04-01")))
-        maximum = min(max_storage, rule_storage[april] + cap)
-        for apex_storage in np.linspace(rule_storage[april], maximum, samples + 1)[1:]:
-            apex = np.interp(apex_storage, rate_storage, rate_elevation)
-            upper = np.linspace(apex, high, merge - april + 1)
-            starts = minima[minima < april]
-            # Keep alternatives at different start dates as well as different
-            # April targets. Later starts can relieve an upstream overlap.
-            for start in np.unique(np.r_[starts[::7], starts[-1:]]):
-                values = np.r_[np.linspace(low, apex, april - start + 1)[:-1], upper]
-                record(start, values, f"{apex:.3f} ft Apr 1, start {days[start]:%b %d}")
+        storage = pd.Series(rule_storage, index=days)
+        for advance, first, values, _, apex in builder.component_i_candidates(
+            project, cap, rule, storage, rating,
+        ):
+            record(first, values, f"{advance} day advance; {apex:.3f} ft Apr 1")
     elif code == "J":
         minimum = int(np.flatnonzero(np.isclose(baseline[drawdown:merge], low, rtol=0, atol=TOLERANCE))[0] + drawdown)
         for delay in range(1, min(minimum - drawdown, refill - minimum) + 1):

@@ -1201,74 +1201,6 @@ def build_component_k(
 
     return best_curve, parameters
 
-def find_earliest_valid_mincon_start(
-    rule_storage,
-    mincon_storage_kaf,
-    inflection_date,
-    inflection_storage_kaf,
-    lower_bound_date,
-):
-    """
-    Find the earliest MinCon start date for a straight lower leg that stays
-    on/above the rule curve and does not exceed the inflection peak offset.
-    """
-    lower_bound_date = nearest_model_date(
-        lower_bound_date
-    )
-
-    inflection_date = nearest_model_date(
-        inflection_date
-    )
-
-    lower_idx = date_index(lower_bound_date)
-    inflection_idx = date_index(inflection_date)
-
-    if inflection_idx <= lower_idx:
-        return None, "INVALID_DATE_WINDOW"
-
-    peak_offset_kaf = (
-        inflection_storage_kaf
-        - rule_storage.loc[inflection_date]
-    )
-
-    if peak_offset_kaf < -0.000001:
-        return None, "INFLECTION_BELOW_RULE_CURVE"
-
-    for start_idx in range(
-        lower_idx,
-        inflection_idx,
-    ):
-        candidate_start = DATES[start_idx]
-
-        line_storage = np.linspace(
-            mincon_storage_kaf,
-            inflection_storage_kaf,
-            inflection_idx - start_idx + 1,
-        )
-
-        rule_values = rule_storage.iloc[
-            start_idx:inflection_idx + 1
-        ].to_numpy()
-
-        offsets = line_storage - rule_values
-
-        lower_ok = np.all(
-            offsets >= -0.000001
-        )
-
-        upper_ok = np.all(
-            offsets <= peak_offset_kaf + 0.000001
-        )
-
-        if lower_ok and upper_ok:
-            return (
-                candidate_start,
-                "EARLIEST_VALID_MINCON_START",
-            )
-
-    return None, "NO_VALID_MINCON_START"
-
-
 def build_component_h(
     project,
     allocation_kaf,
@@ -1354,107 +1286,61 @@ def build_component_h(
     }
 
 
-def build_component_i(
-    project,
-    allocation_kaf,
-    rule_elev,
-    rule_storage,
-    rating,
-):
-    """
-    I: Variable MinCon start -> 01 April inflection -> HitRefill rule curve.
-    """
-    min_con_elev = project["min_con_elev_ft"]
-    max_con_elev = project["max_con_elev_ft"]
+def component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rating):
+    """Yield feasible whole-day K advances with a straight April-to-MaxCon leg."""
+    start, merge, _, _ = component_k_vertices(project, rule_elev, rule_storage, rating)
+    april = date_index(mmdd_to_model_date("04-01"))
+    if not start < april < merge:
+        return
 
-    min_con_storage = elevation_to_storage_kaf(
-        min_con_elev,
-        rating,
+    baseline = rule_elev.to_numpy()
+    storage = rule_storage.to_numpy()
+    low = project["min_con_elev_ft"]
+    high = project["max_con_elev_ft"]
+    rating_elevations = rating["elevation_ft"].to_numpy()
+    rating_storage = rating["storage_kaf"].to_numpy()
+    tolerance = 1e-6
+    for advance in range(1, min(start, merge - start) + 1):
+        first = start - advance
+        source = np.minimum(np.arange(first, april + 1) + advance, merge)
+        lower = baseline[source].copy()
+        lower[0] = low
+        lower[source == merge] = high
+        upper = np.linspace(lower[-1], high, merge - april + 1)
+        elevations = np.r_[lower[:-1], upper]
+        volumes = np.interp(elevations, rating_elevations, rating_storage)
+        offset = volumes - storage[first:merge + 1]
+        if (
+            (elevations < baseline[first:merge + 1] - tolerance).any()
+            or (elevations > high + tolerance).any()
+            or (offset > allocation_kaf + tolerance).any()
+        ):
+            continue
+        yield advance, first, elevations, volumes, lower[-1]
+
+
+def build_component_i(project, allocation_kaf, rule_elev, rule_storage, rating):
+    """Choose the feasible advance with the highest April 1 target."""
+    choice = max(
+        component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rating),
+        key=lambda candidate: candidate[4],
+        default=None,
     )
-
-    max_con_storage = elevation_to_storage_kaf(
-        max_con_elev,
-        rating,
-    )
-
-    drawdown_ends = mmdd_to_model_date(
-        project["drawdown_ends_mmdd"]
-    )
-
-    april_1 = pd.Timestamp("2019-04-01")
-
-    hit_refill = mmdd_to_model_date(
-        project["hit_refill_mmdd"]
-    )
-
-    april_rule_storage = rule_storage.loc[april_1]
-
-    april_target_storage = min(
-        april_rule_storage + allocation_kaf,
-        max_con_storage,
-    )
-
-    april_target_elev = storage_kaf_to_elevation(
-        april_target_storage,
-        rating,
-    )
-
-    mincon_start_date, start_status = (
-        find_earliest_valid_mincon_start(
-            rule_storage=rule_storage,
-            mincon_storage_kaf=min_con_storage,
-            inflection_date=april_1,
-            inflection_storage_kaf=april_target_storage,
-            lower_bound_date=drawdown_ends,
-        )
-    )
-
-    april_peak_offset_kaf = max(0, april_target_storage - april_rule_storage)
-
-    if mincon_start_date is None:
-        # A clipped straight leg can sit at a constant offset above the flat
-        # winter rule curve. Increase the offset gradually toward April 1.
-        winter = rule_storage.loc[drawdown_ends:april_1]
-        minimum_days = winter.index[np.isclose(winter, min_con_storage, rtol=0, atol=1e-6)]
-        mincon_start_date = minimum_days[-1] if len(minimum_days) else drawdown_ends
-        lower_leg = rule_storage.loc[mincon_start_date:april_1]
-        curve = piecewise_curve([
-            (april_1, april_target_storage),
-            (hit_refill, rule_storage.loc[hit_refill]),
-        ])
-        curve.loc[lower_leg.index] = lower_leg + np.linspace(0, april_peak_offset_kaf, len(lower_leg))
-        start_status = "GRADUAL_OFFSET_REFILL_FALLBACK"
+    curve = empty_curve()
+    if choice is None:
+        advance, april_target = 0, np.nan
+        note = "NO_FEASIBLE_I_GEOMETRY: No positive K advance and April-to-MaxCon line fit the project limit."
     else:
-        curve = piecewise_curve([
-            (mincon_start_date, min_con_storage),
-            (april_1, april_target_storage),
-            (hit_refill, rule_storage.loc[hit_refill]),
-        ])
-
-    active = curve.notna()
-
-    curve.loc[active] = np.maximum(
-        rule_storage.loc[active],
-        np.minimum(
-            curve.loc[active],
-            rule_storage.loc[active] + april_peak_offset_kaf,
-        ),
-    )
-
-    parameters = {
-        "parameter_1_name": "mincon_start_date",
-        "parameter_1_value": (
-            mincon_start_date.strftime("%Y-%m-%d")
-        ),
+        advance, first, _, volumes, april_target = choice
+        curve.iloc[first:first + len(volumes)] = volumes
+        note = "K-style refill advance to April 1, then a straight elevation leg to ordinary MaxCon refill."
+    return curve, {
+        "parameter_1_name": "refill_advance_days",
+        "parameter_1_value": advance,
         "parameter_2_name": "april_1_target_elevation_ft",
-        "parameter_2_value": april_target_elev,
-        "geometry_assumption": (
-            "Variable MinCon start -> April 1 target -> "
-            f"HitRefill/rule; start={start_status}."
-        ),
+        "parameter_2_value": april_target,
+        "geometry_assumption": note,
     }
-
-    return curve, parameters
 
 def build_component_j(
     project,

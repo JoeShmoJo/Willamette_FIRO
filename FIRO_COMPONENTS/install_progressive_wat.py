@@ -176,14 +176,14 @@ def install(root, curves, components=COMPONENTS):
         print(f"WAT simulation: PGFIRO_{code}-{PERIOD} (ALL_D)")
 
 
-def refresh_curves(root, curves):
-    """Replace only the seven installed CSVs and keep a recoverable backup."""
+def refresh_curves(root, curves, components=COMPONENTS):
+    """Replace only the selected installed CSVs and keep a recoverable backup."""
     with (ROOT / "data/01_projects_physical.csv").open(encoding="utf-8-sig") as stream:
         projects = list(csv.DictReader(stream))
     names = [row["project_name"] for row in projects]
     h_names = {row["project_name"] for row in projects if row["project_id"] in H_PROJECTS}
     pending = {}
-    for code in COMPONENTS:
+    for code in components:
         alternative = f"PGFIRO_{code}"
         if not (root / "wat/alts" / f"{alternative}.walt").is_file():
             raise FileNotFoundError(f"{alternative} is not installed; install the WAT cases first")
@@ -236,10 +236,12 @@ def main():
                              help="Install only PGFIRO_H")
     single_case.add_argument("--refresh-curves", action="store_true",
                              help="Back up and replace only the installed A–K component CSVs")
+    single_case.add_argument("--refresh-i", action="store_true",
+                             help="Back up and replace only the installed I curve")
     parser.set_defaults(components=COMPONENTS)
     args = parser.parse_args()
-    if args.refresh_curves:
-        refresh_curves(args.watershed.resolve(), args.curves.resolve())
+    if args.refresh_curves or args.refresh_i:
+        refresh_curves(args.watershed.resolve(), args.curves.resolve(), "I" if args.refresh_i else COMPONENTS)
     else:
         install(args.watershed.resolve(), args.curves.resolve(), args.components)
 

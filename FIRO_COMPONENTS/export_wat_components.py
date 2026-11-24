@@ -72,8 +72,12 @@ def export_curves(model, destination, codes, projects, builder, ratings):
         wide = curves.pivot(index=["Month", "Day"], columns="project_id", values="target")
         if not wide.index.equals(calendar):
             raise ValueError(f"Component {code} lacks the expected non-leap calendar")
-        if set(wide.columns[wide.notna().any()]) != expected:
-            raise ValueError(f"Component {code} lacks active targets for its applicable projects")
+        missing = expected - set(wide.columns[wide.notna().any()])
+        if missing:
+            if code != "I":
+                raise ValueError(f"Component {code} lacks active targets for its applicable projects")
+            names = ", ".join(project_names.loc[sorted(missing)])
+            print(f"Component I has no feasible shape under the fixed allocation at: {names}")
         exports[code] = wide.reindex(columns=project_names.index).rename(columns=project_names)
 
     destination.mkdir(parents=True, exist_ok=True)
