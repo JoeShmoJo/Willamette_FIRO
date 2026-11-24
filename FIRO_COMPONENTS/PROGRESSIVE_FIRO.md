@@ -121,3 +121,11 @@ the shared limits before export, since scaling below full size would move
 the crest vertex. Run `compare_k_scaling.py --only-h --wat-csvs DIRECTORY`
 to regenerate only H. For a new H case, add `--only-h` to the installer.
 For an existing case, back up and replace only its progressive H CSV.
+
+To inspect what is installed in a WAT watershed, run
+`python FIRO_COMPONENTS/plot_lookout_point.py --watershed WATERSHED`. Open
+`installed_wat_firo_curves.html` and select a reservoir. The figure reads the
+CSV named in each installed `PGFIRO_A` through `PGFIRO_M` case override.
+The source table lists each path and a checksum prefix. Blank targets stay
+blank. The rule curve and storage rating are the FIRO model references.
+For evidence of what a specific compute used, check its initialization log.
