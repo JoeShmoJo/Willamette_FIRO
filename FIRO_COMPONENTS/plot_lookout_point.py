@@ -163,7 +163,7 @@ def constraint_table(projects, rules, ratings, targets, groups):
     return f"<div class='table'><table><thead><tr><th>Metric</th>{header}</tr></thead><tbody>{body}</tbody></table></div>"
 
 
-def write_alternative_review(output, projects, rules, ratings, colors, targets, source_details, prefix="PGFIRO"):
+def write_alternative_review(output, projects, rules, ratings, colors, targets, source_details, prefix="PGFIRO", demonstration=None):
     allocator = load_module("01_allocate_static_firo_space.py")
     limits, units, points, _, network = allocator.load_inputs()
     _, relationships = allocator.build_control_point_relationships(network, points, [])
@@ -213,7 +213,11 @@ def write_alternative_review(output, projects, rules, ratings, colors, targets, 
               'Plotly.update(chart, data, layout);'
               '}});</script>',
         )
-    write_page(output, "FIRO alternatives", nav)
+    demo_link = (
+        f'<p><a href="{escape(demonstration.name)}">Lookout Point demonstration · all components</a></p>'
+        if demonstration else ""
+    )
+    write_page(output, "FIRO alternatives", demo_link + nav)
 
 
 def main():
@@ -245,12 +249,14 @@ def main():
             code: read_targets(curves / f"FIRO_SPACEConfig_Progressive_{code}.csv", names)[0]
             for code in COMPONENTS
         }
+        demo = output.with_name("lookout_point_firo_components.html") if args.review else output
+        if args.review and demo == output:
+            parser.error("--output must use a different filename from the demonstration")
+        project = projects.loc["LOOKOUT_POINT"]
+        figure = build_figure(project, rules[project.name], ratings[project.name], colors, targets)
+        figure.write_html(demo, include_plotlyjs=True, config={"responsive": True, "displaylogo": False})
         if args.review:
-            write_alternative_review(output, projects, rules, ratings, colors, targets, {})
-        else:
-            project = projects.loc["LOOKOUT_POINT"]
-            figure = build_figure(project, rules[project.name], ratings[project.name], colors, targets)
-            figure.write_html(output, include_plotlyjs=True, config={"responsive": True, "displaylogo": False})
+            write_alternative_review(output, projects, rules, ratings, colors, targets, {}, demonstration=demo)
     print(f"FIRO component plot: {output.resolve()}")
 
 
