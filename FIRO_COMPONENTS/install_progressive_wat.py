@@ -176,6 +176,55 @@ def install(root, curves, components=COMPONENTS):
         print(f"WAT simulation: PGFIRO_{code}-{PERIOD} (ALL_D)")
 
 
+def refresh_curves(root, curves):
+    """Replace only the seven installed CSVs and keep a recoverable backup."""
+    with (ROOT / "data/01_projects_physical.csv").open(encoding="utf-8-sig") as stream:
+        projects = list(csv.DictReader(stream))
+    names = [row["project_name"] for row in projects]
+    h_names = {row["project_name"] for row in projects if row["project_id"] in H_PROJECTS}
+    pending = {}
+    for code in COMPONENTS:
+        alternative = f"PGFIRO_{code}"
+        if not (root / "wat/alts" / f"{alternative}.walt").is_file():
+            raise FileNotFoundError(f"{alternative} is not installed; install the WAT cases first")
+        filename = f"FIRO_SPACEConfig_Progressive_{code}.csv"
+        target = root / "scripts/externalRules" / filename
+        override = root / "scripts/alt_config/WAT" / f"{alternative}.txt"
+        expected_path = f"scripts/externalRules/{filename}"
+        references = re.findall(r'(?m)^\s*firoSpaceConfigCSV\s*:\s*"([^"]+)"',
+                                override.read_text(encoding="utf-8-sig"))
+        if references != [expected_path] or not target.is_file():
+            raise ValueError(f"Unexpected installed curve reference in {override}")
+        expected = h_names if code == "H" else set(names)
+        content = read_curve(curves / filename, expected, names)
+        if content != target.read_bytes():
+            pending[target] = content
+    if not pending:
+        print("The installed WAT curves already match.")
+        return
+    backup = Path(tempfile.mkdtemp(prefix="firo-wat-curves-"))
+    for target in pending:
+        shutil.copy2(target, backup / target.name)
+    replaced = []
+    try:
+        for target, content in pending.items():
+            with tempfile.NamedTemporaryFile(dir=target.parent, suffix=".tmp", delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(content)
+            try:
+                temporary.replace(target)
+            finally:
+                temporary.unlink(missing_ok=True)
+            replaced.append(target)
+    except OSError:
+        for target in replaced:
+            shutil.copy2(backup / target.name, target)
+        raise
+    print(f"Previous WAT curves backed up to: {backup}")
+    for target in replaced:
+        print(f"Updated: {target}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("watershed", type=Path)
@@ -185,9 +234,14 @@ def main():
                              help="Install only the PGFIRO_M benchmark")
     single_case.add_argument("--only-h", dest="components", action="store_const", const="H",
                              help="Install only PGFIRO_H")
+    single_case.add_argument("--refresh-curves", action="store_true",
+                             help="Back up and replace only the installed A–K component CSVs")
     parser.set_defaults(components=COMPONENTS)
     args = parser.parse_args()
-    install(args.watershed.resolve(), args.curves.resolve(), args.components)
+    if args.refresh_curves:
+        refresh_curves(args.watershed.resolve(), args.curves.resolve())
+    else:
+        install(args.watershed.resolve(), args.curves.resolve(), args.components)
 
 
 if __name__ == "__main__":

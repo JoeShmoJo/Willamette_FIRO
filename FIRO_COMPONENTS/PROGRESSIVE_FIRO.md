@@ -4,7 +4,7 @@ Each WAT alternative uses one component. A, C, E, I, J, and K use the
 11 modeled reservoirs. H uses Green Peter, Detroit, and Lookout Point.
 Dexter and Big Cliff are pass-through reservoirs.
 
-## The math
+## The math of the proportional comparison
 
 1. Build a locally feasible curve for each eligible reservoir. Keep the
    candidate with the most KAF-days. Each curve is represented as the
@@ -60,10 +60,22 @@ while A and B keep their full common-factor shares.
 
 ## WAT cases
 
-From the Willamette_FIRO repository root, pass a destination directory to
-`python FIRO_COMPONENTS/compare_k_scaling.py --wat-csvs DIRECTORY`. This runs
-all components and writes seven progressive elevation CSVs. Whole-day K is used
-for WAT. The comparison report also includes the whole-hour K experiment.
+From the Willamette_FIRO repository root, run
+`python FIRO_COMPONENTS/compare_k_scaling.py --wat-csvs DIRECTORY` to generate
+seven shape-preserving elevation CSVs. WAT chooses component parameters, using
+each candidate's fraction of its best local KAF-days to compare reservoirs.
+The solve first maximizes the smallest retained fraction, then maximizes total
+KAF-days at that floor. It checks every daily downstream and shared reservoir
+limit. There is one component per alternative and one candidate per reservoir.
+
+A changes the flat pool elevation. C changes the refill start. E changes the
+MaxCon arrival date. I varies the April 1 target and refill start. Refill legs
+are straight in elevation, with storage calculated from the rating for the
+constraints. J and K choose exact whole-day shifts. H keeps the spillway crest
+geometry. A and I use sampled target levels; I also samples eligible MinCon start
+dates weekly. When the component is below the rule curve, the ordinary curve
+controls. The separate `--all-components` comparison retains the proportional
+storage-scaling experiment and does not export WAT curves.
 
 With WAT closed, run
 `python FIRO_COMPONENTS/install_progressive_wat.py WATERSHED DIRECTORY`
@@ -77,7 +89,10 @@ Open the watershed in WAT and select a `PGFIRO_*-POR_1935-2019` simulation.
 Check that it uses `ALL_D` and that the initialization log names the matching
 `FIRO_SPACEConfig_Progressive_*.csv`. The sizing constraints use unrouted
 storage offsets. Flood performance is evaluated in the routed compute.
-Scaling the storage offsets can change the exact shifted shape of J or K.
+For an existing set of cases, add `--refresh-curves` to the installer command.
+It backs up and replaces only the installed A, C, E, H, I, J, and K CSVs.
+The existing WAT registrations and the constant-offset M case are preserved.
+Recompute any cases that previously used the old curves.
 
 ## Constant-offset benchmark
 
@@ -117,8 +132,8 @@ The builder checks storage using the reservoir rating and reports when no
 two-leg curve fits. It does not use a winter-pool fallback.
 
 The H export uses the project physical limit when choosing dates. It checks
-the shared limits before export, since scaling below full size would move
-the crest vertex. Run `compare_k_scaling.py --only-h --wat-csvs DIRECTORY`
+the shared limits before export and keeps the selected crest at its physical
+elevation. Run `compare_k_scaling.py --only-h --wat-csvs DIRECTORY`
 to regenerate only H. For a new H case, add `--only-h` to the installer.
 For an existing case, back up and replace only its progressive H CSV.
 

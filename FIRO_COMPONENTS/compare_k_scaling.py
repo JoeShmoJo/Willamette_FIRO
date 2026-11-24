@@ -10,6 +10,7 @@ from scipy.optimize import linprog
 
 from export_wat_components import H_PROJECTS
 from run import ROOT
+from shape_preserving_firo import export_component
 
 
 TOLERANCE = 1e-6
@@ -115,9 +116,9 @@ def select_local_curve(builder, project, rule, rating, hours, code, samples):
     return best, best_budget, best_area
 
 
-def export_wat_curve(destination, code, projects, all_names, dates, offsets, builder, rules, ratings):
+def export_max_offset_curve(destination, projects, dates, offsets, builder, rules, ratings):
     """Convert the solved midnight offsets to the WAT generic-year elevation CSV."""
-    targets = pd.DataFrame(index=dates, columns=all_names, dtype=float)
+    targets = pd.DataFrame(index=dates, columns=projects.project_name, dtype=float)
     for index, (project_id, project) in enumerate(projects.iterrows()):
         rating = ratings[project_id]
         rule = rules[project_id]
@@ -125,48 +126,30 @@ def export_wat_curve(destination, code, projects, all_names, dates, offsets, bui
         offset = offsets[::HOURS_PER_DAY, index]
         active = offset > 1e-8
         if not active.any():
-            raise ValueError(f"No daily WAT targets for {code}, {project.project_name}")
+            raise ValueError(f"No daily benchmark targets for {project.project_name}")
         total = base.to_numpy() + offset
         values = np.full(len(dates), np.nan)
         values[active] = np.interp(total[active], rating.storage_kaf, rating.elevation_ft)
-        if code == "M":
-            max_storage = builder.elevation_to_storage_kaf(project.max_con_elev_ft, rating)
-            flat = active & np.isclose(total, max_storage, rtol=0, atol=1e-8)
-            values[flat] = project.max_con_elev_ft
-            next_to_target = np.r_[active[1:], False] | np.r_[False, active[:-1]]
-            contact = ~active & next_to_target & np.isclose(
-                rule, project.max_con_elev_ft, rtol=0, atol=1e-8,
-            )
-            values[contact] = project.max_con_elev_ft
+        max_storage = builder.elevation_to_storage_kaf(project.max_con_elev_ft, rating)
+        flat = active & np.isclose(total, max_storage, rtol=0, atol=1e-8)
+        values[flat] = project.max_con_elev_ft
+        next_to_target = np.r_[active[1:], False] | np.r_[False, active[:-1]]
+        contact = ~active & next_to_target & np.isclose(
+            rule, project.max_con_elev_ft, rtol=0, atol=1e-8,
+        )
+        values[contact] = project.max_con_elev_ft
         if not np.allclose(
             np.interp(values[active], rating.elevation_ft, rating.storage_kaf),
             total[active], rtol=0, atol=TOLERANCE,
         ):
-            raise ValueError(f"Rating round trip changed the scaled {code} curve at {project.project_name}")
-        if code == "H":
-            indices = np.flatnonzero(active)
-            for contact, elevation in (
-                (indices[0] - 1, project.min_con_elev_ft),
-                (indices[-1] + 1, project.max_con_elev_ft),
-            ):
-                if 0 <= contact < len(dates) and np.isclose(rule.iloc[contact], elevation, rtol=0, atol=TOLERANCE):
-                    values[contact] = elevation
-        if code in {"J", "K"}:
-            indices = np.flatnonzero(active)
-            contact = indices[-1] + 1 if code == "J" else indices[0] - 1
-            if 0 <= contact < len(dates) and np.isclose(
-                rule.iloc[contact], project.min_con_elev_ft, rtol=0, atol=TOLERANCE
-            ):
-                values[contact] = project.min_con_elev_ft
+            raise ValueError(f"Rating round trip changed the benchmark curve at {project.project_name}")
         targets[project.project_name] = values
     targets.index = pd.MultiIndex.from_arrays([dates.month, dates.day], names=["Month", "Day"])
     destination.mkdir(parents=True, exist_ok=True)
-    targets.sort_index().to_csv(destination / f"FIRO_SPACEConfig_Progressive_{code}.csv")
+    targets.sort_index().to_csv(destination / "FIRO_SPACEConfig_Progressive_M.csv")
 
 
-def optimize(projects, units, relationships, builder, rules, ratings, code, increment, samples, destination,
-             wat_csvs=None):
-    all_names = projects.project_name
+def optimize(projects, units, relationships, builder, rules, ratings, code, increment, samples, destination):
     if code == "H":
         projects = projects.loc[projects.index.isin(H_PROJECTS)]
     # Evaluate both alternatives on the same hourly grid so the comparison
@@ -238,11 +221,6 @@ def optimize(projects, units, relationships, builder, rules, ratings, code, incr
         "limit_id", "location", "limit_kaf", "peak_kaf", "peak_time",
         "common_peak_kaf", "progressive_peak_kaf", "progressive_peak_time",
     ]).to_csv(destination / f"{case}_limits.csv", index=False)
-
-    if wat_csvs is not None and (code != "K" or increment == HOURS_PER_DAY):
-        if code == "H" and not np.allclose(progressive, 1, rtol=0, atol=1e-8):
-            raise ValueError("H requires a joint timing solution to keep the spillway crest within shared limits")
-        export_wat_curve(wat_csvs, code, projects, all_names, builder.DATES, scaled, builder, rules, ratings)
 
     return {
         "component": code,
@@ -331,8 +309,7 @@ def run_max_offset(projects, units, relationships, builder, rules, ratings, dest
     pd.DataFrame(rows, columns=[
         "limit_id", "location", "limit_kaf", "peak_kaf", "peak_time",
     ]).to_csv(destination / "max_offset_limits.csv", index=False)
-    export_wat_curve(wat_csvs, "M", projects, projects.project_name, builder.DATES,
-                     offsets, builder, rules, ratings)
+    export_max_offset_curve(wat_csvs, projects, builder.DATES, offsets, builder, rules, ratings)
     print(report[["project_name", "constant_offset_kaf", "kaf_days"]].to_string(
         index=False, float_format=lambda value: f"{value:,.2f}",
     ))
@@ -346,7 +323,7 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/diagnostics/k_scaling_comparison")
     parser.add_argument("--all-components", action="store_true", help="Also run A, C, E, H, I and J")
     parser.add_argument("--samples", type=int, default=24, help="Local budget samples for components other than K")
-    parser.add_argument("--wat-csvs", type=Path, help="Export seven progressive WAT curves using whole-day K")
+    parser.add_argument("--wat-csvs", type=Path, help="Export shape-preserving WAT curves using whole-day K")
     single_case = parser.add_mutually_exclusive_group()
     single_case.add_argument("--max-offset", action="store_true", help="Run only the constant-offset benchmark")
     single_case.add_argument("--only-h", action="store_true", help="Run only the H spillway-crest component")
@@ -373,21 +350,34 @@ def main():
     if args.max_offset:
         run_max_offset(projects, units, relationships, builder, rules, ratings, args.output, args.wat_csvs)
         return
+    if args.wat_csvs is not None:
+        args.wat_csvs.mkdir(parents=True, exist_ok=True)
+        names = projects.project_name.tolist()
+        results = []
+        for code in ("H" if args.only_h else "ACEHIJK"):
+            eligible = projects.loc[projects.index.isin(H_PROJECTS)] if code == "H" else projects
+            groups = shared_limits(eligible, units, relationships)
+            summary = export_component(code, eligible, names, groups, builder, rules, ratings,
+                                       args.samples, args.wat_csvs, args.output)
+            results.append(summary)
+            print(pd.DataFrame([summary]).to_string(index=False), flush=True)
+        pd.DataFrame(results).to_csv(args.output / "shape_summary.csv", index=False)
+        print(f"Reports: {args.output.resolve()}")
+        print(f"Shape-preserving WAT CSVs: {args.wat_csvs.resolve()}")
+        return
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
     if args.only_h:
         cases = [("H", HOURS_PER_DAY)]
-    elif args.all_components or args.wat_csvs is not None:
+    elif args.all_components:
         cases = [(code, HOURS_PER_DAY) for code in "ACEHIJ"] + cases
     summary = pd.DataFrame([
         optimize(projects, units, relationships, builder, rules, ratings, code, increment, args.samples,
-                 args.output, args.wat_csvs)
+                 args.output)
         for code, increment in cases
     ])
     summary.to_csv(args.output / "summary.csv", index=False)
     print(summary.to_string(index=False, float_format=lambda value: f"{value:,.4f}"))
     print(f"Reports: {args.output.resolve()}")
-    if args.wat_csvs is not None:
-        print(f"Progressive WAT CSVs: {args.wat_csvs.resolve()}")
 
 
 if __name__ == "__main__":
