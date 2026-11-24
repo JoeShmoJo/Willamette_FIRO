@@ -1,10 +1,34 @@
 # CSV POR comparison handoff
 
-Updated 2026-11-19. See [AGENTS.md](AGENTS.md) for PowerShell and repository
+Updated 2026-11-24. See [AGENTS.md](AGENTS.md) for PowerShell and repository
 standards. [JYTHON](https://github.com/JoeShmoJo/JYTHON/blob/main/POR_WORKFLOW_HANDOFF.md)
 owns ResSim configuration and exports. The user confirmed the three-run
 comparison looked good after running `ALL_D-----0`, `ALL_D-----1`, and
 `ALL_D-----2` in `DAY_POR_Baseline_Proxy`.
+
+## Progressive FIRO and WAT handoff
+
+The Windows analysis checkout is
+`C:\Projects\A_Recent_Projects\Willamette_FIRO_GIT`. The user confirmed
+a clean full merge through `14ed1f5`. The subsequent `336697e` flattening
+was published to GitHub. Whether the Windows checkout pulled that commit
+and moved the generated files was not confirmed.
+
+The progressive generator and review use
+`shared/common_data/Willamette_Rule_Curves.csv` and `ElevStor.csv`.
+The 2001 non-leap schedule is the repeating offline baseline. ResSim still
+gets the `ALL_D` rule curves from the study. Equivalence to the offline
+baseline and a WAT recompute with the latest CSVs remain unverified.
+
+Follow the [output guide](FIRO_COMPONENTS/outputs/README.md) to regenerate
+the eight WAT CSVs and review directly in `FIRO_COMPONENTS/outputs`. Open
+`index.html`. The Lookout Point demonstration uses storage only and has
+all eight component traces. The component pages show storage and elevation
+with axis titles that follow the selected tick spacing, plus the constraint
+and utilization table. All eight CSVs passed the offline reservoir and
+shared-limit checks. Keep the review HTML files and `plotly.min.js` together
+when sharing. See the [progressive workflow](FIRO_COMPONENTS/PROGRESSIVE_FIRO.md)
+for installation and refresh commands.
 
 ## Run the comparison
 
