@@ -4,7 +4,7 @@ import shutil
 
 ROOT = Path(__file__).resolve().parent
 DIAGNOSTICS = ROOT / 'outputs/diagnostics'
-PROGRESSIVE_OUTPUT = DIAGNOSTICS / 'shared_rule_curves'
+PROGRESSIVE_OUTPUT = ROOT / 'outputs'
 MODEL = DIAGNOSTICS / 'scenarios/model'
 MODEL_EXPORTS = {
     '20_direct_control_point_assignments.csv',

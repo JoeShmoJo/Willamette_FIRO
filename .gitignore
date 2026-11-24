@@ -148,3 +148,8 @@ dmypy.json
 /FIRO_COMPONENTS/outputs/diagnostics/
 /FIRO_COMPONENTS/outputs/wat_components/
 /FIRO_COMPONENTS/outputs/final/
+/FIRO_COMPONENTS/outputs/FIRO_SPACEConfig_Progressive_*.csv
+/FIRO_COMPONENTS/outputs/PGFIRO_*.html
+/FIRO_COMPONENTS/outputs/index.html
+/FIRO_COMPONENTS/outputs/lookout_point_firo_components.html
+/FIRO_COMPONENTS/outputs/plotly.min.js
