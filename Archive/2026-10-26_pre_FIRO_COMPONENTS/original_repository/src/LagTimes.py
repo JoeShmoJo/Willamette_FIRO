@@ -8,6 +8,7 @@ July 2026
 
 """
 
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import pickle
@@ -40,11 +41,12 @@ register_matplotlib_converters()
 #CONFIGURATION
 
 CONFIG_FILE = "../config/LagConfig.xlsx" 
-ROUTING_PARAM_FILE = "../data/RoutingParams.xlsx"
+SHARED_DATA = Path(__file__).resolve().parents[4] / "shared/common_data"
+ROUTING_PARAM_FILE = SHARED_DATA / "RoutingParams.xlsx"
 RAMP_RATE_FILE = "../data/RampRates.xlsx"
 DSS_IN_FILE = "../data/HourlyObservedInputs.dss"
 DSS_LOCALFLOW_FILE = "../data/MeldedHourlyDaily_WY1982-2019.dss"
-NAME_ALIAS = "../data/LocationAlias.xlsx"
+NAME_ALIAS = SHARED_DATA / "LocationAlias.xlsx"
 
 FORCE_RELOAD = True
 DATA_PICKLE_FILE = "../data/AllData.pickle" 

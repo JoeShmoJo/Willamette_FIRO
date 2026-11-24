@@ -12,9 +12,10 @@ data: contains required input datasets
 	storage_elevation.xlsx — Storage-elevation rating tables for each reservoir
 	OutputLocalUnreg.dss — HEC-DSS file containing unregulated flow data. This file is not included in the repository because of its size.
 
+Bankfull stages and flows come from `shared/common_data/BankfullValues.csv`.
+
 out: contains analysis outputs
 
-	BankfullValues.csv — Bankfull stages and calculated bankfull flows for each control point
 	EventVolume.pkl — Event-level available FIRO space and event-magnitude results by control point
 	ControlPointsSpace.csv — Estimated available FIRO space limit at each downstream control point for the selected probability of exceedance
 	ReservoirEvacLimits.csv — Estimated seven-day evacuation volume for each reservoir

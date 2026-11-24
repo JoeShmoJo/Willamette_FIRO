@@ -42,9 +42,10 @@ from Utils_Plots import xAxisSeasonal
 from ProbabilityDistributions import LP3Dist, ppfLP3, cdfLP3
 from Utils_Datetime import getDate2001, getWillYr
 
-RULECURVE_CSV_FILE = "../data/common_data/Willamette_Rule_Curves.csv"
-DRAWDOWNCURVE_CSV_FILE = "../data/common_data/Drawdown_Target_Curves.csv"
-ELEV_STOR_CSV = "../data/common_data/ElevStor.csv" 
+SHARED_DATA = Path(__file__).resolve().parents[4] / "shared/common_data"
+RULECURVE_CSV_FILE = SHARED_DATA / "Willamette_Rule_Curves.csv"
+DRAWDOWNCURVE_CSV_FILE = SHARED_DATA / "Drawdown_Target_Curves.csv"
+ELEV_STOR_CSV = SHARED_DATA / "ElevStor.csv"
 RESERVOIR_ELEV_XLSX = "../data/common_data/Reservoirs.xlsx" 
 RESSIM_OUT_CSV = "../data/ressim_output/2026_10_26/ALL_D.csv.gz"
 RESSIM_OUT_CSV_FIRO = "../data/ressim_output/2026_10_26/FALLFIRO.csv.gz"

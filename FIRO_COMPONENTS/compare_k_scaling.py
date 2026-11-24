@@ -328,7 +328,7 @@ def main():
     projects = projects.set_index("project_id")
     issues = []
     _, relationships = allocator.build_control_point_relationships(network, control_points, issues)
-    rule_table = pd.read_csv(builder.RULE_CURVES_FILE, encoding="utf-8-sig")
+    rule_table = builder.read_rule_curves()
     ratings = builder.build_rating_lookup(builder.read_storage_ratings(), issues)
     rules = builder.build_rule_curve_lookup(rule_table, ratings, issues)
     if any(issue["severity"] == "ERROR" for issue in issues):

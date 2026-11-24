@@ -8,7 +8,7 @@ Inputs
 ------
 data/
     01_projects_physical.csv
-    03_rule_curves_long.csv
+    ../shared/common_data/Willamette_Rule_Curves.csv
     ../shared/common_data/ElevStor.csv (normalized on load)
     12_alternative_component_selections.csv
 
@@ -59,7 +59,7 @@ PHYSICAL_PROJECTS_FILE = (
 )
 
 RULE_CURVES_FILE = (
-    DATA_DIRECTORY / "03_rule_curves_long.csv"
+    PROJECT_ROOT.parent / "shared/common_data/Willamette_Rule_Curves.csv"
 )
 
 STORAGE_ELEVATION_FILE = (
@@ -234,6 +234,21 @@ def read_storage_ratings():
     return ratings
 
 
+def read_rule_curves():
+    """Use the shared 2001 daily schedule for recurring non-leap WAT targets."""
+    source = pd.read_csv(RULE_CURVES_FILE, parse_dates=["Date"])
+    dates = pd.date_range("2001-01-01", "2001-12-31", freq="D")
+    annual = source.loc[source.Date.dt.year.eq(2001)].set_index("Date").sort_index()
+    if not annual.index.equals(dates) or annual.isna().any().any():
+        raise ValueError("The shared rule curves must supply all daily elevations for 2001.")
+    annual.index = annual.index.strftime("%m-%d").rename("month_day")
+    rules = annual.reset_index().melt(
+        id_vars="month_day", var_name="project_name", value_name="rule_elevation_ft",
+    )
+    rules["project_id"] = rules.project_name.map(canonical_id)
+    return rules
+
+
 def load_inputs():
     """Load all required data sources."""
     projects = pd.read_csv(
@@ -241,10 +256,7 @@ def load_inputs():
         encoding="utf-8-sig",
     )
 
-    rule_curves = pd.read_csv(
-        RULE_CURVES_FILE,
-        encoding="utf-8-sig",
-    )
+    rule_curves = read_rule_curves()
 
     ratings = read_storage_ratings()
 
@@ -767,10 +779,11 @@ def component_e_candidates(project, rule_elev, rule_storage, rating):
     _, merge, _, maximum = component_k_vertices(project, rule_elev, rule_storage, rating)
     anchor = mmdd_to_model_date(project["refill_slope_change_mmdd"]) or mmdd_to_model_date("03-01")
     start = date_index(anchor)
-    base = rule_storage.iloc[start:merge + 1].to_numpy()
-    for arrival in range(start + 1, merge):
+    end = merge - int(rule_storage.iloc[merge] > maximum + 1e-6)
+    base = rule_storage.iloc[start:end + 1].to_numpy()
+    for arrival in range(start + 1, min(merge, end + 1)):
         ramp = np.linspace(base[0], maximum, arrival - start + 1)
-        values = np.r_[ramp, np.full(merge - arrival, maximum)]
+        values = np.r_[ramp, np.full(end - arrival, maximum)]
         offset = values - base
         if (offset < -1e-6).any():
             continue
@@ -896,6 +909,8 @@ def build_component_k(
     best_shift_days = 0
     best_peak_offset_kaf = 0.0
 
+    end = merge_index - int(rule_storage.iloc[merge_index] > max_con_storage + 1e-6)
+
     # Test every possible positive integer day shift on the rising limb.
     for shift_days in range(
         1,
@@ -911,13 +926,13 @@ def build_component_k(
         if first_index < 0:
             continue
         # Shift the MinCon vertex along with the rising limb.
-        source_indices = np.minimum(np.arange(first_index, merge_index + 1) + shift_days, merge_index)
+        source_indices = np.minimum(np.arange(first_index, end + 1) + shift_days, merge_index)
         shifted_storage = rule_storage.iloc[source_indices].to_numpy(copy=True)
         shifted_storage[0] = min_con_storage
         shifted_storage[source_indices == merge_index] = max_con_storage
-        candidate_curve.iloc[first_index:merge_index + 1] = shifted_storage
-        candidate_segment = candidate_curve.iloc[first_index:merge_index + 1]
-        rule_segment = rule_storage.iloc[first_index:merge_index + 1]
+        candidate_curve.iloc[first_index:end + 1] = shifted_storage
+        candidate_segment = candidate_curve.iloc[first_index:end + 1]
+        rule_segment = rule_storage.iloc[first_index:end + 1]
 
         offsets = (
             candidate_segment.to_numpy()
@@ -1059,7 +1074,7 @@ def build_component_h(
 
 def component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rating):
     """Yield feasible whole-day K advances with a straight April-to-MaxCon leg."""
-    start, merge, _, _ = component_k_vertices(project, rule_elev, rule_storage, rating)
+    start, merge, _, maximum_storage = component_k_vertices(project, rule_elev, rule_storage, rating)
     april = date_index(mmdd_to_model_date("04-01"))
     if not start < april < merge:
         return
@@ -1071,6 +1086,13 @@ def component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rat
     rating_elevations = rating["elevation_ft"].to_numpy()
     rating_storage = rating["storage_kaf"].to_numpy()
     tolerance = 1e-6
+    end = merge
+    crossing = float(merge)
+    if storage[merge] > maximum_storage + tolerance:
+        end -= 1
+        crossing = end + (maximum_storage - storage[end]) / (storage[merge] - storage[end])
+    if crossing <= april:
+        return
     for advance in range(1, min(start, merge - start) + 1):
         first = start - advance
         source = np.minimum(np.arange(first, april + 1) + advance, merge)
@@ -1078,13 +1100,12 @@ def component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rat
         lower[0] = low
         lower[source == merge] = high
         lower_storage = np.interp(lower, rating_elevations, rating_storage)
-        maximum_storage = np.interp(high, rating_elevations, rating_storage)
-        upper = np.linspace(lower_storage[-1], maximum_storage, merge - april + 1)
+        upper = np.interp(np.arange(april, end + 1), [april, crossing], [lower_storage[-1], maximum_storage])
         volumes = np.r_[lower_storage[:-1], upper]
         elevations = np.interp(volumes, rating_storage, rating_elevations)
-        offset = volumes - storage[first:merge + 1]
+        offset = volumes - storage[first:end + 1]
         if (
-            (elevations < baseline[first:merge + 1] - tolerance).any()
+            (elevations < baseline[first:end + 1] - tolerance).any()
             or (elevations > high + tolerance).any()
             or (offset > allocation_kaf + tolerance).any()
         ):

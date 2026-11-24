@@ -113,6 +113,7 @@ def main():
             shutil.copy2(ROOT / filename, model / filename)
         for relative in (
             "shared/common_data/ElevStor.csv",
+            "shared/common_data/Willamette_Rule_Curves.csv",
             "MAX_FIRO_SPACE/out/ControlPointsSpace.csv",
             "MAX_FIRO_SPACE/out/ReservoirEvacLimits.csv",
         ):

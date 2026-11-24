@@ -33,7 +33,7 @@ def load_plot_inputs():
     projects = pd.read_csv(builder.PHYSICAL_PROJECTS_FILE).set_index("project_id")
     issues = []
     ratings = builder.build_rating_lookup(builder.read_storage_ratings(), issues)
-    rules = builder.build_rule_curve_lookup(pd.read_csv(builder.RULE_CURVES_FILE), ratings, issues)
+    rules = builder.build_rule_curve_lookup(builder.read_rule_curves(), ratings, issues)
     if issues:
         raise ValueError(f"Invalid rule-curve inputs: {issues}")
     colors = {**load_module("03_cap_validate_and_plot_curves.py").COMPONENT_COLORS, "M": "#00857c"}

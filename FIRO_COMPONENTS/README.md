@@ -94,17 +94,10 @@ consolidated inputs required to rebuild the review.
 | 15 (using 04, 07) | Two-case component detail and navigation | plotly_component_review/ |
 | 06 | Allocation/QA summary and review landing page | review/index.html and summary tables |
 
-`00_patch_green_peter_rule_curve.py` is an explicit input-patching operation,
-not a routine run step. Saved patch history and preparation records are in `provenance/`; new patch
-outputs go to `outputs/diagnostics/input_patches/`. Only six local input tables remain in
-`data/`; storage ratings and control-point limits are loaded directly from their
-selected sources in `shared/`. See [the input guide](data/README.md) and
-[provenance guide](provenance/README.md). The rating source is now shared/common_data/ElevStor.csv, matching the other
-analysis workflows. This intentionally supersedes the earlier spreadsheet
-source choice; the original pre-cleanup numerical equivalence check described
-below applies only to that earlier deduplication. The initial canonical
-input/network generation is not fully captured here; do not assume this project
-can regenerate those inputs from the shared originals.
+Recurring rule curves and storage ratings come from `shared/common_data`.
+The component model uses the complete 2001 non-leap rule-curve schedule
+as its repeating baseline. See the [input guide](data/README.md) and
+[preparation records](provenance/README.md).
 
 ## Cleanup
 

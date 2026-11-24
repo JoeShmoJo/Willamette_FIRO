@@ -22,9 +22,8 @@ input-comparison tool's active data-folder scan.
 - README_original_input_preparation.txt: original preparation notes, preserved
   as history; filenames and descriptions may refer to the old layout.
 
-The patch script 00 still explicitly modifies the active recurring rule curve,
-with new anchors, audit and timestamped backups written under
-outputs/input_patches/ rather than creating more candidate input files here.
+The Green Peter patch records describe the former local input. Current
+calculations use the shared rule-curve CSV directly.
 
 During cleanup, the complete allocation/geometry/capping/redistribution chain
 was run against both old and new source-loading arrangements in isolated test

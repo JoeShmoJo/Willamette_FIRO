@@ -1,3 +1,5 @@
+The shared rating, rule-curve, drawdown target and workbook inputs are stored at the repository root under shared/common_data. The byte-identical archived copies were removed.
+
 This folder contains data files that are commonly used by different tasks, rather than having these files duplicated in each individual data processing task folder.
 
 ElevStor.csv was exported from the ResSim model on 29Sep2022.
