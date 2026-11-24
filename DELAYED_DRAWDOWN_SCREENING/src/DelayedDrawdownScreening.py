@@ -1,6 +1,8 @@
 """
 Do some screening-level analysis on the FIRO Space Component J (delayed fall drawdown)
 
+Pretty messy script, sorry
+
 Below are some messages from Andy Martin to Ryan Cahill on 10/21/2026 on the background here
 
 Fern Ridge benefits irrigation. We're piloting a slower drawdown this year with the help of the Long Tom watershed council and some local irrigators
@@ -30,6 +32,7 @@ import io
 from pptx import Presentation
 from pptx.util import Inches
 from datetime import timedelta
+import seaborn as sns
 
 # Resolve shared inputs and local outputs independently of the working directory.
 from pathlib import Path
@@ -52,11 +55,15 @@ from WCD_Cartoon_Plots import cartoonWCD, elevToStor
 ##############################################################################
 #USER INPUTS
 
-resvsToPlot = ["Detroit", "Lookout Point", "Fall Creek", "Dorena", "Cottage Grove", "Fern Ridge"]
+resvsToPlot = ["Detroit", "Lookout Point", "Fall Creek", "Fern Ridge"]
 
 RULECURVE_CSV_FILE = SHARED_DATA / "common_data/Willamette_Rule_Curves.csv"
-RESSIM_OUT_CSV = SHARED_DATA / "ressim_output/2026_10_26/ALL_D.csv.gz"
-RESSIM_OUT_CSV_FIRO = SHARED_DATA / "ressim_output/2026_10_26/FALLFIRO.csv.gz"
+#RESSIM_OUT_CSV = SHARED_DATA / "ressim_output/2026_10_26/ALL_D.csv.gz"
+#RESSIM_OUT_CSV_FIRO = SHARED_DATA / "ressim_output/2026_10_26/FALLFIRO.csv.gz"
+#RESSIM_OUT_CSV = SHARED_DATA / "ressim_output/2026_11_05/FIRO_Base-POR_1935-2019.csv.gz"
+RESSIM_OUT_CSV = SHARED_DATA / "ressim_output/2026_11_05/FIRO_Base_NoWithdrawals-POR_1935-2019.csv.gz"
+#RESSIM_OUT_CSV_FIRO = SHARED_DATA / "ressim_output/2026_11_05/FIRO_Test_FIROSpace-POR_1935-2019.csv.gz"
+RESSIM_OUT_CSV_FIRO = SHARED_DATA / "ressim_output/2026_11_05/FIRO_Test_FIROSpaceNoWithdrawals-POR_1935-2019.csv.gz"
 
 dfRuleCurves = pd.read_csv(RULECURVE_CSV_FILE, parse_dates=["Date"], index_col="Date")
 dfResSim = pd.read_csv(RESSIM_OUT_CSV, parse_dates=["Timestamp"])
@@ -100,7 +107,8 @@ def plotSpaghettiOnCartoon():
         
         #Add simulation data as a spaghetti plot
         for yr in range(1936, 2019+1):
-            dfOne = dfResSim.loc[dfResSim["WillYr"]==yr]
+            #dfOne = dfResSim.loc[dfResSim["WillYr"]==yr]
+            dfOne = dfResSimFIRO.loc[dfResSimFIRO["WillYr"]==yr]
             ax.plot(dfOne["Date2001"], elevToStor(dfOne[f"{resvName}__Elev"], resvName), color='gray', alpha=0.2)
         
         #Add a highlight showing the rule curve portion of interest
@@ -174,6 +182,79 @@ def histogramUneven(data_points):
     ax.set_ylabel('Percent of years', fontsize=12, labelpad=10)
     ax.grid(axis='y', linestyle='--', alpha=0.7)
 
+def boxplotExtraDays(dfExtraDays, resvName):
+    """
+    horizontal box plots showing the extra number of days of flows below the threshold
+    using various firo percents
+
+    """
+    df = dfExtraDays.loc[dfExtraDays["Reservoir"]==resvName].copy()
+    # Convert FIRO_Percent to string/category to ensure clean discrete grouping
+    df["FIRO_Percent"] = df["FIRO_Percent"].astype(str)
+    #category_order = [str(x) for x in sorted(firoPcts, reverse=True)]
+    
+    # 2. Set up the figure with NO default gridlines
+    plt.figure(figsize=(10, 6))
+    
+    # 3. Create the box plot (without whiskers and outliers)
+    # - showfliers=False removes outliers
+    # - whis=0 hides the whiskers entirely
+    ax = sns.boxplot(
+        data=df,
+        x="Extra Days",
+        y="FIRO_Percent",
+        orient="h",
+        order=sorted(firoPcts, reverse=True),
+        showfliers=False,  # Remove outliers
+        whis=0,  # Remove whiskers (caps meet the box edges)
+        #showmeans=True,  # Enable showing the mean
+        #meanline=True,  # Draw mean as a line
+        meanprops={
+            "linestyle": "--",
+            "linewidth": 1.5,
+            "color": "red",
+        },  # Style the mean line (red dashed)
+        medianprops={
+            "color": "black",
+            "linewidth": 1.5,
+        }
+    )
+    
+    ax.yaxis.set_major_formatter(PercentFormatter(xmax=1.0, decimals=0))
+    # 4. Apply clean minimal styling (No grid, solid black spines, and ticks)
+    ax.grid(False)  # Remove background gridlines
+    
+    # Remove top and right spines
+    sns.despine(top=True, right=True)
+    
+    # Format the remaining bottom (x) and left (y) axes
+    ax.spines["bottom"].set_color("black")
+    ax.spines["bottom"].set_linewidth(1.5)
+    ax.spines["left"].set_color("black")
+    ax.spines["left"].set_linewidth(1.5)
+    
+    # Ensure axis tick marks are visible, styled, and pointing outward
+    ax.tick_params(axis="both", which="both", colors="black", direction="out", length=6, width=1.5)
+    
+    # 5. Customize labels and layout
+    plt.title(resvName+" Delayed Drawdown", fontsize=14, fontweight="bold", color="black")
+    plt.xlabel("Extra Days below 700 cfs", fontsize=12, color="black")
+    plt.ylabel("FIRO Space, Percent of Conservation Storage", fontsize=12, color="black")
+    
+    # 4. FIX: Format Y-Axis Labels to show as clean percentages (e.g., 5% instead of 0.05)
+    # We format the tick labels using a custom FuncFormatter that maps back to our original category values.
+    def format_pct(x, pos):
+        if 0 <= int(x) < len(firoPcts):
+            val = firoPcts[-(int(x)+1)]
+            # Multiply by 100 to convert decimal (0.05) to percentage (5%)
+            return f"{val * 100:.0f}%"
+        return ""
+    
+    ax.yaxis.set_major_formatter(FuncFormatter(format_pct))
+    
+    plt.tight_layout()
+    plt.show()
+
 ##############################################################################
 #Main Code
 
@@ -199,14 +280,16 @@ plotBarChartPctHitRuleCurve()
 plotSpaghettiOnCartoon()
 
 #Count up number of days greater than 700 cfs at Fall Creek in the fall
+#Fern Ridge also happens to have a limit of 700 cfs
+#Not really using this one as much at the "harder" one below
 dfMerge = pd.merge(dfResSim, dfResSimFIRO, how="inner", on="Timestamp", suffixes=["","_FIRO"])
-for resvName in ["Fall Creek"]:
+for resvName in ["Fall Creek", "Fern Ridge"]:
     endMonth = 10
     if resvName in endMonthDict:
         endMonth = endMonthDict[resvName]
     df = dfMerge.loc[(dfMerge["Timestamp"].dt.month>=9) & (dfMerge["Timestamp"].dt.month<=endMonth)].copy()
-    seriesNumBadDays = df.loc[df[f"Fall Creek__Flow-OUT"] > 701].groupby("WillYr")[f"Fall Creek__Flow-OUT"].count()
-    seriesNumBadDaysFIRO = df.loc[df[f"Fall Creek__Flow-OUT_FIRO"] > 701].groupby("WillYr")[f"Fall Creek__Flow-OUT_FIRO"].count()
+    seriesNumBadDays = df.loc[df[f"{resvName}__Flow-OUT"] > 701].groupby("WillYr")[f"{resvName}__Flow-OUT"].count()
+    seriesNumBadDaysFIRO = df.loc[df[f"{resvName}__Flow-OUT_FIRO"] > 701].groupby("WillYr")[f"{resvName}__Flow-OUT_FIRO"].count()
     dfBadDays = pd.DataFrame(index=np.arange(1935, 2020))
     dfBadDays["Base"] = seriesNumBadDays
     dfBadDays["FIRO"] = seriesNumBadDaysFIRO
@@ -215,10 +298,74 @@ for resvName in ["Fall Creek"]:
     dfBadDays["NumDaysBetter"] = dfBadDays["Base"] - dfBadDays["FIRO"] 
 histogramUneven(dfBadDays["NumDaysBetter"])
 
-#Basic spaghetti of FAL
+
+#Do something harder. For a given FIRO space (as a % of conservation storage),
+#Determine how many extra "good days" we get for each year.
+#Goal is to do this for various FIRO spaces to show how much the scale of the FIRO space gives us
+#Should see diminishing returns
+
+#For each year, find the date that we first exceed x kaf above rule curve
+dfsToSave = []
+#firoPcts = np.arange(0.05, 0.30, 0.05)
+firoPcts = np.array([.02, .04, .06, .08, .10])
+for resvName in ["Fall Creek", "Fern Ridge"]:
+#for resvName in ["Fern Ridge"]:
+    conStorKAFDict = {"Fall Creek": 108,
+                  "Fern Ridge": 94} #hardcode
+    endMonth = 10
+    if resvName in endMonthDict:
+        endMonth = endMonthDict[resvName]
+    df = dfMerge.loc[(dfMerge["Timestamp"].dt.month>=9) & (dfMerge["Timestamp"].dt.month<=endMonth)].copy()
+    rcStors = elevToStor(dfRuleCurves[resvName], resvName=resvName)
+    dfRCStor = pd.DataFrame(index=dfRuleCurves.index, data={"RuleCurveStor":rcStors})
+    df = pd.merge(df, dfRCStor, how='inner', left_on="Timestamp", right_index=True)
+    firoKAFs = firoPcts*conStorKAFDict[resvName]
+    df["SurchargeKAF"] = elevToStor(df[f"{resvName}__Elev_FIRO"], resvName) - df["RuleCurveStor"].values
+    for jj, firoKAF in enumerate(firoKAFs):
+        pd.DataFrame(data={"FIRO_PCT": firoPcts})
+        extraDaysFIROList = []
+        yrs = range(1936, 2019+1)
+        for yr in yrs:
+            dfOne = df.loc[df["Timestamp"].dt.year==yr]
+            #Find the first date we go over x kaf above rule curve
+            #in the firo alt
+            dfAbvThresh = dfOne.loc[dfOne["SurchargeKAF"] > firoKAF]
+            if len(dfAbvThresh) == 0:
+                lastDateFIRO = datetime.datetime(yr, 10, 31)
+            else:
+                lastDateFIRO = dfAbvThresh.iloc[0]["Timestamp"]
+            
+            #Find the last date of good flows in the base alt
+            dfBlwFlowThresh = dfOne.loc[dfOne[f"{resvName}__Flow-OUT"] > 701]
+            if len(dfBlwFlowThresh) == 0:
+                lastDateNoFIRO = datetime.datetime(yr, 10, 31)
+            else:
+                lastDateNoFIRO = dfBlwFlowThresh.iloc[0]["Timestamp"]
+            #Get the extra days
+            extraDaysFIRO = (lastDateFIRO - lastDateNoFIRO).days
+            extraDaysFIROList.append(extraDaysFIRO)
+        dfToSave = pd.DataFrame(data={"Year":yrs, "Extra Days": extraDaysFIROList})
+        dfToSave["FIRO_Percent"] = firoPcts[jj]
+        dfToSave["Reservoir"] = resvName
+        dfsToSave.append(dfToSave)
+
+dfExtraDays = pd.concat(dfsToSave, ignore_index=True)
+    
+
+#Plot up the boxplots
+boxplotExtraDays(dfExtraDays, "Fern Ridge")
+boxplotExtraDays(dfExtraDays, "Fall Creek")
+
+
+#Basic spaghetti
 fig, ax = plt.subplots()
-series = dfResSim[f"Fall Creek__Flow-OUT"]
 for yr in range(1936, 2019+1):
     dfOne = dfResSim.loc[dfResSim["WillYr"]==yr]
-    ax.plot(dfOne["Date2001"], dfOne[f"Fall Creek__Flow-OUT"], color='gray', alpha=0.2)
+    ax.plot(dfOne["Date2001"], dfOne[f"Fern Ridge__Flow-OUT"], color='gray', alpha=0.2)
     
+
+
+
+
+
+

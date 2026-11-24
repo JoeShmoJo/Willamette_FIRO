@@ -86,7 +86,8 @@ def yAxisStorAtKeyElevs(ax, resvName):
     Formats the y-axis the way we want it for stor
     If showElev=True, the secondary y-axis will show elevation
     '''
-    keyElevColNames = ["MinElev","FullPoolElev","MinConElev","MaxConElev","MinPowerPool","InactivePool","IRRMElev","SpillwayCrest"]
+    #keyElevColNames = ["MinElev","FullPoolElev","MinConElev","MaxConElev","MinPowerPool","InactivePool","IRRMElev","SpillwayCrest"]
+    keyElevColNames = ["TopOfDamElev", "MinElev","FullPoolElev","MinConElev","MaxConElev","MinPowerPool","InactivePool","IRRMElev","SpillwayCrest"]
     elevs = sorted(dfReservoirs.loc[dfReservoirs["ReservoirName"] == resvName, keyElevColNames].squeeze().dropna())
     stors = elevToStor(elevs, resvName)
     ax.yaxis.set_major_locator(FixedLocator(stors))
@@ -127,9 +128,19 @@ def cartoonWCD(resvName, startDT=START_DT, endDT=END_DT):
         ax.text(dateOnRight, elevToStor(spillCrestElev-0.5, resvName), "Spillway Crest", ha="right",va="top")
     
     #Shade the various pools
+    topOfDamStor = elevToStor(resv_info_dict[resvName]["TopOfDamElev"], resvName)
+    fullStor = elevToStor(resv_info_dict[resvName]["FullPoolElev"], resvName)
+    #Surcharge pool
+    ax.axhspan(
+        fullStor, 
+        topOfDamStor, 
+        color='tab:brown',             # Selected soft color from the "Cool" palette
+        alpha=0.4,                   # Transparency so background grid is visible
+        zorder=1                     # Places the fill behind the boundary lines
+    )
+    ax.text(datetime.datetime(2001,1,1), (fullStor + topOfDamStor)/2, "Surcharge Pool", ha="center",va="center")
     
     #Flood pool
-    fullStor = elevToStor(resv_info_dict[resvName]["FullPoolElev"], resvName)
     ax.fill_between(
         dfRCStor[resvName].index, 
         fullStor, 
@@ -185,7 +196,7 @@ def cartoonWCD(resvName, startDT=START_DT, endDT=END_DT):
             zorder=1                     # Places the fill behind the boundary lines
         )
         lowStor = minPowerPoolStor
-        ax.text(datetime.datetime(2001,4,15), 0.5*minPowerPoolStor, "Min Power Pool", ha="center", va="center")
+        ax.text(datetime.datetime(2001,4,15), 0.5*minPowerPoolStor, "Power Pool", ha="center", va="center")
     
     #Drawdown pool
     if resvName in dfDrawdownCurves.columns:
@@ -242,7 +253,7 @@ def cartoonWCD(resvName, startDT=START_DT, endDT=END_DT):
     )
     ax.text(datetime.datetime(2001,4,15), (lowStor + minPoolStor)/2, "Inactive Pool", ha="center", va="center")
     
-    ax.set_ylim([minPoolStor, fullStor])
+    ax.set_ylim([minPoolStor, topOfDamStor])
     ax.grid(True, axis='x', alpha=0.5)
     yAxisStorAtKeyElevs(ax, resvName)
     plt.tight_layout()
@@ -264,4 +275,6 @@ for resvName in dfShort.columns:
     dfRCStor[resvName] = elevToStor(dfShort[resvName], resvName)
 
 if __name__ == "main" or __name__ == "__main__":
-    cartoonWCD("Detroit", endDT=datetime.datetime(2001,10,31))
+    #cartoonWCD("Detroit", endDT=datetime.datetime(2001,10,31))
+    cartoonWCD("Hills Creek")
+    cartoonWCD("Lookout Point")
