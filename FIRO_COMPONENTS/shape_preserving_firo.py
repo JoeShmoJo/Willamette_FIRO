@@ -28,6 +28,7 @@ def local_candidates(builder, project, rule, rating, code, samples):
     low, high = project.min_con_elev_ft, project.max_con_elev_ft
     min_storage, max_storage = np.interp([low, high], rate_elevation, rate_storage)
     cap = project.physical_cap_kaf
+
     def index(field):
         return int(days.get_loc(builder.mmdd_to_model_date(project[field])))
 
@@ -68,13 +69,13 @@ def local_candidates(builder, project, rule, rating, code, samples):
         change = builder.mmdd_to_model_date(project.refill_slope_change_mmdd) or builder.mmdd_to_model_date("03-01")
         stop = int(days.get_loc(change))
         for start in minima[minima < stop]:
-            record(start, np.linspace(low, baseline[stop], stop - start + 1), f"refill starts {days[start]:%b %d}")
+            values = np.linspace(min_storage, rule_storage[stop], stop - start + 1)
+            record(start, np.interp(values, rate_storage, rate_elevation), f"refill starts {days[start]:%b %d}")
     elif code == "E":
-        change = builder.mmdd_to_model_date(project.refill_slope_change_mmdd) or builder.mmdd_to_model_date("03-01")
-        start = int(days.get_loc(change))
-        for top in range(start + 1, merge + 1):
-            values = np.r_[np.linspace(baseline[start], high, top - start + 1), np.full(merge - top, high)]
-            record(start, values, f"MaxCon on {days[top]:%b %d}")
+        for start, top, values, _ in builder.component_e_candidates(
+            project, rule, pd.Series(rule_storage, index=days), rating,
+        ):
+            record(start, np.interp(values, rate_storage, rate_elevation), f"MaxCon on {days[top]:%b %d}")
     elif code == "H":
         series, parameters = builder.build_component_h(
             project, cap, rule, pd.Series(rule_storage, index=days), rating,
@@ -162,7 +163,7 @@ def choose_curves(candidates, groups):
     return [choices[i] for i in selected], local_best, floor
 
 
-def export_component(code, projects, names, groups, builder, rules, ratings, samples, curves, reports):
+def export_component(code, projects, names, groups, builder, rules, ratings, samples, curves):
     candidates = [
         local_candidates(builder, row, rules[key], ratings[key], code, samples)
         for key, row in projects.iterrows()
@@ -171,27 +172,15 @@ def export_component(code, projects, names, groups, builder, rules, ratings, sam
     offsets = np.column_stack([choice.offset for choice in chosen])
     if (offsets.max(axis=0) > projects.physical_cap_kaf.to_numpy() + TOLERANCE).any():
         raise ValueError(f"Component {code} exceeds a physical reservoir limit")
-    peaks = []
-    for key, name, limit, members in groups:
+    for _, name, limit, members in groups:
         loading = offsets[:, members].sum(axis=1)
         peak = int(loading.argmax())
         if loading[peak] > limit + TOLERANCE:
             raise ValueError(f"Component {code} exceeds {name} on {builder.DATES[peak]}")
-        peaks.append((key, name, limit, loading[peak], builder.DATES[peak]))
     totals = np.array([choice.area for choice in chosen])
     retained = totals / local_best
     if (retained < floor - 1e-8).any():
         raise ValueError(f"Component {code} failed to protect the common retention floor")
-    report = projects[["project_name"]].copy()
-    report["parameter"] = [choice.parameter for choice in chosen]
-    report["local_kaf_days"] = local_best
-    report["selected_kaf_days"] = totals
-    report["retained_fraction"] = retained
-    report["peak_kaf"] = offsets.max(axis=0)
-    report.to_csv(reports / f"{code.lower()}_shape_reservoirs.csv")
-    pd.DataFrame(peaks, columns=["limit_id", "location", "limit_kaf", "peak_kaf", "peak_date"]).to_csv(
-        reports / f"{code.lower()}_shape_limits.csv", index=False,
-    )
     dates = builder.DATES
     targets = pd.DataFrame(
         {row.project_name: choice.elevation for row, choice in zip(projects.itertuples(), chosen)},

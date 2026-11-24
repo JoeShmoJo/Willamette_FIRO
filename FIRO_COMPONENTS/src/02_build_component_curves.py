@@ -222,6 +222,18 @@ def nearest_model_date(date_value):
 # INPUT LOADERS
 # =============================================================================
 
+def read_storage_ratings():
+    # Use the same ResSim rating table as the other analysis workflows.
+    ratings = pd.read_csv(STORAGE_ELEVATION_FILE).rename(
+        columns={"Reservoir": "project_name", "Elev": "elevation_ft", "Stor": "storage_af"}
+    )
+    ratings["project_id"] = ratings["project_name"].map(canonical_id)
+    ratings["storage_kaf"] = ratings["storage_af"] / 1000.0
+    ratings = ratings[["project_id", "project_name", "elevation_ft", "storage_af", "storage_kaf"]]
+    ratings = ratings.sort_values(["project_id", "elevation_ft"]).reset_index(drop=True)
+    return ratings
+
+
 def load_inputs():
     """Load all required data sources."""
     projects = pd.read_csv(
@@ -234,15 +246,7 @@ def load_inputs():
         encoding="utf-8-sig",
     )
 
-    # Use the same ResSim rating table as the other analysis workflows.
-    ratings = pd.read_csv(STORAGE_ELEVATION_FILE).rename(
-        columns={"Reservoir": "project_name", "Elev": "elevation_ft", "Stor": "storage_af"}
-    )
-    ratings["project_id"] = ratings["project_name"].map(canonical_id)
-    ratings["storage_kaf"] = ratings["storage_af"] / 1000.0
-    ratings = ratings[["project_id", "project_name", "elevation_ft", "storage_af", "storage_kaf"]]
-    ratings = ratings.sort_values(["project_id", "elevation_ft"]).reset_index(drop=True)
-
+    ratings = read_storage_ratings()
 
     selections = pd.read_csv(
         COMPONENT_SELECTIONS_FILE,
@@ -263,9 +267,9 @@ def load_inputs():
     )
 
 
-def build_rule_curve_lookup(rule_curves, issues):
+def build_rule_curve_lookup(rule_curves, ratings, issues):
     """
-    Build one daily elevation rule curve per project.
+    Interpolate rule-curve vertices in storage and return daily elevations.
     """
     lookup = {}
 
@@ -293,6 +297,8 @@ def build_rule_curve_lookup(rule_curves, issues):
             index=group["date"],
         )
 
+        rating = ratings[project_id]
+        series = series.map(lambda value: elevation_to_storage_kaf(value, rating))
         series = (
             series
             .groupby(level=0)
@@ -313,7 +319,7 @@ def build_rule_curve_lookup(rule_curves, issues):
                 project_id,
             )
 
-        lookup[project_id] = series
+        lookup[project_id] = series.map(lambda value: storage_kaf_to_elevation(value, rating))
 
     return lookup
 
@@ -703,30 +709,9 @@ def build_component_c(
     rule_storage,
     rating,
 ):
-    """
-    C: Straight refill guide curve.
-
-    Geometry is linear in elevation:
-
-        MinCon elevation at calculated C start date
-            ->
-        rule-curve elevation at RefillSlopeChange
-
-    Each daily elevation is converted to storage through the rating curve.
-    """
-    min_con_elev = project["min_con_elev_ft"]
-
-    min_con_storage = elevation_to_storage_kaf(
-        min_con_elev,
-        rating,
-    )
-
+    """Build a straight storage ramp from MinCon to the refill anchor."""
+    min_con_storage = elevation_to_storage_kaf(project["min_con_elev_ft"], rating)
     target_storage = min_con_storage + allocation_kaf
-
-    target_elev = storage_kaf_to_elevation(
-        target_storage,
-        rating,
-    )
 
     start_refill = mmdd_to_model_date(
         project["start_refill_mmdd"]
@@ -740,71 +725,24 @@ def build_component_c(
         project["drawdown_ends_mmdd"]
     )
 
-    end_elev = rule_elev.loc[slope_change]
-
-    days_between = (
-        slope_change - start_refill
-    ).days
-
-    if days_between <= 0 or end_elev <= target_elev:
+    slope_change = slope_change or mmdd_to_model_date("03-01")
+    end_storage = rule_storage.loc[slope_change]
+    days_between = (slope_change - start_refill).days
+    if days_between <= 0 or end_storage <= target_storage:
         calculated_start = drawdown_end
         status = "FALLBACK_DRAWDOWN_END"
-
     else:
-        slope_ft_per_day = (
-            end_elev - target_elev
-        ) / days_between
-
-        days_to_min_con = (
-            target_elev - min_con_elev
-        ) / slope_ft_per_day
-
-        calculated_start = (
-            start_refill
-            - pd.to_timedelta(
-                days_to_min_con,
-                unit="D",
-            )
-        )
-
+        slope = (end_storage - target_storage) / days_between
+        calculated_start = start_refill - pd.to_timedelta(allocation_kaf / slope, unit="D")
+        status = "CALCULATED"
         if calculated_start < drawdown_end:
             calculated_start = drawdown_end
             status = "CAPPED_AT_DRAWDOWN_END"
-        else:
-            status = "CALCULATED"
 
-    calculated_start = nearest_model_date(
-        calculated_start
-    )
-
-    start_idx = date_index(calculated_start)
-    end_idx = date_index(slope_change)
-
+    calculated_start = nearest_model_date(calculated_start)
+    start_idx, end_idx = map(date_index, (calculated_start, slope_change))
     curve = empty_curve()
-
-    # Straight line in elevation, not in KAF storage.
-    daily_elevations = np.linspace(
-        min_con_elev,
-        end_elev,
-        end_idx - start_idx + 1,
-    )
-
-    daily_storages = np.array([
-        elevation_to_storage_kaf(
-            elevation,
-            rating,
-        )
-        for elevation in daily_elevations
-    ])
-
-    curve.iloc[
-        start_idx:end_idx + 1
-    ] = daily_storages
-
-    # Force exact daily rule-curve convergence at RefillSlopeChange.
-    curve.loc[slope_change] = rule_storage.loc[
-        slope_change
-    ]
+    curve.iloc[start_idx:end_idx + 1] = np.linspace(min_con_storage, end_storage, end_idx - start_idx + 1)
 
     parameters = {
         "parameter_1_name": "calculated_start_date",
@@ -816,7 +754,7 @@ def build_component_c(
             slope_change.strftime("%Y-%m-%d")
         ),
         "geometry_assumption": (
-            "Straight line in elevation from MinCon to rule curve "
+            "Straight line in storage from MinCon to rule curve "
             f"at RefillSlopeChange; {status}."
         ),
     }
@@ -824,211 +762,44 @@ def build_component_c(
     return curve, parameters
 
 
-def build_component_e(
-    project,
-    allocation_kaf,
-    rule_elev,
-    rule_storage,
-    rating,
-):
-    """
-    E: RefillSlopeChange to MaxCon.
-
-    Geometry:
-        RefillSlopeChange rule-curve point
-        -> elevation-linear rise to MaxCon
-        -> horizontal hold at MaxCon
-        -> merge when the rule curve reaches MaxCon.
-
-    The MaxCon-arrival date is variable. Each candidate arrival date is
-    evaluated. The selected curve has the greatest feasible peak FIRO offset;
-    KAF-days is used as a tie-breaker.
-
-    A feasible E curve must:
-        - remain on or above the rule curve;
-        - remain at or below MaxCon;
-        - not exceed the allocated FIRO-space cap.
-    """
-    max_con_elev = project["max_con_elev_ft"]
-
-    max_con_storage = elevation_to_storage_kaf(
-        max_con_elev,
-        rating,
-    )
-
-    start_refill = nearest_model_date(
-        mmdd_to_model_date(
-            project["start_refill_mmdd"]
-        )
-    )
-
-    inflection_date = mmdd_to_model_date(project["refill_slope_change_mmdd"])
-    if inflection_date is None:
-        inflection_date = mmdd_to_model_date("03-01")
-    inflection_date = nearest_model_date(inflection_date)
-
-    hit_refill = nearest_model_date(
-        mmdd_to_model_date(
-            project["hit_refill_mmdd"]
-        )
-    )
-
-    # Use the actual rising-limb MaxCon crossing as the merge point.
-    merge_date = find_crossing_date(
-        rule_elev,
-        max_con_elev,
-        start_refill,
-        hit_refill,
-        "rising",
-    )
-
-    if merge_date is None:
-        merge_date = hit_refill
-    else:
-        merge_date = nearest_model_date(merge_date)
-
-    inflection_index = date_index(inflection_date)
-    merge_index = date_index(merge_date)
-
-    empty_curve = pd.Series(
-        np.nan,
-        index=DATES,
-        dtype=float,
-    )
-
-    if merge_index <= inflection_index:
-        parameters = {
-            "parameter_1_name": "maxcon_arrival_date",
-            "parameter_1_value": "",
-            "parameter_2_name": "peak_offset_kaf",
-            "parameter_2_value": 0.0,
-            "geometry_assumption": (
-                "NO_FEASIBLE_E_GEOMETRY: MaxCon merge date is not after "
-                "RefillSlopeChange."
-            ),
-        }
-
-        return empty_curve, parameters
-
-    start_elev = rule_elev.loc[inflection_date]
-
-    best_curve = None
-    best_arrival_date = None
-    best_peak_offset_kaf = -np.inf
-    best_score_kaf_days = -np.inf
-
-    # Test every day on which E could first reach MaxCon.
-    for arrival_index in range(
-        inflection_index + 1,
-        merge_index + 1,
-    ):
-        arrival_date = DATES[arrival_index]
-
-        candidate_curve = pd.Series(
-            np.nan,
-            index=DATES,
-            dtype=float,
-        )
-
-        # Rising E leg is linear in elevation.
-        rising_elevations = np.linspace(
-            start_elev,
-            max_con_elev,
-            arrival_index - inflection_index + 1,
-        )
-
-        rising_storage = np.asarray(
-            [
-                elevation_to_storage_kaf(
-                    elevation,
-                    rating,
-                )
-                for elevation in rising_elevations
-            ],
-            dtype=float,
-        )
-
-        candidate_curve.iloc[
-            inflection_index:arrival_index + 1
-        ] = rising_storage
-
-        # Hold at MaxCon until the ordinary rule curve reaches MaxCon.
-        candidate_curve.iloc[
-            arrival_index:merge_index + 1
-        ] = max_con_storage
-
-        candidate_segment = candidate_curve.iloc[
-            inflection_index:merge_index + 1
-        ]
-
-        rule_segment = rule_storage.iloc[
-            inflection_index:merge_index + 1
-        ]
-
-        offsets = (
-            candidate_segment.to_numpy()
-            - rule_segment.to_numpy()
-        )
-
-        # E cannot be below the rule curve.
-        if np.any(offsets < -0.000001):
+def component_e_candidates(project, rule_elev, rule_storage, rating):
+    """Yield storage ramps from the rising-limb anchor to MaxCon."""
+    _, merge, _, maximum = component_k_vertices(project, rule_elev, rule_storage, rating)
+    anchor = mmdd_to_model_date(project["refill_slope_change_mmdd"]) or mmdd_to_model_date("03-01")
+    start = date_index(anchor)
+    base = rule_storage.iloc[start:merge + 1].to_numpy()
+    for arrival in range(start + 1, merge):
+        ramp = np.linspace(base[0], maximum, arrival - start + 1)
+        values = np.r_[ramp, np.full(merge - arrival, maximum)]
+        offset = values - base
+        if (offset < -1e-6).any():
             continue
-
-        peak_offset_kaf = float(np.nanmax(offsets))
-
-        # E cannot exceed its assigned FIRO-space cap.
-        if peak_offset_kaf > allocation_kaf + 0.000001:
+        if offset[arrival - start] < offset.max() - 1e-6:
             continue
+        yield start, arrival, values, offset
 
-        score_kaf_days = float(np.nansum(offsets))
 
-        # Primary: largest feasible peak KAF.
-        # Secondary: largest useful FIRO KAF-days.
-        if (
-            peak_offset_kaf > best_peak_offset_kaf + 0.000001
-            or (
-                abs(peak_offset_kaf - best_peak_offset_kaf)
-                <= 0.000001
-                and score_kaf_days > best_score_kaf_days
-            )
-        ):
-            best_curve = candidate_curve
-            best_arrival_date = arrival_date
-            best_peak_offset_kaf = peak_offset_kaf
-            best_score_kaf_days = score_kaf_days
-
-    if best_curve is None or best_peak_offset_kaf <= 1e-8:
-        # The uncapped straight leg can be infeasible on a curved rating/rule
-        # combination. Retain the geometry where possible under the daily cap.
-        best_arrival_date = DATES[inflection_index + 1]
-        candidate = flat_curve(best_arrival_date, merge_date, max_con_storage)
-        candidate.loc[inflection_date] = rule_storage.loc[inflection_date]
-        active = candidate.notna()
-        candidate.loc[active] = np.maximum(
-            rule_storage.loc[active],
-            np.minimum(candidate.loc[active], rule_storage.loc[active] + allocation_kaf),
-        )
-        return candidate, {
-            "parameter_1_name": "maxcon_arrival_candidate",
-            "parameter_1_value": best_arrival_date.strftime("%Y-%m-%d"),
-            "parameter_2_name": "peak_offset_kaf",
-            "parameter_2_value": float((candidate - rule_storage).max()),
-            "geometry_assumption": "CAP_LIMITED_E: MaxCon upper target clipped to the daily allocation.",
-        }
-
-    parameters = {
+def build_component_e(project, allocation_kaf, rule_elev, rule_storage, rating):
+    """Choose the earliest MaxCon day that fits the allocation."""
+    curve = empty_curve()
+    arrival_date = ""
+    peak = 0.0
+    for start, arrival, values, offset in component_e_candidates(project, rule_elev, rule_storage, rating):
+        if offset.max() <= allocation_kaf + 1e-6:
+            curve.iloc[start:start + len(values)] = values
+            arrival_date = DATES[arrival].strftime("%Y-%m-%d")
+            peak = float(offset.max())
+            break
+    return curve, {
         "parameter_1_name": "maxcon_arrival_date",
-        "parameter_1_value": best_arrival_date.strftime("%Y-%m-%d"),
+        "parameter_1_value": arrival_date,
         "parameter_2_name": "peak_offset_kaf",
-        "parameter_2_value": best_peak_offset_kaf,
+        "parameter_2_value": peak,
         "geometry_assumption": (
-            "Elevation-linear RefillSlopeChange-to-MaxCon rise; "
-            "horizontal MaxCon hold to rule-curve MaxCon; arrival date "
-            "selected for greatest feasible peak FIRO space."
+            "Storage-linear rise from refill anchor to MaxCon, then hold to rule-curve merge."
+            if arrival_date else "NO_FEASIBLE_E_GEOMETRY: No whole-day MaxCon arrival fits the allocation."
         ),
     }
-
-    return best_curve, parameters
 
 
 def component_k_vertices(project, rule_elev, rule_storage, rating):
@@ -1252,15 +1023,15 @@ def build_component_h(
             if not -tolerance <= crest_offset <= allocation_kaf + tolerance:
                 continue
 
-            upper_elevation = np.linspace(spillway_crest, max_con_elev, merge - crest + 1)
-            upper = np.interp(upper_elevation, rating_elevation, rating_storage)
+            maximum_storage = np.interp(max_con_elev, rating_elevation, rating_storage)
+            upper = np.linspace(crest_storage, maximum_storage, merge - crest + 1)
             upper_offset = upper - storage[crest:merge + 1]
             if (upper_offset < -tolerance).any() or (upper_offset > allocation_kaf + tolerance).any():
                 continue
 
             for start in starts[starts < crest]:
-                lower_elevation = np.linspace(min_con_elev, spillway_crest, crest - start + 1)
-                lower = np.interp(lower_elevation, rating_elevation, rating_storage)
+                minimum_storage = np.interp(min_con_elev, rating_elevation, rating_storage)
+                lower = np.linspace(minimum_storage, crest_storage, crest - start + 1)
                 lower_offset = lower - storage[start:crest + 1]
                 if (lower_offset < -tolerance).any() or (lower_offset > allocation_kaf + tolerance).any():
                     continue
@@ -1273,7 +1044,7 @@ def build_component_h(
                     "parameter_2_value": DATES[crest].strftime("%Y-%m-%d"),
                     "geometry_assumption": (
                         "Earliest feasible spillway crest, then earliest feasible MinCon start; "
-                        f"straight elevation legs; MaxCon merge={DATES[merge]:%Y-%m-%d}."
+                        f"straight storage legs; MaxCon merge={DATES[merge]:%Y-%m-%d}."
                     ),
                 }
 
@@ -1306,9 +1077,11 @@ def component_i_candidates(project, allocation_kaf, rule_elev, rule_storage, rat
         lower = baseline[source].copy()
         lower[0] = low
         lower[source == merge] = high
-        upper = np.linspace(lower[-1], high, merge - april + 1)
-        elevations = np.r_[lower[:-1], upper]
-        volumes = np.interp(elevations, rating_elevations, rating_storage)
+        lower_storage = np.interp(lower, rating_elevations, rating_storage)
+        maximum_storage = np.interp(high, rating_elevations, rating_storage)
+        upper = np.linspace(lower_storage[-1], maximum_storage, merge - april + 1)
+        volumes = np.r_[lower_storage[:-1], upper]
+        elevations = np.interp(volumes, rating_storage, rating_elevations)
         offset = volumes - storage[first:merge + 1]
         if (
             (elevations < baseline[first:merge + 1] - tolerance).any()
@@ -1333,7 +1106,7 @@ def build_component_i(project, allocation_kaf, rule_elev, rule_storage, rating):
     else:
         advance, first, _, volumes, april_target = choice
         curve.iloc[first:first + len(volumes)] = volumes
-        note = "K-style refill advance to April 1, then a straight elevation leg to ordinary MaxCon refill."
+        note = "K-style refill advance to April 1, then a straight storage leg to ordinary MaxCon refill."
     return curve, {
         "parameter_1_name": "refill_advance_days",
         "parameter_1_value": advance,
@@ -1623,15 +1396,8 @@ def main():
 
     projects = projects.set_index("project_id")
 
-    rule_lookup = build_rule_curve_lookup(
-        rule_curves,
-        issues,
-    )
-
-    rating_lookup = build_rating_lookup(
-        ratings,
-        issues,
-    )
+    rating_lookup = build_rating_lookup(ratings, issues)
+    rule_lookup = build_rule_curve_lookup(rule_curves, rating_lookup, issues)
 
     selections["active_for_current_phase"] = (
         selections["active_for_current_phase"]

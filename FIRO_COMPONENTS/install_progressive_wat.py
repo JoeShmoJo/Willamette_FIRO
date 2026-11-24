@@ -236,11 +236,15 @@ def main():
                              help="Install only PGFIRO_H")
     single_case.add_argument("--refresh-curves", action="store_true",
                              help="Back up and replace only the installed A–K component CSVs")
+    single_case.add_argument("--refresh-all-curves", action="store_true",
+                             help="Back up and replace the installed A–K and M component CSVs")
     single_case.add_argument("--refresh-i", action="store_true",
                              help="Back up and replace only the installed I curve")
     parser.set_defaults(components=COMPONENTS)
     args = parser.parse_args()
-    if args.refresh_curves or args.refresh_i:
+    if args.refresh_all_curves:
+        refresh_curves(args.watershed.resolve(), args.curves.resolve(), COMPONENTS + "M")
+    elif args.refresh_curves or args.refresh_i:
         refresh_curves(args.watershed.resolve(), args.curves.resolve(), "I" if args.refresh_i else COMPONENTS)
     else:
         install(args.watershed.resolve(), args.curves.resolve(), args.components)

@@ -70,9 +70,8 @@ limit. There is one component per alternative and one candidate per reservoir.
 
 A changes the flat pool elevation. C changes the refill start. E changes the
 MaxCon arrival date. I uses a K-style advance through April 1 and a straight
-line to ordinary MaxCon refill after that. Refill legs
-are straight in elevation, with storage calculated from the rating for the
-constraints. J and K choose exact whole-day shifts. H keeps the spillway crest
+line to ordinary MaxCon refill after that. Refill legs and the rule-curve segments are straight in storage.
+The exported WAT CSVs express the daily targets in elevation. J and K choose exact whole-day shifts. H keeps the spillway crest
 geometry. A uses sampled target levels; I, J, and K test whole-day shifts. When the component is below the rule curve, the ordinary curve
 controls. The separate `--all-components` comparison retains the proportional
 storage-scaling experiment and does not export WAT curves.
@@ -90,8 +89,8 @@ Check that it uses `ALL_D` and that the initialization log names the matching
 `FIRO_SPACEConfig_Progressive_*.csv`. The sizing constraints use unrouted
 storage offsets. Flood performance is evaluated in the routed compute.
 For an existing set of cases, add `--refresh-curves` to the installer command.
-It backs up and replaces only the installed A, C, E, H, I, J, and K CSVs.
-The existing WAT registrations and the constant-offset M case are preserved.
+Use `--refresh-all-curves` to back up and refresh the eight installed CSVs,
+including M. The existing WAT registrations are preserved.
 Recompute any cases that previously used the old curves.
 
 ## Constant-offset benchmark
@@ -117,15 +116,16 @@ Run `compare_k_scaling.py --max-offset --wat-csvs DIRECTORY`, then
 Run `python FIRO_COMPONENTS/plot_lookout_point.py --curves DIRECTORY` after
 generating A, C, E, H, I, J, K, and M. Open the resulting
 `lookout_point_firo_components.html`. Click a legend entry to toggle it or
-double-click to isolate it. The left axis shows storage above MinCon using
-the rating at the same evenly spaced right-axis elevation ticks. The dashed
+double-click to isolate it. The left axis shows storage above MinCon in even increments by default.
+The toggle switches to even elevation increments on the right, with the left
+ticks calculated from the same rating. The dashed
 line marks the 887.5 ft spillway crest.
 
 ## Early spillway geometry for H
 
 H tests crest dates in order. A date is feasible when the storage difference
 from the rule curve at the crest fits the project limit and both straight
-elevation legs fit on every day. The upper leg goes from the crest to the
+storage legs fit on every day. The upper leg goes from the crest to the
 first normal MaxCon refill day. For the earliest feasible crest, the lower
 leg starts as early as possible while the ordinary curve is at MinCon.
 The builder checks storage using the reservoir rating and reports when no
@@ -137,13 +137,19 @@ elevation. Run `compare_k_scaling.py --only-h --wat-csvs DIRECTORY`
 to regenerate only H. For a new H case, add `--only-h` to the installer.
 For an existing case, back up and replace only its progressive H CSV.
 
-To inspect what is installed in a WAT watershed, run
-`python FIRO_COMPONENTS/plot_lookout_point.py --watershed WATERSHED`. Open
-`installed_wat_firo_curves.html` and select a reservoir. The figure reads the
-CSV named in each installed `PGFIRO_A` through `PGFIRO_M` case override.
-The source table lists each path and a checksum prefix. Blank targets stay
-blank. The rule curve and storage rating are the FIRO model references.
-For evidence of what a specific compute used, check its initialization log.
+To review the actual WAT inputs, run
+`python FIRO_COMPONENTS/plot_lookout_point.py --watershed WATERSHED` and open
+`index.html` in the progressive output directory. Each alternative has one
+scrollable page with all reservoir curves, an axis selector, and a three-row
+constraint table. Use `--curves DIRECTORY --review` to review generated CSVs
+before installing them. Control-point peaks use the sum of same-day upstream
+storage offsets. The WAT initialization log identifies which CSV a compute used.
+
+For E, each ramp starts at rule-curve storage at the rising-limb inflection
+or March 1 when the inflection is absent. The ramp reaches MaxCon on a feasible
+whole day with its peak offset at arrival, then holds MaxCon until the rule
+curve catches up. The progressive optimizer selects the arrival date jointly
+with the other reservoirs under the shared limits.
 
 To regenerate only the April 1 component, run
 `compare_k_scaling.py --only-i --wat-csvs DIRECTORY`, then use

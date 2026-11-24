@@ -169,28 +169,13 @@ CSV under the watershed's `scripts/externalRules/` and set
 watershed's `WAT_FIRO_ALTERNATIVES.md` describes the WAT registration and
 companion files.
 
-Add `--review` to build a local interactive review from the same single-component
-cases. Open `outputs/wat_components/diagnostics/review/index.html`. The plots
-include rule-curve overlays using the exact targets in the WAT CSVs. The right
-ticks are evenly spaced elevations; the aligned left labels show storage above MinCon in KAF
-from each reservoir's rating, with zero at MinCon. Each component links directly to reservoir draft
-and downstream space use. The utilization plots compare daily offsets against
-both assigned and physical reservoir limits and the downstream space limit. The before/after selector compares the two
-allocation passes. The WAT CSVs use the after-reallocation case. The downstream
-plots screen unrouted daily storage offsets and do not represent routed ResSim
-flows. Keep the generated `diagnostics` and `final` folders together so links work.
-
-Each elevation overlay also lists the reservoir's initial share, final allocation,
-peak daily FIRO use, and physical limit. Links identify any shared downstream
-allocations that are at their limit. The downstream table compares static assigned
-space with peak daily use. The system summary records the redistribution gain and
-whether the proportional refinement was retained.
-
-Expand **What accounts for the gap?** in a downstream row to see how much
-capacity was never assigned, how much of the assigned space the individual
-curves never reach, and the additional gap from different peak dates. The table
-shows each upstream reservoir's own peak and its use on the control point's
-peak day. These are unrouted storage offsets above the ordinary rule curve.
+Add `--review` and open `outputs/wat_components/diagnostics/review/index.html`.
+Each alternative has one scrollable page with the exported WAT targets over
+the ordinary rule curves. Storage above MinCon is on the left and elevation
+is on the right. The page-wide selector switches the evenly spaced axis.
+Each page contains a table of the constraint, maximum achieved, and percent
+utilized for each reservoir, control point, and shared reservoir limit. The
+control-point maximum is the peak of same-day upstream storage offsets.
 
 ### Compare proportional scaling for Component K
 

@@ -278,7 +278,7 @@ def fill_constant_offsets(headroom, physical_caps, members, limits):
     return factors, offsets
 
 
-def run_max_offset(projects, units, relationships, builder, rules, ratings, destination, wat_csvs):
+def run_max_offset(projects, units, relationships, builder, rules, ratings, wat_csvs):
     hours = np.arange(len(builder.DATES) * HOURS_PER_DAY)
     daily_hours = hours[::HOURS_PER_DAY]
     daily_headroom = []
@@ -299,22 +299,11 @@ def run_max_offset(projects, units, relationships, builder, rules, ratings, dest
     report["constant_offset_kaf"] = caps * factors
     report["peak_kaf"] = offsets.max(axis=0)
     report["kaf_days"] = np.trapz(offsets, dx=1 / HOURS_PER_DAY, axis=0)
-    report.to_csv(destination / "max_offset_reservoirs.csv")
-    time = builder.DATES[0] + pd.to_timedelta(hours, unit="h")
-    loads = offsets @ membership.T
-    rows = []
-    for i, (key, name, limit, _) in enumerate(groups):
-        peak = int(loads[:, i].argmax())
-        rows.append((key, name, limit, loads[peak, i], time[peak]))
-    pd.DataFrame(rows, columns=[
-        "limit_id", "location", "limit_kaf", "peak_kaf", "peak_time",
-    ]).to_csv(destination / "max_offset_limits.csv", index=False)
     export_max_offset_curve(wat_csvs, projects, builder.DATES, offsets, builder, rules, ratings)
     print(report[["project_name", "constant_offset_kaf", "kaf_days"]].to_string(
         index=False, float_format=lambda value: f"{value:,.2f}",
     ))
     print(f"Total: {report.kaf_days.sum():,.2f} KAF-days")
-    print(f"Reports: {destination.resolve()}")
     print(f"Progressive WAT CSV: {(wat_csvs / 'FIRO_SPACEConfig_Progressive_M.csv').resolve()}")
 
 
@@ -340,32 +329,25 @@ def main():
     issues = []
     _, relationships = allocator.build_control_point_relationships(network, control_points, issues)
     rule_table = pd.read_csv(builder.RULE_CURVES_FILE, encoding="utf-8-sig")
-    rating_table = pd.read_csv(builder.STORAGE_ELEVATION_FILE).rename(columns={"Elev": "elevation_ft"})
-    rating_table["project_id"] = rating_table.Reservoir.map(builder.canonical_id)
-    rating_table["storage_kaf"] = rating_table.Stor / 1000
-    rules = builder.build_rule_curve_lookup(rule_table, issues)
-    ratings = builder.build_rating_lookup(rating_table, issues)
+    ratings = builder.build_rating_lookup(builder.read_storage_ratings(), issues)
+    rules = builder.build_rule_curve_lookup(rule_table, ratings, issues)
     if any(issue["severity"] == "ERROR" for issue in issues):
         raise ValueError(f"Invalid model inputs: {issues}")
-    args.output.mkdir(parents=True, exist_ok=True)
     if args.max_offset:
-        run_max_offset(projects, units, relationships, builder, rules, ratings, args.output, args.wat_csvs)
+        run_max_offset(projects, units, relationships, builder, rules, ratings, args.wat_csvs)
         return
     if args.wat_csvs is not None:
         args.wat_csvs.mkdir(parents=True, exist_ok=True)
         names = projects.project_name.tolist()
-        results = []
         for code in ("H" if args.only_h else "I" if args.only_i else "ACEHIJK"):
             eligible = projects.loc[projects.index.isin(H_PROJECTS)] if code == "H" else projects
             groups = shared_limits(eligible, units, relationships)
             summary = export_component(code, eligible, names, groups, builder, rules, ratings,
-                                       args.samples, args.wat_csvs, args.output)
-            results.append(summary)
+                                       args.samples, args.wat_csvs)
             print(pd.DataFrame([summary]).to_string(index=False), flush=True)
-        pd.DataFrame(results).to_csv(args.output / "shape_summary.csv", index=False)
-        print(f"Reports: {args.output.resolve()}")
         print(f"Shape-preserving WAT CSVs: {args.wat_csvs.resolve()}")
         return
+    args.output.mkdir(parents=True, exist_ok=True)
     cases = [("K", HOURS_PER_DAY), ("K", 1)]
     if args.only_h or args.only_i:
         cases = [("H" if args.only_h else "I", HOURS_PER_DAY)]
